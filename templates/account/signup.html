@@ -12,13 +12,13 @@
         {{ field.label }}
         {{ field }}
       </label>
-      {% if field.errors %}
-        <p class="field-error">{{ field.errors|join:" " }}</p>
-      {% endif %}
+      {% for error in field.errors %}
+        <p class="field-error">{{ error }}</p>
+      {% endfor %}
     {% endfor %}
-    {% if form.non_field_errors %}
-      <p class="field-error">{{ form.non_field_errors|join:" " }}</p>
-    {% endif %}
+    {% for error in form.non_field_errors %}
+      <p class="field-error">{{ error }}</p>
+    {% endfor %}
     <button type="submit">Sign up</button>
   </form>
 </div>

@@ -6,7 +6,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>{% block title %}GroundUp Puzzle Test Site{% endblock %}</title>
 		{% block css %}
-		<link rel="stylesheet" href="{% static 'crossword/style.css' %}?v=36">
+		<link rel="stylesheet" href="{% static 'crossword/style.css' %}?v=38">
 		{% endblock %}
 
 		{% block head %}{% endblock %}
@@ -28,6 +28,13 @@
 			{% endblock %}
 		</header>
 		<main>
+			{% if messages %}
+			<ul class="messages">
+				{% for message in messages %}
+				<li class="message {{ message.tags }}">{{ message }}</li>
+				{% endfor %}
+			</ul>
+			{% endif %}
 			{% block content %}{% endblock %}
 		</main>
 		{% block scripts %}{% endblock %}
