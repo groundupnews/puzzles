@@ -109,6 +109,9 @@ AUTHENTICATION_BACKENDS = [
 
 LOGIN_REDIRECT_URL = '/'
 
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 365  # 1 year
+ACCOUNT_SESSION_REMEMBER = True
+
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
