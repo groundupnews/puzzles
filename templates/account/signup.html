@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Sign up{% endblock %}
+{% block content %}
+<div class="auth-box">
+  <h1>Sign up</h1>
+  <p>Already have an account? <a href="{{ login_url }}">Sign in</a></p>
+  <form method="post" action="{% url 'account_signup' %}">
+    {% csrf_token %}
+    {{ redirect_field }}
+    {% for field in form %}
+      <label>
+        {{ field.label }}
+        {{ field }}
+      </label>
+      {% if field.errors %}
+        <p class="field-error">{{ field.errors|join:" " }}</p>
+      {% endif %}
+    {% endfor %}
+    {% if form.non_field_errors %}
+      <p class="field-error">{{ form.non_field_errors|join:" " }}</p>
+    {% endif %}
+    <button type="submit">Sign up</button>
+  </form>
+</div>
+{% endblock %}

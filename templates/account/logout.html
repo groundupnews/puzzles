@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Sign out{% endblock %}
+{% block content %}
+<div class="auth-box">
+  <h1>Sign out</h1>
+  <p>Are you sure you want to sign out?</p>
+  <form method="post" action="{% url 'account_logout' %}">
+    {% csrf_token %}
+    {{ redirect_field }}
+    <button type="submit">Sign out</button>
+  </form>
+</div>
+{% endblock %}
