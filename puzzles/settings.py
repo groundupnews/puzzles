@@ -113,6 +113,7 @@ SESSION_COOKIE_AGE = 60 * 60 * 24 * 365  # 1 year
 ACCOUNT_SESSION_REMEMBER = True
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_ADAPTER = "puzzles.adapters.AccountAdapter"
 
 # Internationalization
