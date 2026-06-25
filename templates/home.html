@@ -1,15 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Title</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-</head>
-<body>
-
-    <h1>GroundUp Puzzles Temporary Test Page</h1>
+{% extends "base.html" %}
+{% block content %}
+    <h1>GroundUp Puzzles Test Page</h1>
 
     <ul>
 	    <li><a href="{% url 'crossword_select' %}">Crosswords</a>
@@ -17,6 +8,4 @@
 	<li><a href="https://groundup.org.za/sudoku/latest/">Sudoku</a>
     </ul>
 
-    <script src="script.js" defer></script>
-</body>
-</html>
+{% endblock %}
