@@ -112,8 +112,7 @@ LOGIN_REDIRECT_URL = '/'
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 365  # 1 year
 ACCOUNT_SESSION_REMEMBER = True
 ACCOUNT_LOGIN_METHODS = {"email"}
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_ADAPTER = "puzzles.adapters.AccountAdapter"
 
 # Internationalization
