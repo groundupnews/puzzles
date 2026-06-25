@@ -6,7 +6,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>{% block title %}GroundUp Puzzle Test Site{% endblock %}</title>
 		{% block css %}
-		<link rel="stylesheet" href="{% static 'crossword/style.css' %}?v=29">
+		<link rel="stylesheet" href="{% static 'crossword/style.css' %}?v=35">
 		{% endblock %}
 
 		{% block head %}{% endblock %}
@@ -15,7 +15,7 @@
 	<body>
 		<header>
 			{% block header %}
-			<span class="common-links">
+			<div id="common-links">
 			<a href="{% url 'home' %}">Puzzles</a>
 			<a href="https://groundup.org.za/">GroundUp</a>
 			{% if request.user.is_authenticated %}
@@ -24,7 +24,7 @@
 			<a href="{% url 'account_login' %}">Login</a>
 			<a href="{% url 'account_signup' %}">Signup</a>
 			{% endif %}
-			</span>
+			</div>
 			{% endblock %}
 		</header>
 		<main>
