@@ -142,6 +142,10 @@ ACCOUNT_LOGIN_BY_CODE_ENABLED = True
 ALLAUTH_USER_CODE_FORMAT = {"numeric": True, "length": 6, "dashed": False}
 ACCOUNT_FORMS = {"request_login_code": "puzzles.forms.PasswordlessRequestLoginCodeForm"}
 USERSESSIONS_TRACK_ACTIVITY = True  # required for the session list / logout-everywhere
+# nginx is the sole reverse proxy in front of gunicorn and sets X-Forwarded-For;
+# trust that one hop so allauth can determine the client IP (it otherwise can't,
+# since gunicorn has no real peer address over the nginx->gunicorn unix socket).
+ALLAUTH_TRUSTED_PROXY_COUNT = 1
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
