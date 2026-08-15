@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load browser %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<div class="auth-box wide">
+  <h1>Settings</h1>
+
+  <div class="settings-links">
+    <a href="{% url 'account_logout' %}">Logout from this device</a>
+    <a href="{% url 'logout_everywhere' %}">Logout from all devices</a>
+  </div>
+
+  <h2>Sessions</h2>
+  <div class="table-scroll">
+    <table class="session-table">
+      <thead>
+        <tr>
+          <th>Started</th>
+          <th>IP address</th>
+          <th>Browser</th>
+          {% if show_last_seen_at %}<th>Last seen</th>{% endif %}
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for session in sessions %}
+        <tr>
+          <td>{{ session.created_at|date:"Y-m-d H:i:s" }}</td>
+          <td>{{ session.ip }}</td>
+          <td title="{{ session.user_agent }}">{{ session.user_agent|browser_summary }}</td>
+          {% if show_last_seen_at %}<td>{{ session.last_seen_at|date:"Y-m-d H:i:s" }}</td>{% endif %}
+          <td>{% if session.is_current %}<span class="badge-current">this device</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

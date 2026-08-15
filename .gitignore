@@ -21,6 +21,8 @@ db.sqlite3-journal
 *.sqlite3
 media/
 staticfiles/
+*-shm
+*-wal
 
 # Secrets / environment
 .env

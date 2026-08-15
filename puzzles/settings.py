@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "allauth",
     "allauth.account",
+    "allauth.usersessions",
+    "puzzles",
     "crossword",
 ]
 
@@ -51,6 +53,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "allauth.usersessions.middleware.UserSessionsMiddleware",
 ]
 
 ROOT_URLCONF = "puzzles.urls"
@@ -122,13 +125,19 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 LOGIN_REDIRECT_URL = "/"
+LOGIN_URL = "account_request_login_code"
 
-SESSION_COOKIE_AGE = 60 * 60 * 24 * 365  # 1 year
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 365  # 1 year; renewed on every request, see below
+SESSION_SAVE_EVERY_REQUEST = True  # keeps logins alive indefinitely for active users
 ACCOUNT_SESSION_REMEMBER = True
 ACCOUNT_LOGIN_METHODS = {"email"}
-ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_SIGNUP_FIELDS = ["email*"]
+ACCOUNT_EMAIL_VERIFICATION = "none"  # login-by-code verifies the email itself
 ACCOUNT_ADAPTER = "puzzles.adapters.AccountAdapter"
+ACCOUNT_LOGIN_BY_CODE_ENABLED = True
+ALLAUTH_USER_CODE_FORMAT = {"numeric": True, "length": 6, "dashed": False}
+ACCOUNT_FORMS = {"request_login_code": "puzzles.forms.PasswordlessRequestLoginCodeForm"}
+USERSESSIONS_TRACK_ACTIVITY = True  # required for the session list / logout-everywhere
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/

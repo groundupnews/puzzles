@@ -16,10 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic.base import TemplateView
+from django.views.generic.base import RedirectView, TemplateView
+
+from puzzles.views import logout_everywhere
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # The old password-based login/signup pages are retired in favour of
+    # login-by-code; redirect anyone who still has these URLs bookmarked.
+    path('accounts/login/', RedirectView.as_view(pattern_name='account_request_login_code', query_string=True)),
+    path('accounts/signup/', RedirectView.as_view(pattern_name='account_request_login_code', query_string=True)),
     path('accounts/', include('allauth.urls')),
+    path('accounts/sessions/', include('allauth.usersessions.urls')),
+    path('accounts/logout-everywhere/', logout_everywhere, name='logout_everywhere'),
     path('crossword/', include('crossword.urls')),
     path('', TemplateView.as_view(template_name="home.html"), name="home",), ]
