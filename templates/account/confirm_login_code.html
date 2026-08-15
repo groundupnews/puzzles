@@ -20,6 +20,14 @@
       <p class="field-error">{{ error }}</p>
     {% endfor %}
     <button type="submit">Sign in</button>
+    {% if can_resend %}
+      <button type="submit" name="action" value="resend">Resend code</button>
+    {% endif %}
+  </form>
+  <form method="post" action="{% url 'account_logout' %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{% url 'account_request_login_code' %}">
+    <button type="submit">Problem logging in? Start over</button>
   </form>
 </div>
 {% endblock %}
