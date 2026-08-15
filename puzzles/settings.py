@@ -27,6 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# nginx sets X-Forwarded-Proto via proxy_params; trust it so request.is_secure()
+# is correct behind the reverse proxy (needed for CSRF Origin checks on POST).
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 
 # Application definition
 
