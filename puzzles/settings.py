@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.usersessions",
     "puzzles",
+    "score",
     "crossword",
 ]
 
