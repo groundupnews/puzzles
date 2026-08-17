@@ -31,3 +31,12 @@
   </form>
 </div>
 {% endblock %}
+{% block scripts %}
+<script>
+  {% if can_resend %}
+  document.querySelector('button[name="action"][value="resend"]').addEventListener('click', function () {
+    document.body.classList.add('waiting');
+  });
+  {% endif %}
+</script>
+{% endblock %}

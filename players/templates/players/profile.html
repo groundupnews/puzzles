@@ -3,8 +3,10 @@
 {% block title %}Your profile{% endblock %}
 
 {% block content %}
-<h1>Profile for {{user.player}} ({{user.pk}})</h1>
-<form method="post">
+<h1>Profile for {{user.player}}  (ID: {{user.pk}})</h1>
+<p style="margin-bottom:0;">Email address: {{ user.email }}</p>
+<p class="helptext">Contact info@groundup.org.za if you wish to change your email address.</p>
+<form method="post" class="profile-form">
   {% csrf_token %}
   {{ form.as_p }}
   <div class="buttons">

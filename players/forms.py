@@ -5,15 +5,13 @@ from .models import Player
 
 class PlayerProfileForm(forms.ModelForm):
     """Player's public profile: display_name lives on Player, but
-    first_name/last_name/email are pseudo-fields that write through to
-    the associated User."""
+    first_name/last_name are pseudo-fields that write through to the
+    associated User. Email is deliberately not editable here: it's used
+    to log in, so changing it must go through allauth's own flow rather
+    than this form."""
 
     first_name = forms.CharField(max_length=150, required=False, help_text="Optional.")
     last_name = forms.CharField(max_length=150, required=False, help_text="Optional.")
-    email_address = forms.EmailField(
-        label="Email address",
-        help_text="Used to contact you and log in. Never shown publicly.",
-    )
 
     class Meta:
         model = Player
@@ -31,7 +29,6 @@ class PlayerProfileForm(forms.ModelForm):
         user = self.instance.user
         self.initial["first_name"] = user.first_name
         self.initial["last_name"] = user.last_name
-        self.initial["email_address"] = user.email
         if not self.instance.pk:
             self.initial["display_name"] = f"player_{user.pk}"
 
@@ -40,7 +37,6 @@ class PlayerProfileForm(forms.ModelForm):
         user = player.user
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
-        user.email = self.cleaned_data["email_address"]
         if commit:
             user.save()
         return player
