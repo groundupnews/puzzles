@@ -1,0 +1,14 @@
+{% extends "crossword/base.html" %}
+
+{% block title %}New crossword{% endblock %}
+
+{% block content %}
+<h1>New crossword</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <div class="buttons">
+    <button type="submit">Create</button>
+  </div>
+</form>
+{% endblock %}

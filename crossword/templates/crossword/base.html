@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Crossword maker{% endblock %}
+{% block header %}
+    {{ block.super }}
+    <div>
+    <a href="{% url 'crossword_select' %}">Crosswords</a>
+    {% if perms.crossword.can_generate_crosswords %}<a href="{% url 'crossword_add' %}">New crossword</a>{% endif %}
+    </div>
+{% endblock %}

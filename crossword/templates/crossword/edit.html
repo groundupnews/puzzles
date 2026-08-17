@@ -1,0 +1,148 @@
+{% extends "crossword/base.html" %}
+{% load static %}
+
+{% block title %}Edit crossword{% endblock %}
+
+{% block content %}
+<h1>Edit crossword {{crossword.pk}} <span class="owner-tag">({{ crossword.owner.username }})</span></h1>
+
+<div class="meta">
+  <label>Name <input type="text" id="cw-name" value="{{ crossword.name }}" autofocus></label>
+  <label>Authors <input type="text" id="cw-authors" value="{{ crossword.authors }}"></label>
+  <label>Editors <input type="text" id="cw-editors" value="{{ crossword.editors }}"></label>
+  <label>Copyright <input type="text" id="cw-copyright" value="{{ crossword.copyright }}"></label>
+  <label>Description
+    <input type="text" id="cw-description" value="{{ crossword.description }}">
+  </label>
+  <label class="checkbox-label">Private
+    <input type="checkbox" id="cw-private" {% if crossword.private %}checked{% endif %}>
+  </label>
+  <label class="checkbox-label">Rotational symmetry
+    <input type="checkbox" id="cw-rotational-symmetry"
+           {% if crossword.requires_rotational_symmetry %}checked{% endif %}>
+  </label>
+  <label>Published
+    <input type="datetime-local" id="cw-published"
+           value="{{ crossword.published|date:'Y-m-d\TH:i'|default:'' }}">
+    <span id="publish-status"></span>
+    <button type="button" id="publish-btn"></button>
+  </label>
+  <small class="dates">
+    Added {{ crossword.date_added|date:"Y-m-d H:i" }},
+    modified {{ crossword.date_modified|date:"Y-m-d H:i" }}
+    &emsp;<span id="blocks-pct"></span>
+  </small>
+</div>
+
+<div class="editor">
+  <div class="grid-pane">
+    <div class="grid-wrap">
+      <span id="completion-indicator"></span>
+      <svg id="grid" tabindex="0"
+           viewBox="0 0 {{ crossword.num_cols }} {{ crossword.num_rows }}"></svg>
+    </div>
+    <p id="warning" class="warning" hidden></p>
+    <div class="clue-entry">
+      <label for="clue-input">Clue for <span id="current-slot">—</span></label>
+      <div class="clue-entry-row">
+        <button id="prev-slot-btn" class="slot-nav-btn" type="button">&#8592;</button>
+        <input type="text" id="clue-input" disabled>
+        <button id="next-slot-btn" class="slot-nav-btn" type="button">&#8594;</button>
+      </div>
+    </div>
+    <div class="buttons">
+      <button id="save-btn" type="button">Save</button>
+      <button id="fetch-answers-btn" type="button">Fetch answers</button>
+      <button id="fetch-clues-btn" type="button">Fetch clues</button>
+      <button id="autocomplete-btn" type="button" title="Autocomplete">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+      </button>
+      {% if crossword.is_published or not crossword.private_link %}
+      <a href="{% url 'crossword_solve' crossword.pk %}" class="btn-icon">View</a>
+      {% else %}
+      <a href="{% url 'crossword_private_solve' crossword.private_link %}" class="btn-icon">View</a>
+      {% endif %}
+    </div>
+    <dl class="key-legend">
+      <dt><kbd>A–Z</kbd></dt><dd>Type letter</dd>
+      <dt><kbd>Backspace</kbd></dt><dd>Delete / retreat</dd>
+      <dt><kbd>Delete</kbd></dt><dd>Delete / advance</dd>
+      <dt><kbd>Space</kbd></dt><dd>Toggle block</dd>
+      <dt><kbd>.</kbd></dt><dd>Toggle direction</dd>
+      <dt><kbd>Home</kbd> / <kbd>End</kbd></dt><dd>First / last cell</dd>
+      <dt><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd></dt><dd>Next / prev incomplete slot</dd>
+      <dt><kbd>[</kbd> / <kbd>]</kbd></dt><dd>Fetch answers / clues</dd>
+      <dt><kbd>Ctrl+G</kbd></dt><dd>Focus clue / grid</dd>
+      <dt><kbd>Ctrl+S</kbd></dt><dd>Save</dd>
+      <dt><kbd>Esc</kbd></dt><dd>Dismiss results</dd>
+      <dt><kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Y</kbd></dt><dd>Undo / redo</dd>
+    </dl>
+  </div>
+
+  <aside id="results-pane" class="results-pane" hidden>
+    <div class="results-pane-header">
+      <h2 id="results-title"></h2>
+      {% if user.is_staff %}
+      <button id="answer-metrics-btn" type="button" title="Show ranking metrics" disabled>
+        <i class="fa-solid fa-calculator"></i>
+      </button>
+      {% endif %}
+    </div>
+    <ul id="results-list"></ul>
+    <div id="results-pager" class="results-pager" hidden>
+      <button id="results-prev" type="button">&lsaquo; Prev</button>
+      <span id="results-page-info"></span>
+      <button id="results-next" type="button">Next &rsaquo;</button>
+    </div>
+  </aside>
+
+  <aside class="clue-list">
+    <div>
+      <h2>Across</h2>
+      <ol id="clue-list-across"></ol>
+    </div>
+    <div>
+      <h2>Down</h2>
+      <ol id="clue-list-down"></ol>
+    </div>
+  </aside>
+</div>
+
+{{ crossword.cells|json_script:"cw-cells" }}
+{{ crossword.blocked_out_squares|json_script:"cw-blocks" }}
+{{ clues|json_script:"cw-clues" }}
+<script>
+  window.CROSSWORD = {
+    pk: {{ crossword.pk }},
+    numRows: {{ crossword.num_rows }},
+    numCols: {{ crossword.num_cols }},
+    cells: JSON.parse(document.getElementById("cw-cells").textContent),
+    blocks: JSON.parse(document.getElementById("cw-blocks").textContent),
+    clues: JSON.parse(document.getElementById("cw-clues").textContent),
+    get nytRules() { return document.getElementById("cw-rotational-symmetry").checked; },
+    saveUrl: "{% url 'crossword_save' crossword.pk %}",
+    fetchAnswersUrl: "{% url 'fetch_answers' crossword.pk %}",
+    fetchCluesUrl: "{% url 'fetch_clues' crossword.pk %}",
+    autoCompleteUrl: "{% url 'crossword_auto_complete' crossword.pk %}",
+    csrfToken: "{{ csrf_token }}"
+  };
+</script>
+<div id="exit-modal" class="modal-overlay" hidden>
+  <div class="modal">
+    <p>You have unsaved changes. Do you really want to exit?</p>
+    <div class="modal-buttons">
+      <button id="exit-confirm">Yes, exit</button>
+      <button id="exit-cancel">No, go back</button>
+    </div>
+  </div>
+</div>
+<div id="autocomplete-modal" class="modal-overlay" hidden>
+  <div class="modal">
+    <p>Auto-completing&hellip;</p>
+    <div class="modal-buttons">
+      <button id="autocomplete-cancel" type="button">Cancel</button>
+    </div>
+  </div>
+</div>
+<script src="{% static 'crossword/generator.js' %}?v=34"></script>
+{% endblock %}

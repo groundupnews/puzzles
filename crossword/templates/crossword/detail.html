@@ -1,0 +1,127 @@
+{% extends "crossword/base.html" %}
+{% load static %}
+
+{% block title %}{{ crossword.name|default:"Crossword" }}{% endblock %}
+
+{% block content %}
+<h1>{{ crossword.name|default:"Untitled crossword" }}</h1>
+{% if crossword.description %}<div class="cw-description">{{ crossword.description|linebreaks }}</div>{% endif %}
+
+<audio id="click-sound" src="{% static 'crossword/click_001.ogg' %}" preload="auto"></audio>
+<audio id="tada-sound" src="{% static 'crossword/tada-fanfare-g-sound.flac' %}" preload="auto"></audio>
+<div class="editor">
+  <div class="grid-pane">
+    <div class="buttons">
+      <div class="check-dropdown">
+        <button id="check-btn" type="button"><i class="fa-solid fa-check"></i> Check</button>
+        <ul class="check-menu" id="check-menu" hidden>
+          <li data-mode="letter">Letter</li>
+          <li data-mode="word">Word</li>
+          <li data-mode="crossword">Crossword</li>
+        </ul>
+      </div>
+      <div class="check-dropdown">
+        <button id="reveal-btn" type="button"><i class="fa-solid fa-eye"></i> Reveal</button>
+        <ul class="check-menu" id="reveal-menu" hidden>
+          <li data-mode="letter">Letter</li>
+          <li data-mode="word">Word</li>
+          <li data-mode="crossword">Crossword</li>
+        </ul>
+      </div>
+      <button id="sound-btn" type="button" title="Toggle sound"><i id="sound-icon" class="fa-solid fa-volume-high"></i></button>
+      <span class="timer-wrap">
+        <span id="timer"><i class="fa-solid fa-clock"></i> <span id="timer-value">00:00:00</span></span>
+        <button id="timer-toggle" type="button">Hide</button>
+      </span>
+      {% if perms.crossword.can_generate_crosswords %}
+      <a href="{% url 'crossword_edit' crossword.pk %}" class="btn-icon" title="Edit crossword"><i class="fa-solid fa-pen"></i></a>
+      {% endif %}
+    </div>
+    <svg id="grid" tabindex="0"
+         viewBox="0 0 {{ crossword.num_cols }} {{ crossword.num_rows }}"></svg>
+    <div class="clue-display">
+      <button id="prev-slot-btn" class="slot-nav-btn" type="button">&#8592;</button>
+      <div class="clue-text-wrap"><strong id="current-slot">—</strong> <span id="clue-text"></span></div>
+      <button id="next-slot-btn" class="slot-nav-btn" type="button">&#8594;</button>
+    </div>
+    <div id="completion-message" hidden></div>
+    <div class="mobile-keyboard" id="mobile-keyboard">
+      <div class="kb-row">
+        <button type="button" class="kb-key" data-key="Q">Q</button>
+        <button type="button" class="kb-key" data-key="W">W</button>
+        <button type="button" class="kb-key" data-key="E">E</button>
+        <button type="button" class="kb-key" data-key="R">R</button>
+        <button type="button" class="kb-key" data-key="T">T</button>
+        <button type="button" class="kb-key" data-key="Y">Y</button>
+        <button type="button" class="kb-key" data-key="U">U</button>
+        <button type="button" class="kb-key" data-key="I">I</button>
+        <button type="button" class="kb-key" data-key="O">O</button>
+        <button type="button" class="kb-key" data-key="P">P</button>
+      </div>
+      <div class="kb-row">
+        <button type="button" class="kb-key" data-key="A">A</button>
+        <button type="button" class="kb-key" data-key="S">S</button>
+        <button type="button" class="kb-key" data-key="D">D</button>
+        <button type="button" class="kb-key" data-key="F">F</button>
+        <button type="button" class="kb-key" data-key="G">G</button>
+        <button type="button" class="kb-key" data-key="H">H</button>
+        <button type="button" class="kb-key" data-key="J">J</button>
+        <button type="button" class="kb-key" data-key="K">K</button>
+        <button type="button" class="kb-key" data-key="L">L</button>
+      </div>
+      <div class="kb-row">
+        <button type="button" class="kb-key" data-key="Z">Z</button>
+        <button type="button" class="kb-key" data-key="X">X</button>
+        <button type="button" class="kb-key" data-key="C">C</button>
+        <button type="button" class="kb-key" data-key="V">V</button>
+        <button type="button" class="kb-key" data-key="B">B</button>
+        <button type="button" class="kb-key" data-key="N">N</button>
+        <button type="button" class="kb-key" data-key="M">M</button>
+        <button type="button" class="kb-key kb-backspace" data-key="Backspace"><i class="fa-solid fa-delete-left"></i></button>
+      </div>
+    </div>
+    <dl class="key-legend">
+      <dt><kbd>A–Z</kbd></dt><dd>Type letter</dd>
+      <dt><kbd>Backspace</kbd></dt><dd>Delete / retreat</dd>
+      <dt><kbd>Delete</kbd></dt><dd>Delete / advance</dd>
+      <dt><kbd>Space</kbd></dt><dd>Delete / advance</dd>
+      <dt><kbd>.</kbd></dt><dd>Toggle direction</dd>
+      <dt><kbd>Home</kbd> / <kbd>End</kbd></dt><dd>First / last cell</dd>
+      <dt><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd></dt><dd>Next / prev slot</dd>
+    </dl>
+    <p class="cw-meta">{% spaceless %}
+      {% if crossword.authors %}By {{ crossword.authors }}.{% endif %}
+      {% if crossword.editors %} Edited by {{ crossword.editors }}.{% endif %}
+      {% if crossword.copyright %} {{ crossword.copyright }}.{% endif %}
+      {% if crossword.published %} Published {{ crossword.published|date:"j F Y" }}.{% endif %}
+    {% endspaceless %}</p>
+  </div>
+
+  <aside class="clue-list">
+    <div>
+      <h2>Across</h2>
+      <ol id="clue-list-across"></ol>
+    </div>
+    <div>
+      <h2>Down</h2>
+      <ol id="clue-list-down"></ol>
+    </div>
+  </aside>
+</div>
+
+{{ crossword.blocked_out_squares|json_script:"cw-blocks" }}
+{{ clues|json_script:"cw-clues" }}
+<script>
+  window.CROSSWORD = {
+    pk: {{ crossword.pk }},
+    numRows: {{ crossword.num_rows }},
+    numCols: {{ crossword.num_cols }},
+    blocks: JSON.parse(document.getElementById("cw-blocks").textContent),
+    clues: JSON.parse(document.getElementById("cw-clues").textContent),
+    checkUrl: "{% url 'crossword_check' crossword.pk %}",
+    revealUrl: "{% url 'crossword_reveal' crossword.pk %}",
+    csrfToken: "{{ csrf_token }}",
+  };
+</script>
+<script src="{% static 'crossword/solver.js' %}?v=42"></script>
+{% endblock %}

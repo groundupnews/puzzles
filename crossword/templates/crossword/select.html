@@ -1,0 +1,94 @@
+{% extends "crossword/base.html" %}
+
+{% block title %}Crosswords{% endblock %}
+
+{% block content %}
+<h1>Crosswords</h1>
+{% if perms.crossword.can_generate_crosswords %}
+<div class="buttons">
+  <button id="import-btn" type="button"><i class="fa-solid fa-upload"></i> Import</button>
+  <input type="file" id="import-file" accept=".xd,.xml" hidden>
+</div>
+{% endif %}
+{% if crosswords %}
+<div class="table-wrap">
+<table class="crossword-table">
+  <thead>
+    <tr>
+      {% if perms.crossword.can_generate_crosswords %}<th>ID</th>{% endif %}
+      <th>Name</th>
+      {% if perms.crossword.can_generate_crosswords %}<th>Owner</th>{% endif %}
+      {% if not perms.crossword.can_generate_crosswords %}<th>Published</th>{% endif %}
+      <th></th>
+      {% if perms.crossword.can_generate_crosswords %}
+      <th></th>
+      <th>Published</th>
+      <th></th>
+      {% endif %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for crossword in crosswords %}
+    <tr>
+      {% if perms.crossword.can_generate_crosswords %}<td class="cw-id">{{ crossword.pk }}</td>{% endif %}
+      <td class="cw-name">
+        <a href="{% url 'crossword_solve' crossword.pk %}">{{ crossword.name|default:"Untitled" }}</a>
+      </td>
+      {% if perms.crossword.can_generate_crosswords %}<td class="cw-owner">{{ crossword.owner.username }}</td>{% endif %}
+      {% if not perms.crossword.can_generate_crosswords %}<td>{{ crossword.published|date:"Y-m-d" }}</td>{% endif %}
+      <td><a href="{% url 'crossword_xd' crossword.pk %}"><i class="fa-solid fa-download"></i> Export</a></td>
+      {% if perms.crossword.can_generate_crosswords %}
+      <td>
+        {% if not crossword.private or crossword.owner_id == request.user.id %}
+          <a href="{% url 'crossword_edit' crossword.pk %}">Edit</a>
+        {% endif %}
+      </td>
+      <td>
+        {% if crossword.published %}
+          <span class="{% if crossword.is_published %}status-published{% else %}status-unpublished{% endif %}">
+            {{ crossword.published|date:"Y-m-d H:i" }}
+          </span>
+        {% else %}
+          <span class="status-unpublished">Unpublished</span>
+        {% endif %}
+      </td>
+      <td>
+        <form method="post" action="{% url 'crossword_delete' crossword.pk %}">
+          {% csrf_token %}
+          <button class="btn-delete" type="submit"
+                  onclick="return confirm('Delete this crossword? This cannot be undone.')"><i class="fa-solid fa-trash"></i></button>
+        </form>
+      </td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>No crosswords yet.{% if perms.crossword.can_generate_crosswords %} <a href="{% url 'crossword_add' %}">Create one.</a>{% endif %}</p>
+{% endif %}
+<script>
+  const CSRF_TOKEN = "{{ csrf_token }}";
+  document.getElementById("import-btn").addEventListener("click", () => {
+    document.getElementById("import-file").click();
+  });
+  document.getElementById("import-file").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const text = await file.text();
+    const resp = await fetch("{% url 'crossword_import' %}", {
+      method: "POST",
+      headers: {"Content-Type": "text/plain; charset=utf-8", "X-CSRFToken": CSRF_TOKEN, "X-Filename": file.name},
+      body: text,
+    });
+    const data = await resp.json();
+    if (resp.ok) {
+      window.location.href = data.redirect;
+    } else {
+      alert("Import failed: " + (data.error || "unknown error"));
+    }
+    e.target.value = "";
+  });
+</script>
+{% endblock %}
