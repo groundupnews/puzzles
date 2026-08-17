@@ -2,7 +2,11 @@
 {% load account %}
 {% load i18n %}
 
-{% block content %}{% autoescape off %}{% blocktranslate %}Your sign-in code is listed below. Please enter it in your open browser window.{% endblocktranslate %}{% endautoescape %}
+{% block greeting %}{% autoescape off %}{% if display_name %}{% blocktranslate %}Hello {{ display_name }},{% endblocktranslate %}{% else %}{% blocktranslate %}Hello {{ email }},{% endblocktranslate %}{% endif %}{% endautoescape %}{% endblock greeting %}
+
+{% block content %}{% autoescape off %}{% if is_new_user %}{% blocktranslate %}You are registering to play GroundUp's puzzles, and logging in for the first time with this email address.{% endblocktranslate %}
+
+{% endif %}{% blocktranslate %}Your sign-in code is listed below. Please enter it in your open browser window.{% endblocktranslate %}{% endautoescape %}
 
 {{ code }}
 

@@ -3,9 +3,11 @@
 {% block title %}Settings{% endblock %}
 {% block content %}
 <div class="auth-box wide">
-  <h1>Settings</h1>
+  <h1>{{ user }}</h1>
 
   <div class="settings-links">
+    {% if request.user.is_staff %}<a class="admin-link" href="{% url 'admin:index' %}">Admin</a>{% endif %}
+    <a href="{% url 'player_profile' %}">Profile</a>
     <a href="{% url 'account_logout' %}">Logout from this device</a>
     <a href="{% url 'logout_everywhere' %}">Logout from all devices</a>
   </div>

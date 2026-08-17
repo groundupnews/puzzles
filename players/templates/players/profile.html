@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Your profile{% endblock %}
+
+{% block content %}
+<h1>Profile for {{user.player}} ({{user.pk}})</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <div class="buttons">
+    <button type="submit">Save</button>
+  </div>
+</form>
+{% endblock %}

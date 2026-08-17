@@ -33,7 +33,8 @@ urlpatterns = [
     path('accounts/signup/', RedirectView.as_view(pattern_name='account_request_login_code', query_string=True)),
     path('accounts/', include('allauth.urls')),
     path('accounts/login/', request_login_code, name='account_request_login_code'),
-    path('accounts/sessions/', include('allauth.usersessions.urls')),
+    path('accounts/settings/', include('allauth.usersessions.urls')),
     path('accounts/logout-everywhere/', logout_everywhere, name='logout_everywhere'),
     path('crossword/', include('crossword.urls')),
+    path('players/', include('players.urls')),
     path('', TemplateView.as_view(template_name="home.html"), name="home",), ]
