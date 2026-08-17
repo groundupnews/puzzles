@@ -3,7 +3,7 @@
 {% block title %}Settings{% endblock %}
 {% block content %}
 <div class="auth-box wide">
-  <h1>{{ user }}</h1>
+  <h1>{{ user.player }}</h1>
 
   <div class="settings-links">
     {% if request.user.is_staff %}<a class="admin-link" href="{% url 'admin:index' %}">Admin</a>{% endif %}
