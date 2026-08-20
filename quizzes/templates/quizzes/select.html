@@ -5,10 +5,36 @@
 {% block content %}
 <h1>Quizzes</h1>
 {% if perms.quizzes.can_generate_quizzes %}
-<form method="post" action="{% url 'quiz_add' %}" class="buttons">
-  {% csrf_token %}
-  <button type="submit">New quiz</button>
-</form>
+<div class="buttons">
+  <form method="post" action="{% url 'quiz_add' %}">
+    {% csrf_token %}
+    <button type="submit">New quiz</button>
+  </form>
+  <button id="import-btn" type="button"><i class="fa-solid fa-upload"></i> Import</button>
+  <input type="file" id="import-file" accept=".json" hidden>
+</div>
+<script>
+  document.getElementById("import-btn").addEventListener("click", () => {
+    document.getElementById("import-file").click();
+  });
+  document.getElementById("import-file").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const text = await file.text();
+    const resp = await fetch("{% url 'quiz_import' %}", {
+      method: "POST",
+      headers: {"Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}"},
+      body: text,
+    });
+    const data = await resp.json();
+    if (resp.ok) {
+      window.location.href = data.redirect;
+    } else {
+      alert("Import failed: " + (data.error || "unknown error"));
+    }
+    e.target.value = "";
+  });
+</script>
 {% endif %}
 {% if quizzes %}
 <div class="table-wrap">
@@ -19,6 +45,7 @@
       <th>Name</th>
       {% if not perms.quizzes.can_generate_quizzes %}<th>Published</th>{% endif %}
       {% if perms.quizzes.can_generate_quizzes %}
+      <th></th>
       <th></th>
       <th>Published</th>
       <th></th>
@@ -34,6 +61,7 @@
       </td>
       {% if not perms.quizzes.can_generate_quizzes %}<td>{{ quiz.published|date:"Y-m-d" }}</td>{% endif %}
       {% if perms.quizzes.can_generate_quizzes %}
+      <td><a href="{% url 'quiz_export' quiz.pk %}"><i class="fa-solid fa-download"></i> Export</a></td>
       <td><a href="{% url 'quiz_edit' quiz.pk %}">Edit</a></td>
       <td>
         {% if quiz.published %}

@@ -1,14 +1,17 @@
 import json
 from datetime import datetime
 
+from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.db import IntegrityError, transaction
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView
 
+from .json_import import import_quiz_from_json
 from .models import Answer, Question, Quiz
 
 PERM = "quizzes.can_generate_quizzes"
@@ -205,3 +208,60 @@ def quiz_check(request, pk):
         })
 
     return JsonResponse({"results": results, "score": score, "total": len(questions)})
+
+
+@permission_required(PERM)
+@require_POST
+def quiz_import(request):
+    """Create a quiz from an uploaded JSON file (see json_import.py for
+    the expected shape and its best-effort, drop-and-report approach).
+
+    Only a totally unparseable body is rejected outright; anything
+    import_quiz_from_json() dropped along the way is instead reported as
+    a Django message, which renders on the edit screen this redirects to
+    (base.html already has a {% if messages %} block for it).
+    """
+    try:
+        data = json.loads(request.body)
+        if not isinstance(data, dict):
+            raise ValueError("root of the JSON document must be an object")
+    except (json.JSONDecodeError, UnicodeDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON file"}, status=400)
+
+    quiz, warnings = import_quiz_from_json(data)
+    for warning in warnings:
+        messages.warning(request, warning)
+
+    return JsonResponse({"redirect": reverse("quiz_edit", args=[quiz.pk])})
+
+
+@permission_required(PERM)
+def quiz_export(request, pk):
+    """Return the quiz as a downloadable JSON file, in exactly the shape
+    quiz_import/import_quiz_from_json expect -- so an exported file can be
+    re-imported unchanged. Unlike crossword_xd's export (deliberately open
+    to everyone), this is gated behind the generate permission: the export
+    format includes which answer is correct for every question, the one
+    thing quiz_solve/quiz_check are careful never to hand a solver up
+    front.
+    """
+    quiz = get_object_or_404(Quiz, pk=pk)
+    data = {
+        "name": quiz.name,
+        "authors": quiz.authors,
+        "editors": quiz.editors,
+        "copyright": quiz.copyright,
+        "description": quiz.description,
+        "published": quiz.published.isoformat() if quiz.published else None,
+        "questions": [
+            [
+                q.question,
+                [[a.answer, a.correct] for a in q.answer_set.order_by("order")],
+            ]
+            for q in quiz.question_set.order_by("order")
+        ],
+    }
+    filename = (quiz.name or "quiz").replace('"', "")
+    response = JsonResponse(data, json_dumps_params={"indent": 2})
+    response["Content-Disposition"] = f'attachment; filename="{filename}.json"'
+    return response

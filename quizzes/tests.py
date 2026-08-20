@@ -7,6 +7,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from .json_import import import_quiz_from_json
 from .models import Answer, Question, Quiz
 
 
@@ -236,6 +237,213 @@ class QuizDeleteViewTest(TestCase):
         response = self.client.post(reverse("quiz_delete", args=[quiz.pk]))
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Quiz.objects.filter(pk=quiz.pk).exists())
+
+
+# ---------------------------------------------------------------------------
+# import_quiz_from_json
+# ---------------------------------------------------------------------------
+
+
+class ImportQuizFromJsonTest(TestCase):
+    def test_imports_metadata_and_questions(self):
+        quiz, warnings = import_quiz_from_json({
+            "name": "Geo",
+            "authors": "Jane",
+            "published": "2026-01-01T00:00:00+00:00",
+            "questions": [
+                ["Capital of France?", [["Paris", True], ["Lyon", False]]],
+                ["2 + 2?", [["3", False], ["4", True]]],
+            ],
+        })
+        self.assertEqual(warnings, [])
+        self.assertEqual(quiz.name, "Geo")
+        self.assertEqual(quiz.authors, "Jane")
+        self.assertIsNotNone(quiz.published)
+        questions = list(quiz.question_set.order_by("order"))
+        self.assertEqual([q.question for q in questions], ["Capital of France?", "2 + 2?"])
+        paris = questions[0].answer_set.get(answer="Paris")
+        self.assertTrue(paris.correct)
+
+    def test_missing_optional_fields_default_to_blank(self):
+        quiz, warnings = import_quiz_from_json({"questions": []})
+        self.assertEqual(warnings, [])
+        self.assertEqual(quiz.name, "")
+        self.assertEqual(quiz.authors, "")
+        self.assertEqual(quiz.editors, "")
+        self.assertEqual(quiz.copyright, "")
+        self.assertEqual(quiz.description, "")
+        self.assertIsNone(quiz.published)
+
+    def test_missing_questions_key_imports_empty_quiz_with_no_warning(self):
+        quiz, warnings = import_quiz_from_json({"name": "Empty"})
+        self.assertEqual(warnings, [])
+        self.assertFalse(quiz.question_set.exists())
+
+    def test_malformed_question_entry_dropped_and_warned(self):
+        quiz, warnings = import_quiz_from_json({"questions": ["not a tuple", ["Real?", [["Yes", True]]]]})
+        self.assertEqual(quiz.question_set.count(), 1)
+        self.assertEqual(quiz.question_set.get().question, "Real?")
+        self.assertTrue(any("malformed" in w for w in warnings))
+
+    def test_blank_question_text_dropped_and_warned(self):
+        quiz, warnings = import_quiz_from_json({"questions": [["  ", [["A", True]]]]})
+        self.assertFalse(quiz.question_set.exists())
+        self.assertTrue(any("blank text" in w for w in warnings))
+
+    def test_duplicate_question_text_dropped_and_warned(self):
+        quiz, warnings = import_quiz_from_json({
+            "questions": [
+                ["Same?", [["A", True]]],
+                ["Same?", [["B", True]]],
+            ]
+        })
+        self.assertEqual(quiz.question_set.count(), 1)
+        self.assertTrue(any("duplicate question text" in w for w in warnings))
+
+    def test_malformed_answer_entry_dropped_and_warned(self):
+        quiz, warnings = import_quiz_from_json({
+            "questions": [["Q?", ["not a tuple", ["Good", True]]]]
+        })
+        question = quiz.question_set.get()
+        self.assertEqual(question.answer_set.count(), 1)
+        self.assertTrue(any("malformed" in w for w in warnings))
+
+    def test_blank_answer_text_dropped_and_warned(self):
+        quiz, warnings = import_quiz_from_json({"questions": [["Q?", [["  ", True], ["Good", False]]]]})
+        question = quiz.question_set.get()
+        self.assertEqual(question.answer_set.count(), 1)
+        self.assertTrue(any("blank text" in w for w in warnings))
+
+    def test_duplicate_answer_text_dropped_and_warned(self):
+        quiz, warnings = import_quiz_from_json({
+            "questions": [["Q?", [["Same", True], ["Same", False]]]]
+        })
+        question = quiz.question_set.get()
+        self.assertEqual(question.answer_set.count(), 1)
+        self.assertTrue(any("duplicate answer" in w for w in warnings))
+
+    def test_second_correct_answer_downgraded_and_warned(self):
+        quiz, warnings = import_quiz_from_json({
+            "questions": [["Q?", [["First", True], ["Second", True]]]]
+        })
+        question = quiz.question_set.get()
+        self.assertEqual(question.answer_set.filter(correct=True).count(), 1)
+        self.assertTrue(question.answer_set.get(answer="First").correct)
+        self.assertFalse(question.answer_set.get(answer="Second").correct)
+        self.assertTrue(any("more than one answer marked correct" in w for w in warnings))
+
+    def test_no_correct_answer_warned_but_kept(self):
+        quiz, warnings = import_quiz_from_json({"questions": [["Q?", [["A", False], ["B", False]]]]})
+        question = quiz.question_set.get()
+        self.assertEqual(question.answer_set.count(), 2)
+        self.assertTrue(any("no correct answer marked" in w for w in warnings))
+
+    def test_non_list_questions_field_warned_and_ignored(self):
+        quiz, warnings = import_quiz_from_json({"questions": "not a list"})
+        self.assertFalse(quiz.question_set.exists())
+        self.assertTrue(any("not a list" in w for w in warnings))
+
+
+# ---------------------------------------------------------------------------
+# quiz_import
+# ---------------------------------------------------------------------------
+
+
+class QuizImportViewTest(TestCase):
+    def setUp(self):
+        make_user_with_perm(self.client)
+
+    def _import(self, data):
+        return self.client.post(
+            reverse("quiz_import"),
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+
+    def test_creates_quiz_and_redirects_to_edit(self):
+        response = self._import({
+            "name": "Geo",
+            "questions": [["Capital of France?", [["Paris", True]]]],
+        })
+        self.assertEqual(response.status_code, 200)
+        quiz = Quiz.objects.get()
+        self.assertEqual(response.json()["redirect"], reverse("quiz_edit", args=[quiz.pk]))
+        self.assertEqual(quiz.name, "Geo")
+
+    def test_warnings_surfaced_as_messages_on_next_page(self):
+        response = self._import({"questions": [["Q?", [["A", False]]]]})
+        redirect_url = response.json()["redirect"]
+        page = self.client.get(redirect_url)
+        messages = [str(m) for m in page.context["messages"]]
+        self.assertTrue(any("no correct answer marked" in m for m in messages))
+
+    def test_invalid_json_returns_400(self):
+        response = self.client.post(
+            reverse("quiz_import"), data="not json", content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(Quiz.objects.exists())
+
+    def test_non_object_json_returns_400(self):
+        response = self._import(["not", "an", "object"])
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(Quiz.objects.exists())
+
+    def test_requires_permission(self):
+        self.client.logout()
+        response = self._import({"questions": []})
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Quiz.objects.exists())
+
+
+# ---------------------------------------------------------------------------
+# quiz_export
+# ---------------------------------------------------------------------------
+
+
+class QuizExportViewTest(TestCase):
+    def setUp(self):
+        make_user_with_perm(self.client)
+        self.quiz = Quiz.objects.create(name="Geo Quiz", authors="Jane")
+        q = Question.objects.create(quiz=self.quiz, question="Capital of France?", order=0)
+        Answer.objects.create(question=q, answer="Paris", correct=True, order=0)
+        Answer.objects.create(question=q, answer="Lyon", correct=False, order=1)
+
+    def test_returns_json_matching_import_shape(self):
+        response = self.client.get(reverse("quiz_export", args=[self.quiz.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/json")
+        data = response.json()
+        self.assertEqual(data["name"], "Geo Quiz")
+        self.assertEqual(data["authors"], "Jane")
+        self.assertIsNone(data["published"])
+        self.assertEqual(
+            data["questions"],
+            [["Capital of France?", [["Paris", True], ["Lyon", False]]]],
+        )
+
+    def test_content_disposition_is_attachment_with_json_filename(self):
+        response = self.client.get(reverse("quiz_export", args=[self.quiz.pk]))
+        cd = response["Content-Disposition"]
+        self.assertIn("attachment", cd)
+        self.assertIn("Geo Quiz.json", cd)
+
+    def test_requires_permission(self):
+        self.client.logout()
+        response = self.client.get(reverse("quiz_export", args=[self.quiz.pk]))
+        self.assertEqual(response.status_code, 302)
+
+    def test_export_then_import_round_trips(self):
+        exported = self.client.get(reverse("quiz_export", args=[self.quiz.pk])).json()
+        quiz, warnings = import_quiz_from_json(exported)
+        self.assertEqual(warnings, [])
+        self.assertEqual(quiz.name, self.quiz.name)
+        self.assertEqual(
+            [(q.question, [(a.answer, a.correct) for a in q.answer_set.order_by("order")])
+             for q in quiz.question_set.order_by("order")],
+            [(q.question, [(a.answer, a.correct) for a in q.answer_set.order_by("order")])
+             for q in self.quiz.question_set.order_by("order")],
+        )
 
 
 # ---------------------------------------------------------------------------
