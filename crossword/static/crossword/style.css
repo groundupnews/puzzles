@@ -89,21 +89,25 @@ li {
   margin-top: 0.5rem;
 }
 
-.crossword-table {
+.crossword-table,
+.quiz-table {
   width: 100%;
   border-collapse: collapse;
   white-space: nowrap;
 }
 
 .crossword-table th,
-.crossword-table td {
+.crossword-table td,
+.quiz-table th,
+.quiz-table td {
   padding: 0.5rem 1.25rem 0.5rem 0;
   text-align: left;
   border-bottom: 1px solid var(--line-soft);
   vertical-align: middle;
 }
 
-.crossword-table th {
+.crossword-table th,
+.quiz-table th {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -112,7 +116,9 @@ li {
 }
 
 .crossword-table td:last-child,
-.crossword-table th:last-child {
+.crossword-table th:last-child,
+.quiz-table td:last-child,
+.quiz-table th:last-child {
   padding-right: 0;
 }
 
@@ -1025,4 +1031,79 @@ kbd {
 body.waiting,
 body.waiting * {
   cursor: wait !important;
+}
+
+/* Quiz builder */
+.questions {
+  max-width: 40rem;
+  margin-top: 1rem;
+}
+
+.question-block {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.question-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.question-number {
+  color: var(--faint);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.question-text {
+  flex: 1;
+  font-weight: 600;
+}
+
+.answers-list {
+  margin: 0.6rem 0 0.6rem 1.5rem;
+}
+
+.answer-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.answer-row input[type="radio"] {
+  flex-shrink: 0;
+}
+
+.answer-text {
+  flex: 1;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: var(--muted);
+  padding: 0.2rem 0.35rem;
+  flex-shrink: 0;
+}
+
+.icon-btn:hover {
+  background: var(--surface-sunken);
+}
+
+.icon-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.add-answer-btn {
+  margin-left: 1.5rem;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.6rem;
 }

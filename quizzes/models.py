@@ -1,4 +1,6 @@
 from django.db import models
+from django.utils import timezone
+
 from crossword.models import default_copyright
 
 
@@ -11,6 +13,14 @@ class Quiz(models.Model):
     date_added = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     published = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        permissions = [("can_generate_quizzes", "Can generate quizzes")]
+
+    def is_published(self):
+        """True once `published` is set and that moment has passed
+        (mirrors Crossword.is_published)."""
+        return self.published is not None and self.published <= timezone.now()
 
     def __str__(self):
         return self.name
@@ -46,4 +56,9 @@ class Answer(models.Model):
                 fields=["question", "answer"], name="unique_question_answer"
             ),
             models.UniqueConstraint(fields=["question", "order"], name="unique_question_order"),
+            models.UniqueConstraint(
+                fields=["question"],
+                condition=models.Q(correct=True),
+                name="one_correct_answer_per_question",
+            ),
         ]

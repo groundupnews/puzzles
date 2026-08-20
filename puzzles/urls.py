@@ -36,5 +36,6 @@ urlpatterns = [
     path('accounts/settings/', include('allauth.usersessions.urls')),
     path('accounts/logout-everywhere/', logout_everywhere, name='logout_everywhere'),
     path('crossword/', include('crossword.urls')),
+    path('quizzes/', include('quizzes.urls')),
     path('players/', include('players.urls')),
     path('', TemplateView.as_view(template_name="home.html"), name="home",), ]

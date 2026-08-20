@@ -1,0 +1,46 @@
+{% extends "quizzes/base.html" %}
+{% load static %}
+
+{% block title %}Edit quiz{% endblock %}
+
+{% block content %}
+<h1>Edit quiz {{ quiz.pk }}</h1>
+
+<div class="meta">
+  <label>Name <input type="text" id="qz-name" value="{{ quiz.name }}" autofocus></label>
+  <label>Authors <input type="text" id="qz-authors" value="{{ quiz.authors }}"></label>
+  <label>Editors <input type="text" id="qz-editors" value="{{ quiz.editors }}"></label>
+  <label>Copyright <input type="text" id="qz-copyright" value="{{ quiz.copyright }}"></label>
+  <label>Description
+    <input type="text" id="qz-description" value="{{ quiz.description }}">
+  </label>
+  <label>Published
+    <input type="datetime-local" id="qz-published"
+           value="{{ quiz.published|date:'Y-m-d\TH:i'|default:'' }}">
+    <span id="publish-status"></span>
+    <button type="button" id="publish-btn"></button>
+  </label>
+  <small class="dates">
+    Added {{ quiz.date_added|date:"Y-m-d H:i" }},
+    modified {{ quiz.date_modified|date:"Y-m-d H:i" }}
+  </small>
+</div>
+
+<div id="questions" class="questions"></div>
+
+<div class="buttons">
+  <button id="add-question-btn" type="button">Add question</button>
+  <button id="save-btn" type="button">Save</button>
+</div>
+
+{{ questions|json_script:"qz-questions" }}
+<script>
+  window.QUIZ = {
+    pk: {{ quiz.pk }},
+    questions: JSON.parse(document.getElementById("qz-questions").textContent),
+    saveUrl: "{% url 'quiz_save' quiz.pk %}",
+    csrfToken: "{{ csrf_token }}"
+  };
+</script>
+<script src="{% static 'quizzes/quiz_builder.js' %}?v=1"></script>
+{% endblock %}

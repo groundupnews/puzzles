@@ -1,0 +1,55 @@
+{% extends "quizzes/base.html" %}
+
+{% block title %}Quizzes{% endblock %}
+
+{% block content %}
+<h1>Quizzes</h1>
+<form method="post" action="{% url 'quiz_add' %}" class="buttons">
+  {% csrf_token %}
+  <button type="submit">New quiz</button>
+</form>
+{% if quizzes %}
+<div class="table-wrap">
+<table class="quiz-table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Published</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for quiz in quizzes %}
+    <tr>
+      <td class="cw-id">{{ quiz.pk }}</td>
+      <td class="cw-name">
+        <a href="{% url 'quiz_edit' quiz.pk %}">{{ quiz.name|default:"Untitled" }}</a>
+      </td>
+      <td>
+        {% if quiz.published %}
+          <span class="{% if quiz.is_published %}status-published{% else %}status-unpublished{% endif %}">
+            {{ quiz.published|date:"Y-m-d H:i" }}
+          </span>
+        {% else %}
+          <span class="status-unpublished">Unpublished</span>
+        {% endif %}
+      </td>
+      <td><a href="{% url 'quiz_edit' quiz.pk %}">Edit</a></td>
+      <td>
+        <form method="post" action="{% url 'quiz_delete' quiz.pk %}">
+          {% csrf_token %}
+          <button class="btn-delete" type="submit"
+                  onclick="return confirm('Delete this quiz? This cannot be undone.')"><i class="fa-solid fa-trash"></i></button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>No quizzes yet.</p>
+{% endif %}
+{% endblock %}
