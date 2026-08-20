@@ -4,6 +4,14 @@ from django.utils import timezone
 from crossword.models import default_copyright
 
 
+class QuizQuerySet(models.QuerySet):
+    def published(self):
+        """Quizzes with a publication datetime that has already passed.
+        Used to filter what non-generator users are allowed to see
+        (mirrors CrosswordQuerySet.published)."""
+        return self.filter(published__isnull=False, published__lte=timezone.now())
+
+
 class Quiz(models.Model):
     name = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
@@ -13,6 +21,8 @@ class Quiz(models.Model):
     date_added = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     published = models.DateTimeField(null=True, blank=True)
+
+    objects = QuizQuerySet.as_manager()
 
     class Meta:
         permissions = [("can_generate_quizzes", "Can generate quizzes")]

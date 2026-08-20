@@ -1065,6 +1065,23 @@ body.waiting * {
   font-weight: 600;
 }
 
+/* Groups the question-level move/delete controls into one shaded chip, so
+   they read as a toolbar for the whole block rather than blending in with
+   an individual answer row's plain inline icons. */
+.question-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  background: var(--line-soft);
+  border-radius: 999px;
+  padding: 0.15rem 0.3rem;
+  flex-shrink: 0;
+}
+
+.question-controls .icon-btn:hover {
+  background: var(--surface);
+}
+
 .answers-list {
   margin: 0.6rem 0 0.6rem 1.5rem;
 }
@@ -1088,8 +1105,9 @@ body.waiting * {
   background: none;
   border: none;
   box-shadow: none;
-  color: var(--muted);
-  padding: 0.2rem 0.35rem;
+  color: var(--ink);
+  font-size: 1.05rem;
+  padding: 0.2rem 0.4rem;
   flex-shrink: 0;
 }
 
@@ -1102,8 +1120,36 @@ body.waiting * {
   cursor: not-allowed;
 }
 
+/* Higher specificity than either .icon-btn or .btn-delete alone, so this
+   reliably wins regardless of the two rules' source order -- a plain
+   .btn-delete override here would otherwise depend on which rule happens
+   to come later in the file. */
+.icon-btn.btn-delete {
+  color: var(--danger);
+}
+
 .add-answer-btn {
   margin-left: 1.5rem;
   font-size: 0.85rem;
   padding: 0.3rem 0.6rem;
+}
+
+/* Quiz solver */
+.answer-row.answer-correct {
+  background: #d4edda;
+  border-radius: 6px;
+}
+
+.answer-row.answer-wrong {
+  background: #f8d7da;
+  border-radius: 6px;
+}
+
+#quiz-result {
+  margin: 0.85rem 0;
+  padding: 0.5rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  max-width: 32rem;
+  background: #eef4ff;
 }

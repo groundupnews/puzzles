@@ -26,6 +26,14 @@ function moveItem(list, index, delta) {
   render();
 }
 
+// Fisher-Yates, in place.
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
 // A small icon-only button (Font Awesome glyph + title tooltip), used for
 // the up/down/delete controls on questions and answers.
 function iconButton(iconClass, title, onClick, extraClass) {
@@ -68,11 +76,16 @@ function render() {
       markDirty();
     });
 
-    const upBtn = iconButton("fa-arrow-up", "Move question up", () =>
+    // Double chevrons (rather than the single arrows used on answers) plus
+    // the shaded .question-controls grouping below both signal "this acts
+    // on the whole question/answer block", not just one answer -- the two
+    // levels of controls look identical otherwise, which isn't obvious at
+    // a glance.
+    const upBtn = iconButton("fa-angles-up", "Move question up", () =>
       moveItem(state.questions, qi, -1)
     );
     upBtn.disabled = qi === 0;
-    const downBtn = iconButton("fa-arrow-down", "Move question down", () =>
+    const downBtn = iconButton("fa-angles-down", "Move question down", () =>
       moveItem(state.questions, qi, 1)
     );
     downBtn.disabled = qi === state.questions.length - 1;
@@ -86,8 +99,11 @@ function render() {
       },
       "btn-delete"
     );
+    const controls = document.createElement("div");
+    controls.className = "question-controls";
+    controls.append(upBtn, downBtn, deleteBtn);
 
-    header.append(number, textInput, upBtn, downBtn, deleteBtn);
+    header.append(number, textInput, controls);
     block.appendChild(header);
 
     // Non-blocking: flags a question with no correct answer marked yet,
@@ -162,12 +178,26 @@ function render() {
     });
     block.appendChild(addAnswerBtn);
 
+    const shuffleBtn = iconButton("fa-shuffle", "Shuffle answers", () => {
+      shuffle(q.answers);
+      markDirty();
+      render();
+    });
+    shuffleBtn.disabled = q.answers.length < 2;
+    block.appendChild(shuffleBtn);
+
     container.appendChild(block);
   });
 }
 
 document.getElementById("add-question-btn").addEventListener("click", () => {
   state.questions.push({ text: "", answers: [] });
+  markDirty();
+  render();
+});
+
+document.getElementById("shuffle-all-btn").addEventListener("click", () => {
+  state.questions.forEach((q) => shuffle(q.answers));
   markDirty();
   render();
 });

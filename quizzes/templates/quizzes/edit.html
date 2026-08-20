@@ -30,7 +30,9 @@
 
 <div class="buttons">
   <button id="add-question-btn" type="button">Add question</button>
+  <button id="shuffle-all-btn" type="button" title="Shuffle answers in every question"><i class="fa-solid fa-shuffle"></i></button>
   <button id="save-btn" type="button">Save</button>
+  <a href="{% url 'quiz_solve' quiz.pk %}" class="btn-icon">View</a>
 </div>
 
 {{ questions|json_script:"qz-questions" }}
@@ -42,5 +44,5 @@
     csrfToken: "{{ csrf_token }}"
   };
 </script>
-<script src="{% static 'quizzes/quiz_builder.js' %}?v=1"></script>
+<script src="{% static 'quizzes/quiz_builder.js' %}?v=4"></script>
 {% endblock %}

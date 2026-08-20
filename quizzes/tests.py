@@ -244,11 +244,18 @@ class QuizDeleteViewTest(TestCase):
 
 
 class QuizSelectViewTest(TestCase):
-    def test_requires_permission(self):
-        response = self.client.get(reverse("quiz_select"))
-        self.assertEqual(response.status_code, 302)
+    """Mirrors CrosswordSelectViewTest's dual-audience rule: anonymous
+    visitors see only published quizzes; generators see everything."""
 
-    def test_lists_quizzes_for_permitted_user(self):
+    def test_anonymous_sees_only_published_quizzes(self):
+        Quiz.objects.create(name="Published", published=timezone.now() - timedelta(days=1))
+        Quiz.objects.create(name="Draft", published=None)
+        response = self.client.get(reverse("quiz_select"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Published")
+        self.assertNotContains(response, "Draft")
+
+    def test_permitted_user_sees_unpublished_quizzes_too(self):
         make_user_with_perm(self.client)
         Quiz.objects.create(name="A quiz")
         response = self.client.get(reverse("quiz_select"))
@@ -259,6 +266,101 @@ class QuizSelectViewTest(TestCase):
 # ---------------------------------------------------------------------------
 # is_published
 # ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# quiz_solve
+# ---------------------------------------------------------------------------
+
+
+class QuizSolveViewTest(TestCase):
+    def _make_quiz(self, **kwargs):
+        quiz = Quiz.objects.create(**kwargs)
+        q = Question.objects.create(quiz=quiz, question="Capital of France?", order=0)
+        Answer.objects.create(question=q, answer="Paris", correct=True, order=0)
+        Answer.objects.create(question=q, answer="Lyon", correct=False, order=1)
+        return quiz
+
+    def test_published_quiz_visible_to_anonymous(self):
+        quiz = self._make_quiz(published=timezone.now() - timedelta(days=1))
+        response = self.client.get(reverse("quiz_solve", args=[quiz.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Paris")
+
+    def test_unpublished_quiz_404s_for_anonymous(self):
+        quiz = self._make_quiz(published=None)
+        response = self.client.get(reverse("quiz_solve", args=[quiz.pk]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_unpublished_quiz_visible_to_permitted_user(self):
+        make_user_with_perm(self.client)
+        quiz = self._make_quiz(published=None)
+        response = self.client.get(reverse("quiz_solve", args=[quiz.pk]))
+        self.assertEqual(response.status_code, 200)
+
+    def test_seeded_json_omits_which_answer_is_correct(self):
+        # The whole point of quiz_check existing separately: the initial
+        # page load must not let a visitor read the answer key out of the
+        # page source before attempting the quiz.
+        quiz = self._make_quiz(published=timezone.now() - timedelta(days=1))
+        response = self.client.get(reverse("quiz_solve", args=[quiz.pk]))
+        self.assertNotContains(response, "correct")
+
+
+# ---------------------------------------------------------------------------
+# quiz_check
+# ---------------------------------------------------------------------------
+
+
+class QuizCheckViewTest(TestCase):
+    def setUp(self):
+        self.quiz = Quiz.objects.create(published=timezone.now() - timedelta(days=1))
+        self.q1 = Question.objects.create(quiz=self.quiz, question="Capital of France?", order=0)
+        self.paris = Answer.objects.create(question=self.q1, answer="Paris", correct=True, order=0)
+        self.lyon = Answer.objects.create(question=self.q1, answer="Lyon", correct=False, order=1)
+        self.q2 = Question.objects.create(quiz=self.quiz, question="Capital of Japan?", order=1)
+        self.tokyo = Answer.objects.create(question=self.q2, answer="Tokyo", correct=True, order=0)
+
+    def _check(self, answers):
+        return self.client.post(
+            reverse("quiz_check", args=[self.quiz.pk]),
+            data=json.dumps({"answers": answers}),
+            content_type="application/json",
+        )
+
+    def test_scores_correct_and_wrong_answers(self):
+        response = self._check({str(self.q1.pk): self.paris.pk, str(self.q2.pk): self.tokyo.pk})
+        data = response.json()
+        self.assertEqual(data["score"], 2)
+        self.assertEqual(data["total"], 2)
+        self.assertTrue(all(r["correct"] for r in data["results"]))
+
+    def test_wrong_answer_scored_as_incorrect_and_reveals_correct_id(self):
+        response = self._check({str(self.q1.pk): self.lyon.pk, str(self.q2.pk): self.tokyo.pk})
+        data = response.json()
+        self.assertEqual(data["score"], 1)
+        q1_result = next(r for r in data["results"] if r["question_id"] == self.q1.pk)
+        self.assertFalse(q1_result["correct"])
+        self.assertEqual(q1_result["correct_answer_id"], self.paris.pk)
+
+    def test_unanswered_question_scored_as_incorrect(self):
+        response = self._check({str(self.q1.pk): self.paris.pk})
+        data = response.json()
+        self.assertEqual(data["score"], 1)
+        self.assertEqual(data["total"], 2)
+
+    def test_question_with_no_correct_answer_never_scores(self):
+        q3 = Question.objects.create(quiz=self.quiz, question="Undecided?", order=2)
+        maybe = Answer.objects.create(question=q3, answer="Maybe", correct=False, order=0)
+        response = self._check({str(q3.pk): maybe.pk})
+        result = next(r["correct"] for r in response.json()["results"] if r["question_id"] == q3.pk)
+        self.assertFalse(result)
+
+    def test_unpublished_quiz_404s_for_anonymous(self):
+        self.quiz.published = None
+        self.quiz.save()
+        response = self._check({})
+        self.assertEqual(response.status_code, 404)
 
 
 class QuizIsPublishedTest(TestCase):

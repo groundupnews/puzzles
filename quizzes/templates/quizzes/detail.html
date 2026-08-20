@@ -1,0 +1,41 @@
+{% extends "quizzes/base.html" %}
+{% load static %}
+
+{% block title %}{{ quiz.name|default:"Quiz" }}{% endblock %}
+
+{% block content %}
+<h1>{{ quiz.name|default:"Untitled quiz" }}</h1>
+{% if quiz.description %}<div class="cw-description">{{ quiz.description|linebreaks }}</div>{% endif %}
+
+{% if perms.quizzes.can_generate_quizzes %}
+<div class="buttons">
+  <a href="{% url 'quiz_edit' quiz.pk %}" class="btn-icon" title="Edit quiz"><i class="fa-solid fa-pen"></i></a>
+</div>
+{% endif %}
+
+<div id="questions" class="questions"></div>
+
+<div class="buttons">
+  <button id="submit-btn" type="button">Submit</button>
+  <button id="retake-btn" type="button" hidden>Retake quiz</button>
+</div>
+<div id="quiz-result" hidden></div>
+
+<p class="cw-meta">{% spaceless %}
+  {% if quiz.authors %}By {{ quiz.authors }}.{% endif %}
+  {% if quiz.editors %} Edited by {{ quiz.editors }}.{% endif %}
+  {% if quiz.copyright %} {{ quiz.copyright }}.{% endif %}
+  {% if quiz.published %} Published {{ quiz.published|date:"j F Y" }}.{% endif %}
+{% endspaceless %}</p>
+
+{{ questions|json_script:"qz-questions" }}
+<script>
+  window.QUIZ = {
+    pk: {{ quiz.pk }},
+    questions: JSON.parse(document.getElementById("qz-questions").textContent),
+    checkUrl: "{% url 'quiz_check' quiz.pk %}",
+    csrfToken: "{{ csrf_token }}"
+  };
+</script>
+<script src="{% static 'quizzes/quiz_solver.js' %}?v=1"></script>
+{% endblock %}
