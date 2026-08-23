@@ -5,6 +5,9 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth.models import User
+from players.models import Player
+from scores.models import Competition
+
 
 # Claude: Why use a regex validator instead of Python's isupper?
 # Claude response: Two reasons. (1) isupper() allows digits — "AB3".isupper() is True
@@ -102,6 +105,7 @@ class Crossword(models.Model):
     authors = models.CharField(max_length=200, blank=True)
     editors = models.CharField(max_length=200, blank=True)
     copyright = models.CharField(max_length=200, default=default_copyright)
+    competition = models.ForeignKey(Competition, null=True, on_delete=models.SET_NULL)
     date_added = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     published = models.DateTimeField(null=True, blank=True)

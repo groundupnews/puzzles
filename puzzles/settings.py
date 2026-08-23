@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "allauth.usersessions",
     "puzzles",
     "players",
+    "scores",
     "crossword",
     "quizzes",
 ]
