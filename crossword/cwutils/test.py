@@ -241,7 +241,7 @@ class TestMatching(unittest.TestCase):
         # the real dictionary so it's caught if it raises. The
         # exactly-verified behaviour lives in TestWordsFreedom below.
         self.grid1.slots[1].words_freedom()
-        print(self.grid1.slots[1].words_freedom())
+
 
 # Claude added these tests
 class TestWordsFreedom(unittest.TestCase):
@@ -350,7 +350,7 @@ OGLED
         self.assertTrue(g.complete())
         self.assertEqual(g.cells, Grid(self.cw2, get_words()).cells)
         g = auto_complete(self.grid2)
-        print(g)
+        self.assertTrue(g.complete())
 
 
 if __name__ == "__main__":

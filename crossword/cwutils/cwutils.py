@@ -226,7 +226,10 @@ class Slot:
                 scores.append(len(word_index.matches(glob)))
             result[word] = scores
 
-        arr = [(word, min_no_error(scores), mean(scores)) for word, scores in result.items()]
+        arr = [
+            (word, min_no_error(scores), mean(scores))
+            for word, scores in result.items()
+        ]
         arr = sorted(arr, key=lambda tpl: (tpl[1], tpl[2]), reverse=True)
         if not active_crossings:
             arr = [(word, None, None) for word, _, _ in arr]
@@ -399,19 +402,17 @@ class Grid:
                 return False
         return True
 
-import time
-MAX_ATTEMPTS = 500
 
-# This is still work in progress
+# Very basic attempt to complete the grid. Will return its best effort
 def auto_complete(grid):
 
+    MAX_ATTEMPTS = 500
     attempt = 0
 
     def auto_complete_(grid):
         nonlocal attempt
-        attempt +=1 
+        attempt += 1
         if attempt >= MAX_ATTEMPTS:
-            print("Returning grid after max attempts", attempt)
             return grid
         g = grid.copy()
         slots = [s for s in g.slots if not s.complete()]
@@ -420,23 +421,19 @@ def auto_complete(grid):
             if s.complete():
                 continue
             blank = s.get()
-            words = [w[0] for w in s.words_freedom() if (w[1] is None or w[1] > 0) and w[0] not in answers][:20]
+            words = [
+                w[0]
+                for w in s.words_freedom()
+                if (w[1] is None or w[1] > 0) and w[0] not in answers
+            ][:20]
             for word in words:
                 s.fill(word)
                 h = auto_complete_(g)
                 if attempt >= MAX_ATTEMPTS:
-                    print("Returning h after max attempts", attempt)
                     return h
                 if h.complete():
-                    print("Returning h", attempt)
                     return h
             s.fill(blank)
-        print("Returning g", attempt)
         return g
 
-    start_time = time.perf_counter()
-    result = auto_complete_(grid)
-    end_time = time.perf_counter()
-    execution_time = end_time - start_time
-    print(f"Execution time: {execution_time:.6f} seconds")
-    return result
+    return auto_complete_(grid)
