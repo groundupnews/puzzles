@@ -8,6 +8,14 @@
 
 <div class="meta">
   <label>Name <input type="text" id="cw-name" value="{{ crossword.name }}" autofocus></label>
+  <label>Competition
+    <select id="cw-competition">
+      <option value=""{% if not crossword.competition_id %} selected{% endif %}>—</option>
+      {% for competition in competitions %}
+      <option value="{{ competition.pk }}"{% if competition.pk == crossword.competition_id %} selected{% endif %}>{{ competition.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
   <label>Authors <input type="text" id="cw-authors" value="{{ crossword.authors }}"></label>
   <label>Editors <input type="text" id="cw-editors" value="{{ crossword.editors }}"></label>
   <label>Copyright <input type="text" id="cw-copyright" value="{{ crossword.copyright }}"></label>
@@ -144,5 +152,5 @@
     </div>
   </div>
 </div>
-<script src="{% static 'crossword/generator.js' %}?v=34"></script>
+<script src="{% static 'crossword/generator.js' %}?v=35"></script>
 {% endblock %}

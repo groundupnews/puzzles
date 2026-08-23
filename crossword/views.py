@@ -20,6 +20,7 @@ from .forms import CrosswordCreateForm
 from .models import Clue, Crossword, Entry, Word
 from .xd import parse_xd, render_xd, save_crossword_from_xd
 from .xml_format import parse_xml
+from scores.models import Competition
 
 PERM = "crossword.can_generate_crosswords"
 
@@ -90,7 +91,11 @@ def crossword_edit(request, pk):
     return render(
         request,
         "crossword/edit.html",
-        {"crossword": crossword, "clues": _clues_by_slot(crossword)},
+        {
+            "crossword": crossword,
+            "clues": _clues_by_slot(crossword),
+            "competitions": Competition.objects.all(),
+        },
     )
 
 
@@ -237,6 +242,7 @@ def crossword_save(request, pk):
         crossword.blocked_out_squares = payload["blocked_out_squares"]
         crossword.name = payload.get("name", "")
         crossword.description = payload.get("description", "")
+        crossword.competition_id = payload.get("competition") or None
         crossword.authors = payload.get("authors", "")
         crossword.editors = payload.get("editors", "")
         crossword.copyright = payload.get("copyright", "")

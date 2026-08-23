@@ -521,6 +521,7 @@ document.getElementById("save-btn").addEventListener("click", async () => {
     cells: state.cells,
     blocked_out_squares: Array.from(state.blocks).sort((a, b) => a - b),
     name: document.getElementById("cw-name").value,
+    competition: document.getElementById("cw-competition").value,
     description: document.getElementById("cw-description").value,
     authors: document.getElementById("cw-authors").value,
     editors: document.getElementById("cw-editors").value,
@@ -840,6 +841,7 @@ document.getElementById("blocks-pct").textContent =
   document.getElementById(id).addEventListener("input", markDirty);
 });
 document.getElementById("cw-private").addEventListener("change", markDirty);
+document.getElementById("cw-competition").addEventListener("change", markDirty);
 document.getElementById("cw-rotational-symmetry").addEventListener("change", markDirty);
 
 // Triggers the browser's native "leave site?" confirmation on tab close/
