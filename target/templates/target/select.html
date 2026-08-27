@@ -1,0 +1,33 @@
+{% extends "target/base.html" %}
+
+{% block title %}Target archive{% endblock %}
+
+{% block content %}
+<h1>Target archive</h1>
+{% if targets %}
+<div class="table-wrap">
+<table class="crossword-table">
+  <thead>
+    <tr><th>Puzzle</th><th>Letters</th><th>Published</th></tr>
+  </thead>
+  <tbody>
+    {% for target in targets %}
+    <tr>
+      <td class="cw-name"><a href="{% url 'target_solve' target.pk %}">Target {{ target.number|default:target.pk }}</a></td>
+      <td>{{ target.letters|upper }}</td>
+      <td>
+        {% if target.is_published %}
+          <span class="status-published">{{ target.published|date:"Y-m-d" }}</span>
+        {% else %}
+          <span class="status-unpublished">Unpublished</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>No Target puzzles yet.</p>
+{% endif %}
+{% endblock %}

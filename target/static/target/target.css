@@ -1,0 +1,245 @@
+.tg-page {
+  max-width: 38rem;
+}
+
+.tg-intro {
+  margin: 0 0 18px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--gu-gray-600);
+}
+
+.tg-clue {
+  margin: -8px 0 18px;
+  font-size: 15px;
+}
+
+/* Letter grid */
+
+.tg-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.tg-cell {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--gu-ink);
+  background: #fff;
+  border: 2px solid var(--gu-ink);
+  cursor: pointer;
+}
+
+.tg-cell:hover { background: var(--game-soft); }
+
+/* The letter every word has to use. */
+.tg-cell.is-centre {
+  background: var(--game);
+  border-color: var(--game);
+  color: #fff;
+}
+
+.tg-cell.is-centre:hover { filter: brightness(0.92); }
+
+/* --- Entry --- */
+
+.tg-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+#tg-entry {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--gu-ink);
+  background: #fff;
+  border: 1.5px solid var(--gu-ink);
+  border-radius: 0;
+}
+
+#tg-entry:focus {
+  outline: none;
+  border-color: var(--game);
+  box-shadow: 0 0 0 3px var(--game-soft);
+}
+
+.tg-btn {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: var(--gu-ink);
+  border: 1.5px solid var(--gu-ink);
+  cursor: pointer;
+}
+
+.tg-btn:hover { background: var(--gu-surface-2); }
+
+.tg-btn--go {
+  background: var(--game);
+  border-color: var(--game);
+  color: #fff;
+}
+
+.tg-btn--go:hover { background: var(--game-deep); }
+
+.tg-message {
+  margin: 0 0 18px;
+  padding: 11px 14px;
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--gu-surface-2);
+  border-left: 3px solid var(--gu-gray-300);
+}
+
+.tg-message.is-success {
+  background: var(--game-soft);
+  border-left-color: var(--game);
+}
+
+.tg-message.is-error {
+  background: #fbeaea;
+  border-left-color: var(--danger, #d0021b);
+}
+
+/* Score*/
+
+.tg-score { margin-bottom: 20px; }
+
+.tg-score__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.tg-score__count {
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.tg-score__unit {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gu-gray-500);
+}
+
+.tg-score__tiers {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.tg-tier {
+  background: var(--game);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 10px;
+}
+
+/* Ticks mark the "Good" and "Very good" thresholds. */
+.tg-bar {
+  position: relative;
+  height: 7px;
+  background: var(--gu-surface-2);
+}
+
+.tg-bar__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: var(--game);
+  transition: width 0.2s;
+}
+
+.tg-bar__tick {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--gu-gray-300);
+}
+
+/* Found words*/
+
+.tg-found-wrap {
+  border-top: 2px solid var(--gu-border-strong);
+  padding-top: 14px;
+}
+
+.tg-found-wrap .gu-eyebrow { margin-bottom: 10px; display: block; }
+
+.tg-found {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.tg-word {
+  border: 1px solid var(--gu-border-warm);
+  padding: 4px 11px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2a3438;
+}
+
+/* Given away by Hint*/
+.tg-word.is-revealed {
+  border-style: dashed;
+  color: var(--gu-gray-500);
+}
+
+.tg-word.is-revealed::after {
+  content: "hint";
+  margin-left: 6px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gu-gray-350);
+}
+
+.tg-word.is-nine {
+  border: 1.5px solid var(--game);
+  background: var(--game-soft);
+  color: var(--game-deep);
+  font-weight: 700;
+}
+
+.tg-rules p {
+  margin: 0 0 0.6rem;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--gu-gray-600);
+}
+
+@media (max-width: 640px) {
+  .tg-grid { grid-template-columns: repeat(3, 60px); }
+  .tg-cell { width: 60px; height: 60px; font-size: 28px; }
+}
