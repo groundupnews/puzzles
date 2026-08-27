@@ -1,0 +1,726 @@
+/* GroundUp brand layer: design tokens, the site chrome and the games
+   hub. Each game's own styling lives in its app and builds on these. */
+
+:root {
+  /* Ink / dark */
+  --gu-ink: #151F22;
+  --gu-ink-900: #0e1517;
+  --gu-ink-800: #1a2528;
+  --gu-ink-700: #2a3b40;
+
+  /* Brand */
+  --gu-cyan: #00B1F0;
+  --gu-cyan-dark: #0091c6;
+  --gu-cyan-soft: #e2f5fd;
+  --gu-yellow: #F7C600;
+  --gu-link: #0250bb;
+
+  /* Neutrals */
+  --gu-gray-600: #4D4D4D;
+  --gu-gray-500: #666;
+  --gu-gray-350: #999;
+  --gu-gray-300: #adadad;
+  --gu-on-dark: #dfe4e6;
+  --gu-on-dark-dim: #cfd6d8;
+
+  /* Surfaces and rules */
+  --gu-white: #fff;
+  --gu-surface-2: #EFEFEF;
+  --gu-surface-3: #D6D6DA;
+  --gu-footer: #d8d8d8;
+  --gu-border-warm: #ebebe0;
+  --gu-border-strong: #D6D6DA;
+
+  --gu-page: 1140px;
+
+  /* Per-game accent, overridden by the body.game-* and .theme-* classes
+     below. */
+  --game: var(--gu-cyan);
+  --game-deep: var(--gu-cyan-dark);
+  --game-soft: var(--gu-cyan-soft);
+}
+
+body.game-crossword { --game: #00B1F0; --game-deep: #0091c6; --game-soft: #e2f5fd; }
+body.game-quiz      { --game: #d4582f; --game-deep: #b8461f; --game-soft: #fbece4; }
+body.game-sudoku    { --game: #4d57c4; --game-deep: #3b44a8; --game-soft: #ececf8; }
+body.game-target    { --game: #1f8a5b; --game-deep: #19714a; --game-soft: #e7f3ec; }
+.theme-crossword    { --game: #00B1F0; --game-deep: #0091c6; --game-soft: #e2f5fd; }
+.theme-target       { --game: #1f8a5b; --game-deep: #1f8a5b; --game-soft: #e7f3ec; }
+.theme-sudoku       { --game: #4d57c4; --game-deep: #4d57c4; --game-soft: #ececf8; }
+.theme-quiz         { --game: #d4582f; --game-deep: #b8461f; --game-soft: #fbece4; }
+
+* { box-sizing: border-box; }
+
+/* Needed because an author `display` beats the browser's own
+   [hidden] { display: none }, and JavaScript toggles hidden on elements
+   laid out with flex or grid here. */
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  padding: 0;
+  max-width: none;
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.5;
+  color: var(--gu-ink);
+  background: var(--gu-white);
+}
+
+.gu-page {
+  max-width: var(--gu-page);
+  margin: 0 auto;
+  padding: 32px 28px 44px;
+}
+
+/* ---------------- Masthead ---------------- */
+
+.gu-masthead {
+  background: var(--gu-ink);
+  color: var(--gu-white);
+}
+
+.gu-masthead__inner {
+  max-width: var(--gu-page);
+  margin: 0 auto;
+  min-height: 60px;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.gu-masthead__brand {
+  flex: none;
+  margin-right: 14px;
+}
+
+.gu-masthead__logo { display: block; height: 32px; width: auto; }
+
+.gu-nav { display: flex; align-items: center; }
+
+.gu-nav a {
+  color: var(--gu-on-dark);
+  text-decoration: none;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-bottom: 2px solid transparent;
+}
+
+.gu-nav a:hover { color: var(--gu-white); border-bottom-color: var(--gu-cyan); }
+
+.gu-nav a.is-current {
+  color: var(--gu-white);
+  border-bottom-color: var(--gu-cyan);
+}
+
+.gu-masthead__right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Off-screen rather than hidden, so it can still be reached and toggled
+   with a keyboard. */
+.gu-menu-checkbox {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gu-menu-checkbox:focus-visible ~ .gu-masthead__right .gu-menu-icon {
+  outline: 2px solid var(--gu-cyan);
+  outline-offset: 3px;
+}
+
+/* Hamburger: shown only once the nav collapses. */
+.gu-menu-icon {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 16px;
+  width: 24px;
+  cursor: pointer;
+}
+
+.gu-menu-icon span {
+  height: 2px;
+  background: var(--gu-white);
+  border-radius: 2px;
+}
+
+.gu-donate {
+  background: var(--gu-yellow);
+  color: var(--gu-ink);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.gu-donate:hover { background: #ffd83d; }
+
+/* Icon-only control on the dark bar. */
+.gu-dark-btn {
+  background: none;
+  border: none;
+  color: var(--gu-on-dark-dim);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.gu-dark-btn:hover { color: var(--gu-white); }
+
+.gu-dark-btn--text {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* ---------------- Play-screen bar ---------------- */
+
+/* What the play screens use instead of the full masthead: back to the
+   hub, the logo, and whatever status the game keeps. */
+.gu-playbar {
+  background: var(--gu-ink);
+  color: var(--gu-white);
+}
+
+.gu-playbar__inner {
+  max-width: var(--gu-page);
+  margin: 0 auto;
+  height: 54px;
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.gu-playbar__back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gu-on-dark-dim);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.gu-playbar__back:hover { color: var(--gu-white); }
+.gu-playbar__logo { display: block; height: 22px; }
+
+.gu-playbar__status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* ---------------- Screen furniture ---------------- */
+
+.gu-screen-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.gu-screen-head h1 {
+  margin: 0 0 4px;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -.6px;
+  line-height: 1.1;
+}
+
+.gu-dateline {
+  font-size: 14px;
+  color: var(--gu-gray-350);
+}
+
+/* Difficulty, cadence, grid size. */
+.gu-badge {
+  display: inline-block;
+  flex: none;
+  border: 1.5px solid var(--game);
+  color: var(--game-deep);
+  border-radius: 10px;
+  padding: 3px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+.gu-badge--solid {
+  background: var(--game);
+  border-color: var(--game);
+  color: var(--gu-white);
+  border-radius: 3px;
+}
+
+.gu-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px 20px;
+  border-bottom: 3px solid var(--gu-ink);
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+}
+
+.gu-section-head h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -.6px;
+  text-transform: none;
+  color: var(--gu-ink);
+}
+
+.gu-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--gu-gray-350);
+}
+
+.gu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--game);
+  border: none;
+  color: var(--gu-white);
+  font: inherit;
+  font-weight: 700;
+  padding: 12px 26px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.gu-btn:hover { filter: brightness(.92); }
+
+.gu-btn--ghost {
+  background: var(--gu-white);
+  border: 1.5px solid var(--gu-ink);
+  color: var(--gu-ink);
+}
+
+.gu-btn--ghost:hover { background: var(--gu-surface-2); filter: none; }
+
+/* ---------------- Footer ---------------- */
+
+.gu-footer {
+  background: var(--gu-footer);
+  padding: 22px 28px;
+  margin-top: 48px;
+}
+
+.gu-footer__inner {
+  max-width: var(--gu-page);
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  font-size: 13.5px;
+  color: var(--gu-gray-600);
+}
+
+.gu-footer a { color: var(--gu-link); text-decoration: none; }
+.gu-footer a:hover { text-decoration: underline; }
+.gu-footer__links { display: flex; gap: 22px; flex-wrap: wrap; }
+
+/* ---------------- Games hub ---------------- */
+
+.hub-strip {
+  background: var(--gu-ink);
+  color: var(--gu-white);
+  border-top: 1px solid var(--gu-ink-700);
+}
+
+.hub-strip__inner {
+  max-width: var(--gu-page);
+  margin: 0 auto;
+  padding: 26px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.hub-strip__eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gu-cyan);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 6px;
+}
+
+.hub-strip h1 {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.hub-stats {
+  display: flex;
+  background: var(--gu-ink-900);
+  border: 1px solid var(--gu-ink-700);
+}
+
+.hub-stat { padding: 12px 22px; text-align: center; }
+.hub-stat + .hub-stat { border-left: 1px solid var(--gu-ink-700); }
+
+.hub-stat__value {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--gu-white);
+}
+
+.hub-stat__value--accent { color: var(--gu-cyan); }
+.hub-stat__value .of { color: #5d7177; }
+
+.hub-stat__label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #9fb0b5;
+  margin-top: 4px;
+}
+
+/* The featured puzzle. */
+.hub-hero {
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid var(--gu-border-warm);
+  margin-bottom: 36px;
+  overflow: hidden;
+}
+
+.hub-hero:hover { border-color: var(--game); }
+
+.hub-hero__body {
+  padding: 38px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.hub-hero__tags {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.hub-hero__title-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 10px;
+}
+
+.hub-hero__icon { width: 52px; height: 52px; flex: none; }
+
+.hub-hero h2 {
+  margin: 0;
+  color: var(--gu-ink);
+  text-transform: none;
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: -1.2px;
+  line-height: 1;
+}
+
+.hub-hero__body .gu-btn {
+  align-self: flex-start;
+}
+
+.hub-hero p {
+  margin: 0 0 22px;
+  font-size: 18px;
+  line-height: 1.5;
+  color: #2a3438;
+  max-width: 440px;
+}
+
+.hub-hero__art {
+  background: var(--game-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 34px;
+  border-left: 1px solid var(--gu-border-warm);
+}
+
+/* One tile per game. */
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.hub-tile {
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid var(--gu-border-warm);
+  display: flex;
+  flex-direction: column;
+}
+
+.hub-tile:hover { border-color: var(--game); }
+
+.hub-tile__art {
+  background: var(--game-soft);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 152px;
+  border-bottom: 3px solid var(--game);
+}
+
+.hub-tile__body {
+  padding: 16px 18px 18px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.hub-tile h3 {
+  margin: 0 0 5px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -.3px;
+}
+
+.hub-tile p {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--gu-gray-500);
+}
+
+.hub-tile__foot {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hub-tile__play {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--game-deep);
+}
+
+.hub-tile__badge {
+  display: inline-block;
+  border: 1.5px solid var(--game);
+  color: var(--game-deep);
+  border-radius: 10px;
+  padding: 1px 9px;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.hub-tile--soon {
+  border-style: dashed;
+  border-color: #d2d6db;
+  background: #fafafa;
+}
+
+.hub-tile--soon .hub-tile__art {
+  background: none;
+  border-bottom: none;
+  font-size: 46px;
+  font-weight: 700;
+  color: #d2d6db;
+}
+
+.hub-tile--soon h3,
+.hub-tile--soon p { color: var(--gu-gray-350); }
+
+.hub-tile--soon .hub-tile__badge { border-color: #c9ccd2; color: var(--gu-gray-350); }
+
+/* Today's Target letters, centre highlighted. */
+.tile-letters {
+  display: grid;
+  grid-template-columns: repeat(3, 32px);
+  gap: 5px;
+}
+
+.tile-letters div {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 700;
+  background: #fff;
+  border: 1px solid var(--gu-border-warm);
+}
+
+.tile-letters div.is-centre {
+  background: var(--game);
+  border-color: var(--game);
+  color: #fff;
+}
+
+/* Today's Sudoku givens. */
+.tile-sudoku {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  /* Rows need telling too: left alone they size to the digits and the
+     last row spills past the border. */
+  grid-template-rows: repeat(9, 1fr);
+  width: 108px;
+  height: 108px;
+  border: 1.5px solid var(--gu-ink);
+  background: #fff;
+  overflow: hidden;
+}
+
+.tile-sudoku div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+  border-right: 1px solid #dadcec;
+  border-bottom: 1px solid #dadcec;
+}
+
+.tile-sudoku div:nth-child(9n) { border-right: 0; }
+.tile-sudoku div:nth-child(3n):not(:nth-child(9n)) { border-right: 1px solid var(--game); }
+.tile-sudoku div:nth-child(n+73) { border-bottom: 0; }
+.tile-sudoku div:nth-child(n+19):nth-child(-n+27),
+.tile-sudoku div:nth-child(n+46):nth-child(-n+54) { border-bottom: 1px solid var(--game); }
+
+/* Miniature grids drawn in the hero and the tiles. */
+.mini-grid {
+  display: grid;
+  border: 2px solid var(--gu-ink);
+  background: var(--gu-ink);
+  gap: 1px;
+}
+
+.mini-grid div {
+  background: var(--gu-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  position: relative;
+}
+
+.mini-grid div.block { background: var(--gu-ink); }
+
+.mini-grid span {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  color: #888;
+}
+
+@media (max-width: 900px) {
+  .hub-grid { grid-template-columns: repeat(2, 1fr); }
+  .hub-hero { grid-template-columns: 1fr; }
+  .hub-hero__art { border-left: none; border-top: 1px solid var(--gu-border-warm); }
+}
+
+/* The nav collapses into a panel under the header, as it does on the main
+   site. Same breakpoint, same treatment. */
+@media (max-width: 991px) {
+  .gu-masthead { position: relative; z-index: 1000; }
+  .gu-masthead__inner { padding: 8px 16px; }
+  .gu-menu-icon { display: flex; }
+
+  .gu-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    background: var(--gu-ink-900);
+    border-top: 1px solid #000;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+  }
+
+  .gu-menu-checkbox:checked ~ .gu-nav { display: flex; }
+
+  .gu-nav a {
+    padding: 15px 20px;
+    font-size: 16px;
+    color: #ddd;
+    border-bottom: 1px solid var(--gu-ink-700);
+  }
+
+  .gu-nav a:hover,
+  .gu-nav a.is-current {
+    background: var(--gu-ink-800);
+    color: var(--gu-white);
+    border-bottom-color: var(--gu-ink-700);
+  }
+}
+
+@media (max-width: 640px) {
+  .gu-page { padding: 20px 16px 32px; }
+  .gu-playbar__inner { padding-left: 16px; padding-right: 16px; }
+  .gu-masthead__brand { margin-right: 0; }
+  .gu-masthead__logo { height: 26px; }
+  .gu-masthead__right { gap: 10px; }
+
+  /* No room for back, logo and status all three; the logo is the
+     decoration, so it goes. */
+  .gu-playbar__inner { padding: 0 14px; }
+  .gu-playbar__logo { display: none; }
+  .gu-playbar__status { gap: 10px; }
+  .hub-grid { grid-template-columns: 1fr; }
+  .hub-strip h1 { font-size: 28px; }
+  .hub-hero__body { padding: 24px 20px; }
+  .hub-hero h2 { font-size: 30px; }
+  .gu-footer__inner { flex-direction: column; align-items: flex-start; gap: 10px; }
+}

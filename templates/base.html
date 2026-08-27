@@ -4,31 +4,52 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>{% block title %}GroundUp Puzzle Test Site{% endblock %}</title>
+		<title>{% block title %}GroundUp Games{% endblock %}</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
 		{% block css %}
-		<link rel="stylesheet" href="{% static 'crossword/style.css' %}?v=82">
+		<link rel="stylesheet" href="{% static 'gu/groundup.css' %}?v=4">
+		<link rel="stylesheet" href="{% static 'crossword/style.css' %}?v=89">
 		<link rel="stylesheet" href="{% static 'crossword/vendor/fontawesome/css/fontawesome.min.css' %}">
 		<link rel="stylesheet" href="{% static 'crossword/vendor/fontawesome/css/solid.min.css' %}">
 		{% endblock %}
 
 		{% block head %}{% endblock %}
-		<link rel="icon" type="image/x-icon" href="favicon.ico">
+		<link rel="icon" type="image/x-icon" href="{% static 'gu/favicon.ico' %}">
 	</head>
-	<body>
-		<header>
-			{% block header %}
-			<div id="common-links">
-			<a href="{% url 'home' %}">Puzzles</a>
-			<a href="https://groundup.org.za/">GroundUp</a>
-			{% if request.user.is_authenticated %}
-			<a href="{% url 'usersessions_list' %}" title="Settings" aria-label="Settings"><i class="fa-solid fa-gear"></i></a>
-			{% else %}
-			<a href="{% url 'account_request_login_code' %}">Login</a>
-			{% endif %}
+	<body class="{% block body_class %}{% endblock %}">
+		{% block chrome %}
+		<header class="gu-masthead">
+			<div class="gu-masthead__inner">
+				<a class="gu-masthead__brand" href="https://groundup.org.za/"><img class="gu-masthead__logo" src="{% static 'gu/logo-white.svg' %}" alt="GroundUp"></a>
+				{% comment %}Drives the mobile menu with no JavaScript, as the main
+				site does. Kept focusable rather than display:none so it stays
+				operable from the keyboard.{% endcomment %}
+				<input type="checkbox" id="gu-menu-toggle" class="gu-menu-checkbox" aria-label="Toggle menu">
+				<nav class="gu-nav">
+					<a href="https://groundup.org.za/">News</a>
+					<a href="{% url 'home' %}" class="is-current">Games</a>
+				</nav>
+				<div class="gu-masthead__right">
+					<a class="gu-dark-btn" href="https://groundup.org.za/advanced_search/" title="Search" aria-label="Search">
+						<svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.134 17 3 13.866 3 10C3 6.134 6.134 3 10 3C13.866 3 17 6.134 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					</a>
+					{% if request.user.is_authenticated %}
+					<a class="gu-dark-btn" href="{% url 'usersessions_list' %}" title="Settings" aria-label="Settings"><i class="fa-solid fa-gear"></i></a>
+					{% else %}
+					<a class="gu-dark-btn gu-dark-btn--text" href="{% url 'account_request_login_code' %}">Login</a>
+					{% endif %}
+					<a class="gu-donate" href="https://groundup.org.za/donation/payfast/">Donate</a>
+					<label for="gu-menu-toggle" class="gu-menu-icon" aria-hidden="true"><span></span><span></span><span></span></label>
+				</div>
 			</div>
-			{% endblock %}
 		</header>
-		<main>
+		{% endblock %}
+
+		{% block strip %}{% endblock %}
+
+		<main class="{% block main_class %}gu-page{% endblock %}">
 			{% if messages %}
 			<ul class="messages">
 				{% for message in messages %}
@@ -38,7 +59,21 @@
 			{% endif %}
 			{% block content %}{% endblock %}
 		</main>
+
+		{% block footer %}
+		<footer class="gu-footer">
+			<div class="gu-footer__inner">
+				<span>&copy; 2012 to {% now "Y" %} GroundUp &middot; Games</span>
+				<span class="gu-footer__links">
+					<a href="{% url 'crossword_select' %}">Crosswords</a>
+					<a href="{% url 'target_select' %}">Target</a>
+					<a href="{% url 'sudoku_select' %}">Sudoku</a>
+					<a href="{% url 'quiz_select' %}">Quizzes</a>
+					<a href="https://groundup.org.za/">GroundUp news</a>
+				</span>
+			</div>
+		</footer>
+		{% endblock %}
 		{% block scripts %}{% endblock %}
 	</body>
 </html>
-
