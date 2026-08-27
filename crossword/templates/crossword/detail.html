@@ -2,14 +2,49 @@
 {% load static %}
 
 {% block title %}{{ crossword.name|default:"Crossword" }}{% endblock %}
+{% block body_class %}game-crossword{% endblock %}
+
+{% block chrome %}
+<header class="gu-playbar">
+  <div class="gu-playbar__inner">
+    <a class="gu-playbar__back" href="{% url 'home' %}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Games
+    </a>
+    <a href="https://groundup.org.za/"><img class="gu-playbar__logo" src="{% static 'gu/logo-white.svg' %}" alt="GroundUp"></a>
+    <div class="gu-playbar__status">
+      <span id="timer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--game)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+        <span id="timer-value">00:00:00</span>
+      </span>
+      <button id="timer-toggle" type="button">Hide</button>
+      <a class="gu-dark-btn" href="#shortcuts" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.2a2.8 2.8 0 0 1 5.5.8c0 1.9-2.7 2.5-2.7 2.5"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
+{% endblock %}
+
+{% block main_class %}gu-page cw-page{% endblock %}
 
 {% block content %}
-<h1>{{ crossword.name|default:"Untitled crossword" }}</h1>
+<div class="gu-screen-head">
+  <div>
+    <h1>{{ crossword.name|default:"Untitled crossword" }}</h1>
+    <div class="gu-dateline">{% spaceless %}
+      {% if crossword.published %}{{ crossword.published|date:"l, j F Y" }}{% endif %}
+      {% if crossword.authors %}{% if crossword.published %} &middot; {% endif %}by {{ crossword.authors }}{% endif %}
+    {% endspaceless %}</div>
+  </div>
+  <span class="gu-badge">{{ crossword.num_cols }} &times; {{ crossword.num_rows }}</span>
+</div>
+
 {% if crossword.description %}<div class="cw-description">{{ crossword.description|linebreaks }}</div>{% endif %}
 
 <audio id="click-sound" src="{% static 'crossword/click_001.ogg' %}" preload="auto"></audio>
 <audio id="tada-sound" src="{% static 'crossword/tada-fanfare-g-sound.flac' %}" preload="auto"></audio>
-<div class="editor">
+
+<div class="editor editor--solve" style="--cw-cols:{{ crossword.num_cols }}">
   <div class="grid-pane">
     <div class="buttons">
       <div class="check-dropdown">
@@ -29,22 +64,25 @@
         </ul>
       </div>
       <button id="sound-btn" type="button" title="Toggle sound"><i id="sound-icon" class="fa-solid fa-volume-high"></i></button>
-      <span class="timer-wrap">
-        <span id="timer"><i class="fa-solid fa-clock"></i> <span id="timer-value">00:00:00</span></span>
-        <button id="timer-toggle" type="button">Hide</button>
-      </span>
       {% if perms.crossword.can_generate_crosswords %}
       <a href="{% url 'crossword_edit' crossword.pk %}" class="btn-icon" title="Edit crossword"><i class="fa-solid fa-pen"></i></a>
       {% endif %}
     </div>
+
+    <div class="clue-display">
+      <button id="prev-slot-btn" class="slot-nav-btn" type="button">&lsaquo;</button>
+      <div class="clue-text-wrap">
+        <strong id="current-slot">&mdash;</strong>
+        <span id="clue-text"></span>
+      </div>
+      <button id="next-slot-btn" class="slot-nav-btn" type="button">&rsaquo;</button>
+    </div>
+
     <svg id="grid" tabindex="0"
          viewBox="0 0 {{ crossword.num_cols }} {{ crossword.num_rows }}"></svg>
-    <div class="clue-display">
-      <button id="prev-slot-btn" class="slot-nav-btn" type="button">&#8592;</button>
-      <div class="clue-text-wrap"><strong id="current-slot">—</strong> <span id="clue-text"></span></div>
-      <button id="next-slot-btn" class="slot-nav-btn" type="button">&#8594;</button>
-    </div>
+
     <div id="completion-message" hidden></div>
+
     <div class="mobile-keyboard" id="mobile-keyboard">
       <div class="kb-row">
         <button type="button" class="kb-key" data-key="Q">Q</button>
@@ -80,21 +118,6 @@
         <button type="button" class="kb-key kb-backspace" data-key="Backspace"><i class="fa-solid fa-delete-left"></i></button>
       </div>
     </div>
-    <dl class="key-legend">
-      <dt><kbd>A–Z</kbd></dt><dd>Type letter</dd>
-      <dt><kbd>Backspace</kbd></dt><dd>Delete / retreat</dd>
-      <dt><kbd>Delete</kbd></dt><dd>Delete / advance</dd>
-      <dt><kbd>Space</kbd></dt><dd>Delete / advance</dd>
-      <dt><kbd>.</kbd></dt><dd>Toggle direction</dd>
-      <dt><kbd>Home</kbd> / <kbd>End</kbd></dt><dd>First / last cell</dd>
-      <dt><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd></dt><dd>Next / prev slot</dd>
-    </dl>
-    <p class="cw-meta">{% spaceless %}
-      {% if crossword.authors %}By {{ crossword.authors }}.{% endif %}
-      {% if crossword.editors %} Edited by {{ crossword.editors }}.{% endif %}
-      {% if crossword.copyright %} {{ crossword.copyright }}.{% endif %}
-      {% if crossword.published %} Published {{ crossword.published|date:"j F Y" }}.{% endif %}
-    {% endspaceless %}</p>
   </div>
 
   <aside class="clue-list">
@@ -108,6 +131,25 @@
     </div>
   </aside>
 </div>
+
+<section id="shortcuts" class="shortcuts">
+  <h2>Keyboard shortcuts</h2>
+  <dl class="key-legend">
+    <dt><kbd>A&ndash;Z</kbd></dt><dd>Type letter</dd>
+    <dt><kbd>&larr;</kbd> <kbd>&rarr;</kbd> <kbd>&uarr;</kbd> <kbd>&darr;</kbd></dt><dd>Turn, then move</dd>
+    <dt><kbd>Backspace</kbd></dt><dd>Delete / retreat</dd>
+    <dt><kbd>Delete</kbd></dt><dd>Delete / advance</dd>
+    <dt><kbd>Space</kbd></dt><dd>Delete / advance</dd>
+    <dt><kbd>.</kbd></dt><dd>Toggle direction</dd>
+    <dt><kbd>Home</kbd> / <kbd>End</kbd></dt><dd>First / last cell</dd>
+    <dt><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd></dt><dd>Next / prev slot</dd>
+  </dl>
+</section>
+
+<p class="cw-meta">{% spaceless %}
+  {% if crossword.editors %}Edited by {{ crossword.editors }}.{% endif %}
+  {% if crossword.copyright %} {{ crossword.copyright }}.{% endif %}
+{% endspaceless %}</p>
 
 {{ crossword.blocked_out_squares|json_script:"cw-blocks" }}
 {{ clues|json_script:"cw-clues" }}
@@ -123,5 +165,5 @@
     csrfToken: "{{ csrf_token }}",
   };
 </script>
-<script src="{% static 'crossword/solver.js' %}?v=42"></script>
+<script src="{% static 'crossword/solver.js' %}?v=45"></script>
 {% endblock %}

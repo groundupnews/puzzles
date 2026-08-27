@@ -6,6 +6,7 @@
 <h1>Crosswords</h1>
 {% if perms.crossword.can_generate_crosswords %}
 <div class="buttons">
+  <a href="{% url 'crossword_add' %}" class="btn-icon">New crossword</a>
   <button id="import-btn" type="button"><i class="fa-solid fa-upload"></i> Import</button>
   <input type="file" id="import-file" accept=".xd,.xml" hidden>
 </div>
@@ -68,6 +69,7 @@
 {% else %}
 <p>No crosswords yet.{% if perms.crossword.can_generate_crosswords %} <a href="{% url 'crossword_add' %}">Create one.</a>{% endif %}</p>
 {% endif %}
+{% if perms.crossword.can_generate_crosswords %}
 <script>
   const CSRF_TOKEN = "{{ csrf_token }}";
   document.getElementById("import-btn").addEventListener("click", () => {
@@ -91,4 +93,5 @@
     e.target.value = "";
   });
 </script>
+{% endif %}
 {% endblock %}

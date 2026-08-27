@@ -166,6 +166,13 @@ function render() {
   const numbers = cellNumbers(slots);
   const active = slotAt(state.cursor, state.direction, slots);
   const activeSet = new Set(active ? active.indices : []);
+  // The slot the cursor also sits in, the other way round. Marked more
+  // quietly in the clue lists than the active one.
+  const crossing = slotAt(
+    state.cursor,
+    state.direction === ACROSS ? DOWN : ACROSS,
+    slots
+  );
 
   svg.innerHTML = "";
   for (let i = 0; i < rows * cols; i++) {
@@ -194,7 +201,10 @@ function render() {
       const num = document.createElementNS(SVG_NS, "text");
       num.setAttribute("x", c + 0.05);
       num.setAttribute("y", r + 0.28);
-      num.setAttribute("class", "cell-number");
+      num.setAttribute(
+        "class",
+        "cell-number" + (activeSet.has(i) ? " in-active" : "")
+      );
       num.textContent = numbers[i];
       svg.appendChild(num);
     }
@@ -202,7 +212,11 @@ function render() {
       const t = document.createElementNS(SVG_NS, "text");
       t.setAttribute("x", c + 0.5);
       t.setAttribute("y", r + 0.72);
-      t.setAttribute("class", "cell-letter");
+      // The cursor cell is filled, so its letter flips to white.
+      t.setAttribute(
+        "class",
+        "cell-letter" + (i === state.cursor ? " on-cursor" : "")
+      );
       t.setAttribute("text-anchor", "middle");
       t.textContent = state.cells[i];
       svg.appendChild(t);
@@ -218,13 +232,13 @@ function render() {
     }
   }
   updateClueDisplay(active);
-  renderClueList(slots, active);
+  renderClueList(slots, active, crossing);
   saveState();
 }
 
-// Shows the active slot's key (e.g. "1A") and its clue text (looked up from
-// the server-supplied CW.clues map), or blanks both when there's no active
-// slot.
+// Shows the active slot's label (e.g. "1 Across") and its clue text, or
+// blanks both when there's no active slot. CW.clues is keyed by slot key
+// ("1A"), not by the label.
 function updateClueDisplay(active) {
   const slotEl = document.getElementById("current-slot");
   const clueEl = document.getElementById("clue-text");
@@ -234,14 +248,16 @@ function updateClueDisplay(active) {
     return;
   }
   const key = slotKey(active);
-  slotEl.textContent = key;
+  slotEl.textContent =
+    active.number + (active.direction === ACROSS ? " Across" : " Down");
   clueEl.textContent = CW.clues[key] || "";
 }
 
 // Renders the across/down clue lists, highlighting whichever slot is
-// currently active and flagging any slot the crossword itself didn't
-// supply a clue for. Clicking an entry jumps the cursor to that slot.
-function renderClueList(slots, active) {
+// currently active, marking the crossing slot in the other direction, and
+// flagging any slot the crossword itself didn't supply a clue for.
+// Clicking an entry jumps the cursor to that slot.
+function renderClueList(slots, active, crossing) {
   const across = document.getElementById("clue-list-across");
   const down = document.getElementById("clue-list-down");
   across.innerHTML = "";
@@ -249,12 +265,25 @@ function renderClueList(slots, active) {
   for (const s of slots) {
     const key = slotKey(s);
     const clue = CW.clues[key] || "";
+    // Separate spans so the highlight and the crossing marker can span
+    // the whole entry without crowding the words.
     const li = document.createElement("li");
-    li.value = s.number;
-    li.textContent = clue || key;
+    const number = document.createElement("span");
+    number.className = "clue-num";
+    number.textContent = s.number;
+    const text = document.createElement("span");
+    text.className = "clue-text";
+    text.textContent = clue || key;
+    li.append(number, text);
     if (!clue) li.classList.add("no-clue");
     if (active && s.number === active.number && s.direction === active.direction) {
       li.classList.add("active");
+    } else if (
+      crossing &&
+      s.number === crossing.number &&
+      s.direction === crossing.direction
+    ) {
+      li.classList.add("crossing");
     }
     li.addEventListener("click", () => {
       state.direction = s.direction;
@@ -381,64 +410,33 @@ function handleKey(key, shiftKey = false) {
     }
     return true;
   }
-  if (key === "ArrowLeft") {
-    let nc = c - 1;
-    while (nc >= 0 && !isWhite(r, nc)) nc--;
-    if (nc >= 0) {
-      setCursor(idx(r, nc));
-    } else {
-      for (let dr = 1; dr <= rows; dr++) {
-        const nr = (r - dr + rows) % rows;
-        let lc = cols - 1;
-        while (lc >= 0 && !isWhite(nr, lc)) lc--;
-        if (lc >= 0) { setCursor(idx(nr, lc)); break; }
-      }
-    }
+  // An arrow across the typing direction turns the cursor rather than
+  // moving it; press the same arrow again and it travels the new way.
+  const wantsDown = key === "ArrowUp" || key === "ArrowDown";
+  const wantsAcross = key === "ArrowLeft" || key === "ArrowRight";
+  if (
+    !state.blocks.has(state.cursor) &&
+    ((wantsDown && state.direction === ACROSS) ||
+      (wantsAcross && state.direction === DOWN))
+  ) {
+    state.direction = wantsDown ? DOWN : ACROSS;
+    render();
     return true;
   }
-  if (key === "ArrowRight") {
-    let nc = c + 1;
-    while (nc < cols && !isWhite(r, nc)) nc++;
-    if (nc < cols) {
-      setCursor(idx(r, nc));
-    } else {
-      for (let dr = 1; dr <= rows; dr++) {
-        const nr = (r + dr) % rows;
-        let fc = 0;
-        while (fc < cols && !isWhite(nr, fc)) fc++;
-        if (fc < cols) { setCursor(idx(nr, fc)); break; }
-      }
-    }
+  // Arrows stay in the cursor's own row or column: they skip blocks, but
+  // stop at the edge rather than wrapping to the next line.
+  if (wantsAcross) {
+    const step = key === "ArrowRight" ? 1 : -1;
+    let nc = c + step;
+    while (nc >= 0 && nc < cols && !isWhite(r, nc)) nc += step;
+    if (nc >= 0 && nc < cols) setCursor(idx(r, nc));
     return true;
   }
-  if (key === "ArrowUp") {
-    let nr = r - 1;
-    while (nr >= 0 && !isWhite(nr, c)) nr--;
-    if (nr >= 0) {
-      setCursor(idx(nr, c));
-    } else {
-      for (let dc = 1; dc <= cols; dc++) {
-        const nc = (c - dc + cols) % cols;
-        let lr = rows - 1;
-        while (lr >= 0 && !isWhite(lr, nc)) lr--;
-        if (lr >= 0) { setCursor(idx(lr, nc)); break; }
-      }
-    }
-    return true;
-  }
-  if (key === "ArrowDown") {
-    let nr = r + 1;
-    while (nr < rows && !isWhite(nr, c)) nr++;
-    if (nr < rows) {
-      setCursor(idx(nr, c));
-    } else {
-      for (let dc = 1; dc <= cols; dc++) {
-        const nc = (c + dc) % cols;
-        let fr = 0;
-        while (fr < rows && !isWhite(fr, nc)) fr++;
-        if (fr < rows) { setCursor(idx(fr, nc)); break; }
-      }
-    }
+  if (wantsDown) {
+    const step = key === "ArrowDown" ? 1 : -1;
+    let nr = r + step;
+    while (nr >= 0 && nr < rows && !isWhite(nr, c)) nr += step;
+    if (nr >= 0 && nr < rows) setCursor(idx(nr, c));
     return true;
   }
   if (key === ".") {

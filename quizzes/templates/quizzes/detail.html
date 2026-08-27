@@ -2,30 +2,62 @@
 {% load static %}
 
 {% block title %}{{ quiz.name|default:"Quiz" }}{% endblock %}
+{% block body_class %}game-quiz{% endblock %}
+
+{% block chrome %}
+<header class="gu-playbar">
+  <div class="gu-playbar__inner">
+    <a class="gu-playbar__back" href="{% url 'home' %}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Games
+    </a>
+    <a href="https://groundup.org.za/"><img class="gu-playbar__logo" src="{% static 'gu/logo-white.svg' %}" alt="GroundUp"></a>
+    <div class="gu-playbar__status">
+      <span id="quiz-status"></span>
+      {% if perms.quizzes.can_generate_quizzes %}
+      <a class="gu-dark-btn" href="{% url 'quiz_edit' quiz.pk %}" title="Edit quiz" aria-label="Edit quiz"><i class="fa-solid fa-pen"></i></a>
+      {% endif %}
+    </div>
+  </div>
+</header>
+{% endblock %}
+
+{% block main_class %}gu-page qz-page{% endblock %}
 
 {% block content %}
-<h1>{{ quiz.name|default:"Untitled quiz" }}</h1>
+<div class="gu-screen-head">
+  <div>
+    <h1>{{ quiz.name|default:"Untitled quiz" }}</h1>
+    <div class="gu-dateline">{% spaceless %}
+      {% if quiz.published %}{{ quiz.published|date:"j F Y" }}{% endif %}
+      {% if quiz.authors %}{% if quiz.published %} &middot; {% endif %}by {{ quiz.authors }}{% endif %}
+    {% endspaceless %}</div>
+  </div>
+  <span class="gu-badge">{{ questions|length }} question{{ questions|length|pluralize }}</span>
+</div>
+
 {% if quiz.description %}<div class="cw-description">{{ quiz.description|linebreaks }}</div>{% endif %}
 
-{% if perms.quizzes.can_generate_quizzes %}
-<div class="buttons">
-  <a href="{% url 'quiz_edit' quiz.pk %}" class="btn-icon" title="Edit quiz"><i class="fa-solid fa-pen"></i></a>
+<div class="qz-progress">
+  <div class="qz-progress__head">
+    <span id="qz-step" class="qz-step"></span>
+    <span id="qz-note" class="gu-dateline"></span>
+  </div>
+  <div id="qz-bars" class="qz-bars"></div>
 </div>
-{% endif %}
 
-<div id="questions" class="questions"></div>
+<div id="questions"></div>
 
-<div class="buttons">
-  <button id="submit-btn" type="button">Submit</button>
-  <button id="retake-btn" type="button" hidden>Retake quiz</button>
-</div>
 <div id="quiz-result" hidden></div>
 
+<div class="qz-actions">
+  <button id="back-btn" class="gu-btn gu-btn--ghost" type="button" hidden>Back</button>
+  <button id="next-btn" class="gu-btn" type="button"></button>
+  <button id="retake-btn" class="gu-btn gu-btn--ghost" type="button" hidden>Retake quiz</button>
+</div>
+
 <p class="cw-meta">{% spaceless %}
-  {% if quiz.authors %}By {{ quiz.authors }}.{% endif %}
-  {% if quiz.editors %} Edited by {{ quiz.editors }}.{% endif %}
+  {% if quiz.editors %}Edited by {{ quiz.editors }}.{% endif %}
   {% if quiz.copyright %} {{ quiz.copyright }}.{% endif %}
-  {% if quiz.published %} Published {{ quiz.published|date:"j F Y" }}.{% endif %}
 {% endspaceless %}</p>
 
 {{ questions|json_script:"qz-questions" }}
@@ -37,5 +69,5 @@
     csrfToken: "{{ csrf_token }}"
   };
 </script>
-<script src="{% static 'quizzes/quiz_solver.js' %}?v=1"></script>
+<script src="{% static 'quizzes/quiz_solver.js' %}?v=2"></script>
 {% endblock %}
