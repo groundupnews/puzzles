@@ -1,0 +1,286 @@
+
+.sd-page {
+  max-width: 62rem;
+}
+
+/* Board on the left, controls on the right. */
+.sd-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 17rem;
+  gap: 32px;
+  align-items: start;
+}
+
+.sd-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sd-mistakes {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sd-mistakes #sd-mistakes {
+  color: var(--game);
+}
+
+.sd-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sd-tabs {
+  display: flex;
+  border: 1px solid #d8dae8;
+}
+
+.sd-tab {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gu-gray-350);
+  text-decoration: none;
+}
+
+.sd-tab + .sd-tab {
+  border-left: 1px solid #d8dae8;
+}
+
+.sd-tab:hover {
+  color: var(--gu-ink);
+}
+
+.sd-tab.is-current {
+  background: var(--game);
+  border-left-color: var(--game);
+  color: #fff;
+  font-weight: 700;
+}
+
+/* A level with nothing published: shown, but not a link. */
+.sd-tab.is-empty {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.sd-archive {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gu-link);
+  text-decoration: none;
+}
+
+/* --- The grid --- */
+
+.sd-board {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  width: min(100%, 34rem);
+  aspect-ratio: 1;
+  margin: 0 auto 18px;
+  border: 2.5px solid var(--gu-ink);
+  background: #fff;
+}
+
+.sd-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font: inherit;
+  font-size: clamp(15px, 4.4vw, 26px);
+  font-weight: 700;
+  color: var(--game-deep);
+  background: #fff;
+  border: 0;
+  /* Hairlines between cells, heavier ones on the 3x3 box seams. */
+  border-right: 1px solid #e3e5f2;
+  border-bottom: 1px solid #e3e5f2;
+  cursor: pointer;
+}
+
+.sd-cell:nth-child(9n) { border-right: 0; }
+.sd-cell:nth-child(3n):not(:nth-child(9n)) { border-right: 2px solid var(--gu-ink); }
+.sd-cell:nth-child(n+73) { border-bottom: 0; }
+.sd-cell:nth-child(n+19):nth-child(-n+27),
+.sd-cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--gu-ink); }
+
+/* The puzzle's own digits: ink, not the game colour. */
+.sd-cell.is-given {
+  color: var(--gu-ink);
+  cursor: default;
+}
+
+.sd-cell.is-peer { background: #f4f5fc; }
+.sd-cell.is-match { background: var(--game-soft); }
+
+.sd-cell.is-cursor {
+  background: var(--game);
+  color: #fff;
+}
+
+.sd-cell.is-clash {
+  background: #fbeaea;
+  color: var(--danger, #d0021b);
+}
+
+.sd-cell.is-cursor.is-clash {
+  background: var(--danger, #d0021b);
+  color: #fff;
+}
+
+/* Given away by Hint, so it's clear it wasn't solved. */
+.sd-cell.is-revealed { font-style: italic; }
+
+.sd-value {
+  line-height: 1;
+}
+
+.sd-notes {
+  position: absolute;
+  inset: 2px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  pointer-events: none;
+}
+
+.sd-notes span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(7px, 1.5vw, 10px);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--gu-gray-500);
+}
+
+.sd-cell.is-cursor .sd-notes span { color: rgba(255, 255, 255, 0.85); }
+
+/* --- Number pad and actions --- */
+
+.sd-keys {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.sd-key {
+  /* Grid items floor at content width otherwise, which pushed the ninth
+     key off a narrow screen. */
+  min-width: 0;
+  position: relative;
+  height: 54px;
+  font: inherit;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--game-deep);
+  background: #fff;
+  border: 1.5px solid var(--game);
+  cursor: pointer;
+}
+
+/* How many of this digit are left. */
+.sd-key__left {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--gu-gray-350);
+}
+
+.sd-key:hover {
+  background: var(--game);
+  color: #fff;
+}
+
+.sd-key.is-done {
+  opacity: 0.3;
+  border-color: #c9ccd2;
+  color: var(--gu-gray-350);
+}
+
+.sd-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.sd-action {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gu-ink);
+  background: #fff;
+  border: 1.5px solid var(--gu-ink);
+  cursor: pointer;
+}
+
+.sd-action:hover:not(:disabled) { background: var(--gu-surface-2); }
+
+.sd-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sd-action.is-on {
+  background: var(--game);
+  border-color: var(--game);
+  color: #fff;
+}
+
+.sd-message {
+  margin: 0;
+  padding: 13px 16px;
+  font-size: 16px;
+  font-weight: 700;
+  border-left: 3px solid var(--game);
+  background: var(--game-soft);
+}
+
+.sd-message.is-error {
+  border-left-color: var(--danger, #d0021b);
+  background: #fbeaea;
+}
+
+.sd-side .shortcuts {
+  margin: 8px 0 0;
+  max-width: none;
+}
+
+@media (max-width: 900px) {
+  .sd-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .sd-side {
+    max-width: 34rem;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* One row of nine again, now the pad has the full width. */
+  .sd-keys { grid-template-columns: repeat(9, 1fr); gap: 6px; }
+  .sd-key { height: 46px; font-size: 22px; }
+}
+
+@media (max-width: 640px) {
+  .sd-keys { gap: 4px; }
+  .sd-key { height: 42px; font-size: 18px; }
+  .sd-key__left { display: none; }
+  .sd-actions { grid-template-columns: 1fr 1fr; }
+}
