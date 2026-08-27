@@ -1,11 +1,136 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}GroundUp Games{% endblock %}
+
+{% block strip %}
+<div class="hub-strip">
+  <div class="hub-strip__inner">
+    <div>
+      <div class="hub-strip__eyebrow">GroundUp Games</div>
+      <h1>{{ greeting }}. Ready to play?</h1>
+    </div>
+    <div class="hub-stats">
+      <div class="hub-stat">
+        <div class="hub-stat__value hub-stat__value--accent">4</div>
+        <div class="hub-stat__label">Games</div>
+      </div>
+      <div class="hub-stat">
+        <div class="hub-stat__value">{{ puzzle_count }}</div>
+        <div class="hub-stat__label">Puzzles</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
 {% block content %}
-    <h1>GroundUp Puzzles Test Page</h1>
 
-    <ul>
-	    <li><a href="{% url 'crossword_select' %}">Crosswords</a>
-	<li><a href="https://groundup.org.za/targets/">Target</a>
-	<li><a href="https://groundup.org.za/sudoku/latest/">Sudoku</a>
-    </ul>
+{% if crossword %}
+<a class="hub-hero theme-crossword" href="{% url 'crossword_solve' crossword.pk %}">
+  <div class="hub-hero__body">
+    <div class="hub-hero__tags">
+      <span class="gu-badge gu-badge--solid">New</span>
+      <span class="gu-badge">{{ crossword.num_cols }} &times; {{ crossword.num_rows }}</span>
+    </div>
+    <div class="hub-hero__title-row">
+      <img class="hub-hero__icon" src="{% static 'gu/icon.svg' %}" alt="">
+      <h2>{{ crossword.name|default:"Today's crossword" }}</h2>
+    </div>
+    <p>{% if crossword.description %}{{ crossword.description|truncatewords:34 }}{% else %}A quick daily solve with a local twist.{% endif %}</p>
+    <span class="gu-btn">Play today's puzzle</span>
+  </div>
+  <div class="hub-hero__art">
+    <div class="mini-grid" style="grid-template-columns:repeat({{ crossword.num_cols }},{{ preview_cell }}px);grid-auto-rows:{{ preview_cell }}px;">
+      {% for row in preview %}{% for cell in row %}
+      <div{% if cell.block %} class="block"{% endif %}>{% if cell.number %}<span>{{ cell.number }}</span>{% endif %}</div>
+      {% endfor %}{% endfor %}
+    </div>
+  </div>
+</a>
+{% endif %}
 
+<div class="gu-section-head">
+  <h2>All Games</h2>
+  <div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;">
+    <div style="text-align:right;">
+      <div class="gu-eyebrow">Today</div>
+      <div style="font-size:15px;font-weight:700;">{{ today|date:"D, j F Y" }}</div>
+    </div>
+    <a href="{% url 'crossword_select' %}" style="font-size:14px;font-weight:600;color:var(--gu-link);text-decoration:none;">Puzzle archive &rsaquo;</a>
+  </div>
+</div>
+
+<div class="hub-grid">
+
+  <a class="hub-tile theme-target" href="{% if target %}{% url 'target_latest' %}{% else %}{% url 'target_select' %}{% endif %}">
+    <div class="hub-tile__art">
+      <div class="tile-letters">
+        {% for letter in target.tile_letters %}
+        <div{% if letter.centre %} class="is-centre"{% endif %}>{{ letter.char|upper }}</div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="hub-tile__body">
+      <h3>Target</h3>
+      <p>Build words from nine letters.</p>
+      <div class="hub-tile__foot">
+        <span class="hub-tile__badge">Daily</span>
+        <span class="hub-tile__play">Play &rsaquo;</span>
+      </div>
+    </div>
+  </a>
+
+  <a class="hub-tile theme-sudoku" href="{% if sudoku %}{% url 'sudoku_latest' %}{% else %}{% url 'sudoku_select' %}{% endif %}">
+    <div class="hub-tile__art">
+      <div class="tile-sudoku">
+        {% for digit in sudoku.tile_digits %}<div>{{ digit }}</div>{% endfor %}
+      </div>
+    </div>
+    <div class="hub-tile__body">
+      <h3>Sudoku</h3>
+      <p>The number grid, three levels daily.</p>
+      <div class="hub-tile__foot">
+        <span class="hub-tile__badge">Daily</span>
+        <span class="hub-tile__play">Play &rsaquo;</span>
+      </div>
+    </div>
+  </a>
+
+  {% if quiz %}
+  <a class="hub-tile theme-quiz" href="{% url 'quiz_solve' quiz.pk %}">
+  {% else %}
+  <a class="hub-tile theme-quiz" href="{% url 'quiz_select' %}">
+  {% endif %}
+    <div class="hub-tile__art">
+      <div style="width:118px;display:flex;flex-direction:column;gap:7px;padding:8px 0;">
+        <div style="height:13px;background:var(--gu-ink);border-radius:3px;width:90%;"></div>
+        <div style="height:18px;background:#fff;border:1px solid #ecd3c8;border-radius:4px;"></div>
+        <div style="height:18px;border:1.5px solid var(--game);background:#fff;border-radius:4px;display:flex;align-items:center;padding:0 6px;"><div style="width:9px;height:9px;border-radius:50%;background:var(--game);"></div></div>
+        <div style="height:18px;background:#fff;border:1px solid #ecd3c8;border-radius:4px;"></div>
+      </div>
+    </div>
+    <div class="hub-tile__body">
+      <h3>{{ quiz.name|default:"News Quiz" }}</h3>
+      <p>Questions on the week's news.</p>
+      <div class="hub-tile__foot">
+        <span class="hub-tile__badge">Weekly</span>
+        <span class="hub-tile__play">Play &rsaquo;</span>
+      </div>
+    </div>
+  </a>
+
+  <div class="hub-tile hub-tile--soon">
+    <div class="hub-tile__art">+</div>
+    <div class="hub-tile__body">
+      <h3>More to come</h3>
+      <p>New games on the way.</p>
+      <div class="hub-tile__foot">
+        <span class="hub-tile__badge">Soon</span>
+        <a href="{% url 'crossword_select' %}" style="font-size:14px;font-weight:700;color:var(--gu-link);text-decoration:none;">Archive &rsaquo;</a>
+      </div>
+    </div>
+  </div>
+
+</div>
 {% endblock %}

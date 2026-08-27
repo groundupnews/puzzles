@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     "scores",
     "crossword",
     "quizzes",
+    "sudoku",
+    "target",
 ]
 
 MIDDLEWARE = [
