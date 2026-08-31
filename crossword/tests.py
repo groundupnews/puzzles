@@ -489,6 +489,63 @@ class CrosswordPrivateSolveViewTest(TestCase):
         self.assertTemplateUsed(response, "crossword/detail.html")
 
 
+class CrosswordCheckRevealAccessTest(TestCase):
+    """Access control for crossword_check/crossword_reveal (by pk) and
+    crossword_private_check/crossword_private_reveal (by secret link).
+
+    The pk-keyed endpoints must stay locked to anonymous users for any
+    unpublished crossword -- pk is a small guessable integer, so treating
+    it as proof of "this solver reached the private link" would let anyone
+    enumerate pks and pull answers for crosswords they were never sent a
+    link to. Only the private_link-keyed endpoints may bypass is_published,
+    matching crossword_private_solve."""
+
+    fixtures = ["users.json"]
+
+    def setUp(self):
+        self.cw = make_crossword(published=None, private=True, cells=["C", "A", "T"])
+
+    def _post(self, url, payload):
+        return self.client.post(url, data=json.dumps(payload), content_type="application/json")
+
+    def test_private_link_check_works_for_unpublished_crossword(self):
+        url = reverse("crossword_private_check", args=[self.cw.private_link])
+        response = self._post(url, {"mode": "crossword", "cells": ["C", "A", "T"]})
+        self.assertEqual(response.status_code, 200)
+        results = response.json()["results"]
+        self.assertTrue(all(r["correct"] for r in results))
+
+    def test_private_link_reveal_works_for_unpublished_crossword(self):
+        url = reverse("crossword_private_reveal", args=[self.cw.private_link])
+        response = self._post(url, {"mode": "crossword"})
+        self.assertEqual(response.status_code, 200)
+        results = response.json()["results"]
+        self.assertEqual([r["letter"] for r in results], ["C", "A", "T"])
+
+    def test_unknown_private_link_returns_404(self):
+        check_url = reverse("crossword_private_check", args=["does-not-exist"])
+        reveal_url = reverse("crossword_private_reveal", args=["does-not-exist"])
+        self.assertEqual(self._post(check_url, {"mode": "crossword", "cells": []}).status_code, 404)
+        self.assertEqual(self._post(reveal_url, {"mode": "crossword"}).status_code, 404)
+
+    def test_pk_check_and_reveal_stay_blocked_for_unpublished_private_crossword(self):
+        # Guards against reintroducing the pk-guessing leak: knowing the pk
+        # of a private, unpublished crossword must not be enough to check
+        # or reveal it, even though it *is* enough via the private link.
+        check_url = reverse("crossword_check", args=[self.cw.pk])
+        reveal_url = reverse("crossword_reveal", args=[self.cw.pk])
+        self.assertEqual(self._post(check_url, {"mode": "crossword", "cells": ["C", "A", "T"]}).status_code, 404)
+        self.assertEqual(self._post(reveal_url, {"mode": "crossword"}).status_code, 404)
+
+    def test_pk_check_and_reveal_work_once_published(self):
+        self.cw.published = timezone.now() - timedelta(days=1)
+        self.cw.save()
+        check_url = reverse("crossword_check", args=[self.cw.pk])
+        reveal_url = reverse("crossword_reveal", args=[self.cw.pk])
+        self.assertEqual(self._post(check_url, {"mode": "crossword", "cells": ["C", "A", "T"]}).status_code, 200)
+        self.assertEqual(self._post(reveal_url, {"mode": "crossword"}).status_code, 200)
+
+
 class CrosswordEditViewButtonTest(TestCase):
     """Tests for the "View" link on the edit screen: it should point at the
     private-link solver only for an unpublished crossword that has a

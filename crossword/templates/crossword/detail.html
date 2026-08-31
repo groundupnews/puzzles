@@ -160,8 +160,8 @@
     numCols: {{ crossword.num_cols }},
     blocks: JSON.parse(document.getElementById("cw-blocks").textContent),
     clues: JSON.parse(document.getElementById("cw-clues").textContent),
-    checkUrl: "{% url 'crossword_check' crossword.pk %}",
-    revealUrl: "{% url 'crossword_reveal' crossword.pk %}",
+    checkUrl: "{% if private_link %}{% url 'crossword_private_check' private_link %}{% else %}{% url 'crossword_check' crossword.pk %}{% endif %}",
+    revealUrl: "{% if private_link %}{% url 'crossword_private_reveal' private_link %}{% else %}{% url 'crossword_reveal' crossword.pk %}{% endif %}",
     csrfToken: "{{ csrf_token }}",
   };
 </script>

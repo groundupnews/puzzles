@@ -99,19 +99,13 @@ def crossword_edit(request, pk):
     )
 
 
-@require_POST
-def crossword_check(request, pk):
-    """Check the solver's answers against the stored grid.
+def _check_response(crossword, payload):
+    """Shared body of crossword_check / crossword_private_check.
 
     Accepts JSON: mode ('letter'|'word'|'crossword'), cells (flat list),
     cursor (cell index), direction ('A'|'D').  Returns per-cell results
     without revealing the correct letters.
     """
-    crossword = get_object_or_404(Crossword, pk=pk)
-    if not crossword.is_published() and not request.user.has_perm(PERM):
-        raise Http404
-
-    payload = json.loads(request.body)
     mode = payload.get("mode")
     user_cells = payload.get("cells", [])
     cursor = payload.get("cursor", 0)
@@ -146,19 +140,13 @@ def crossword_check(request, pk):
     return JsonResponse({"results": results})
 
 
-@require_POST
-def crossword_reveal(request, pk):
-    """Return correct letters for the requested cells.
+def _reveal_response(crossword, payload):
+    """Shared body of crossword_reveal / crossword_private_reveal.
 
     Accepts JSON: mode ('letter'|'word'|'crossword'), cursor, direction.
     Returns per-cell correct letters; the client is responsible for marking
     revealed cells as incorrect for scoring purposes.
     """
-    crossword = get_object_or_404(Crossword, pk=pk)
-    if not crossword.is_published() and not request.user.has_perm(PERM):
-        raise Http404
-
-    payload = json.loads(request.body)
     mode = payload.get("mode")
     cursor = payload.get("cursor", 0)
     direction = payload.get("direction", Entry.ACROSS)
@@ -187,6 +175,46 @@ def crossword_reveal(request, pk):
         return JsonResponse({"error": "invalid mode"}, status=400)
 
     return JsonResponse({"results": results})
+
+
+@require_POST
+def crossword_check(request, pk):
+    """Check the solver's answers against the stored grid, by public pk."""
+    crossword = get_object_or_404(Crossword, pk=pk)
+    if not crossword.is_published() and not request.user.has_perm(PERM):
+        raise Http404
+    return _check_response(crossword, json.loads(request.body))
+
+
+@require_POST
+def crossword_private_check(request, private_link):
+    """Check the solver's answers against the stored grid, via secret link.
+
+    No permission check: knowing the link is the only access control, same
+    as crossword_private_solve.
+    """
+    crossword = get_object_or_404(Crossword, private_link=private_link)
+    return _check_response(crossword, json.loads(request.body))
+
+
+@require_POST
+def crossword_reveal(request, pk):
+    """Return correct letters for the requested cells, by public pk."""
+    crossword = get_object_or_404(Crossword, pk=pk)
+    if not crossword.is_published() and not request.user.has_perm(PERM):
+        raise Http404
+    return _reveal_response(crossword, json.loads(request.body))
+
+
+@require_POST
+def crossword_private_reveal(request, private_link):
+    """Return correct letters for the requested cells, via secret link.
+
+    No permission check: knowing the link is the only access control, same
+    as crossword_private_solve.
+    """
+    crossword = get_object_or_404(Crossword, private_link=private_link)
+    return _reveal_response(crossword, json.loads(request.body))
 
 
 def crossword_solve(request, pk):
@@ -218,7 +246,11 @@ def crossword_private_solve(request, private_link):
     return render(
         request,
         "crossword/detail.html",
-        {"crossword": crossword, "clues": _clues_by_slot(crossword)},
+        {
+            "crossword": crossword,
+            "clues": _clues_by_slot(crossword),
+            "private_link": private_link,
+        },
     )
 
 
