@@ -160,7 +160,7 @@ ALLAUTH_TRUSTED_PROXY_COUNT = 1
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Africa/Johannesburg"
 
 USE_I18N = True
 
