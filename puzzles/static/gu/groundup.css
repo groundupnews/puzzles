@@ -634,15 +634,19 @@ body {
 .tile-sudoku div:nth-child(n+19):nth-child(-n+27),
 .tile-sudoku div:nth-child(n+46):nth-child(-n+54) { border-bottom: 1px solid var(--game); }
 
-/* Miniature grids drawn in the hero and the tiles. */
 .mini-grid {
   display: grid;
+  grid-template-columns: repeat(var(--cols, 5), 1fr);
+  width: min(100%, 288px);
+  min-width: 0;
   border: 2px solid var(--gu-ink);
   background: var(--gu-ink);
   gap: 1px;
 }
 
 .mini-grid div {
+  /* Square cells, whatever width a column ends up with */
+  aspect-ratio: 1;
   background: var(--gu-white);
   display: flex;
   align-items: center;
@@ -711,16 +715,17 @@ body {
   .gu-playbar__inner { padding-left: 16px; padding-right: 16px; }
   .gu-masthead__brand { margin-right: 0; }
   .gu-masthead__logo { height: 26px; }
-  .gu-masthead__right { gap: 10px; }
 
-  /* No room for back, logo and status all three; the logo is the
-     decoration, so it goes. */
+  .gu-masthead__right { gap: 8px; }
+  .gu-donate { padding: 6px 12px; font-size: 11px; }
+
   .gu-playbar__inner { padding: 0 14px; }
   .gu-playbar__logo { display: none; }
   .gu-playbar__status { gap: 10px; }
   .hub-grid { grid-template-columns: 1fr; }
   .hub-strip h1 { font-size: 28px; }
   .hub-hero__body { padding: 24px 20px; }
+  .hub-hero__art { padding: 22px; }
   .hub-hero h2 { font-size: 30px; }
   .gu-footer__inner { flex-direction: column; align-items: flex-start; gap: 10px; }
 }

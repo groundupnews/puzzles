@@ -86,8 +86,6 @@ def games_hub(request):
             "sudoku": sudokus.order_by("-published").first(),
             "target": targets.order_by("-published").first(),
             "preview": _grid_preview(crossword) if crossword else None,
-            # Keeps the teaser hero-sized at any grid dimensions.
-            "preview_cell": max(18, min(52, 260 // crossword.num_cols)) if crossword else 0,
             "greeting": _greeting(now),
             "today": now,
             "puzzle_count": (

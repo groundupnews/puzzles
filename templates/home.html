@@ -41,7 +41,7 @@
     <span class="gu-btn">Play today's puzzle</span>
   </div>
   <div class="hub-hero__art">
-    <div class="mini-grid" style="grid-template-columns:repeat({{ crossword.num_cols }},{{ preview_cell }}px);grid-auto-rows:{{ preview_cell }}px;">
+    <div class="mini-grid" style="--cols:{{ crossword.num_cols }}">
       {% for row in preview %}{% for cell in row %}
       <div{% if cell.block %} class="block"{% endif %}>{% if cell.number %}<span>{{ cell.number }}</span>{% endif %}</div>
       {% endfor %}{% endfor %}
