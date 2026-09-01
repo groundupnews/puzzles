@@ -17,9 +17,10 @@ def parse_xd(content):
     lines shaped "A1. clue text ~ ANSWER" / "D1. ...". The trailing "~
     ANSWER" is parsed but discarded -- the grid above is the source of
     truth for letters, so a mismatched or missing answer suffix is
-    harmless. Returns a dict with keys: name, authors, editors, copyright,
-    date, size ({"rows", "cols"}), grid (flat list of letters, "" for
-    blanks), blocked_out_squares, across_clues and down_clues (each a dict
+    harmless. Returns a dict with keys: name, description (which has to
+    stay on one line, like every other header), authors, editors,
+    copyright, date, size ({"rows", "cols"}), grid (flat list of letters,
+    "" for blanks), blocked_out_squares, across_clues and down_clues (each a dict
     of {number: clue text}).
     """
     lines = content.split("\n")
@@ -71,6 +72,7 @@ def parse_xd(content):
 
     return {
         "name": headers.get("title", ""),
+        "description": headers.get("description", ""),
         "authors": headers.get("author", ""),
         "editors": headers.get("editor", ""),
         "copyright": headers.get("copyright", ""),
@@ -86,14 +88,16 @@ def parse_xd(content):
 def render_xd(crossword):
     """Render a Crossword instance as an xd format string.
 
-    Mirrors parse_xd's format: headers (Author/Editor lines omitted when
-    blank), a blank line, the grid ("#" for blocks, "." for empty white
-    cells, otherwise the letter), then across clues followed by down
+    Mirrors parse_xd's format: headers (Description/Author/Editor lines
+    omitted when blank), a blank line, the grid ("#" for blocks, "." for
+    empty white cells, otherwise the letter), then across clues followed by down
     clues, each headed by a blank-line separator and only emitted at all
     if there's at least one entry in that direction. Entries without a
     clue still get a line, with the clue text left empty.
     """
     lines = [f"Title: {crossword.name}"]
+    if crossword.description:
+        lines.append(f"Description: {crossword.description}")
     if crossword.authors:
         lines.append(f"Author: {crossword.authors}")
     if crossword.editors:
@@ -160,6 +164,7 @@ def save_crossword_from_xd(data, replace=False):
 
     create_kwargs = dict(
         name=data["name"],
+        description=data.get("description", ""),
         authors=data["authors"],
         editors=data["editors"],
         num_rows=num_rows,

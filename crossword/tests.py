@@ -724,10 +724,17 @@ class ParseXdTest(TestCase):
         self.assertEqual(data["editors"], "Test Editor")
         self.assertEqual(data["copyright"], "2022 Test Co")
 
+    def test_description_header_parsed(self):
+        # Description is a one-line header like the rest, kept apart from
+        # the puzzle's name.
+        data = parse_xd("Title: X\nDescription: A note to solvers\n\nCAT\n")
+        self.assertEqual(data["description"], "A note to solvers")
+
     def test_missing_optional_headers_are_empty(self):
         # Headers other than Title are optional; when absent, their dict
         # values default to "" rather than being missing or None.
         data = parse_xd("Title: X\n\nCAT\n")
+        self.assertEqual(data["description"], "")
         self.assertEqual(data["authors"], "")
         self.assertEqual(data["editors"], "")
         self.assertEqual(data["copyright"], "")
@@ -888,6 +895,14 @@ class RenderXdTest(TestCase):
         # Title is always emitted, unlike the optional headers below.
         out = render_xd(self._cw_with_entry())
         self.assertIn("Title: Test Puzzle", out)
+
+    def test_description_header_present_when_set(self):
+        out = render_xd(self._cw_with_entry(description="A quick Monday."))
+        self.assertIn("Description: A quick Monday.", out)
+
+    def test_description_header_absent_when_blank(self):
+        out = render_xd(self._cw_with_entry())
+        self.assertNotIn("Description:", out)
 
     def test_author_header_present_when_set(self):
         out = render_xd(self._cw_with_entry(authors="A Setter"))
@@ -1283,6 +1298,13 @@ class XdRoundTripTest(TestCase):
             sorted(reparsed["blocked_out_squares"]),
             sorted(original["blocked_out_squares"]),
         )
+
+    def test_description_survives_round_trip(self):
+        original = parse_xd(
+            XD_3X3.replace("Author:", "Description: A note.\nAuthor:"))
+        cw = save_crossword_from_xd(original)
+        self.assertEqual(cw.description, "A note.")
+        self.assertEqual(parse_xd(render_xd(cw))["description"], "A note.")
 
     def test_clues_survive_round_trip(self):
         # Mirrors test_grid_survives_round_trip for the clue dicts.
