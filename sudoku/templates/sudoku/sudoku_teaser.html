@@ -1,0 +1,14 @@
+{% comment %}Rendered by the {% sudoku_teaser %} tag, for embedding the
+puzzle in a page elsewhere. Self-contained: no page CSS to rely on.
+{% endcomment %}
+<a class="sd-teaser" href="{% url 'sudoku:latest' %}"
+   aria-label="Play Sudoku {{ object.number }}">
+  <div class="sd-teaser__grid" aria-hidden="true">
+    {% for digit in object.puzzle %}<div{% if digit != '0' %} class="is-given"{% endif %}>{% if digit != '0' %}{{ digit }}{% endif %}</div>{% endfor %}
+  </div>
+  <div class="sd-teaser__body">
+    <h3>Sudoku {{ object.number }}</h3>
+    <p>{{ object.get_difficulty_display }}. Can you finish it?</p>
+    <span class="sd-teaser__cta">Play now &rarr;</span>
+  </div>
+</a>

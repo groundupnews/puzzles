@@ -729,3 +729,13 @@ body {
   .hub-hero h2 { font-size: 30px; }
   .gu-footer__inner { flex-direction: column; align-items: flex-start; gap: 10px; }
 }
+
+/* A badge that is a link -- "Play today's" on the archive screens. */
+.gu-badge--link {
+  text-decoration: none;
+}
+
+.gu-badge--link:hover {
+  background: var(--game);
+  color: var(--gu-white);
+}

@@ -53,6 +53,26 @@ def _grid_preview(crossword):
     ]
 
 
+def _target_tile(target):
+    """The nine letters for the Target tile, centre letter in the middle.
+
+    The models are the ones the news site uses, where the tile didn't
+    exist, so the hub works this out rather than the model.
+    """
+    if target is None:
+        return None
+    outer = list(target.letters[1:])
+    cells = outer[:4] + [target.letters[0]] + outer[4:]
+    return [{"char": c, "centre": i == 4} for i, c in enumerate(cells)]
+
+
+def _sudoku_tile(sudoku):
+    """The givens, with blanks for the rest, for the Sudoku tile."""
+    if sudoku is None:
+        return None
+    return [ch if ch != "0" else "" for ch in sudoku.puzzle]
+
+
 def _greeting(now):
     """Time-of-day greeting for the hub headline."""
     if now.hour < 12:
@@ -76,6 +96,8 @@ def games_hub(request):
     targets = Target.objects.published()
 
     crossword = crosswords.order_by("-published").first()
+    sudoku = sudokus.order_by("-published").first()
+    target = targets.order_by("-published").first()
     now = timezone.localtime()
     return render(
         request,
@@ -83,8 +105,10 @@ def games_hub(request):
         {
             "crossword": crossword,
             "quiz": quizzes.order_by("-published").first(),
-            "sudoku": sudokus.order_by("-published").first(),
-            "target": targets.order_by("-published").first(),
+            "sudoku": sudoku,
+            "target": target,
+            "target_tile": _target_tile(target),
+            "sudoku_tile": _sudoku_tile(sudoku),
             "preview": _grid_preview(crossword) if crossword else None,
             "greeting": _greeting(now),
             "today": now,

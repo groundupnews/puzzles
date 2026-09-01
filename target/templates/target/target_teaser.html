@@ -1,0 +1,22 @@
+{% comment %}Rendered by the {% target_teaser %} tag, for embedding the
+puzzle in a page elsewhere. Self-contained: no page CSS to rely on.
+{% endcomment %}
+<a class="tg-teaser" href="{% url 'target:detail' object.pk %}"
+   aria-label="Play Target {{ object.number }}">
+  <div class="tg-teaser__grid" aria-hidden="true">
+    <div>{{ object.letters.1|upper }}</div>
+    <div>{{ object.letters.2|upper }}</div>
+    <div>{{ object.letters.3|upper }}</div>
+    <div>{{ object.letters.4|upper }}</div>
+    <div class="is-centre">{{ object.letters.0|upper }}</div>
+    <div>{{ object.letters.5|upper }}</div>
+    <div>{{ object.letters.6|upper }}</div>
+    <div>{{ object.letters.7|upper }}</div>
+    <div>{{ object.letters.8|upper }}</div>
+  </div>
+  <div class="tg-teaser__body">
+    <h3>Target {{ object.number }}</h3>
+    <p>Nine letters. How many words can you find?</p>
+    <span class="tg-teaser__cta">Play now &rarr;</span>
+  </div>
+</a>

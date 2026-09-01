@@ -9,7 +9,7 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
 		{% block css %}
-		<link rel="stylesheet" href="{% static 'gu/groundup.css' %}?v=5">
+		<link rel="stylesheet" href="{% static 'gu/groundup.css' %}?v=6">
 		<link rel="stylesheet" href="{% static 'crossword/style.css' %}?v=91">
 		<link rel="stylesheet" href="{% static 'crossword/vendor/fontawesome/css/fontawesome.min.css' %}">
 		<link rel="stylesheet" href="{% static 'crossword/vendor/fontawesome/css/solid.min.css' %}">
@@ -66,8 +66,8 @@
 				<span>&copy; 2012 to {% now "Y" %} GroundUp &middot; Games</span>
 				<span class="gu-footer__links">
 					<a href="{% url 'crossword_select' %}">Crosswords</a>
-					<a href="{% url 'target_select' %}">Target</a>
-					<a href="{% url 'sudoku_select' %}">Sudoku</a>
+					<a href="{% url 'target:list' %}">Target</a>
+					<a href="{% url 'sudoku:list' %}">Sudoku</a>
 					<a href="{% url 'quiz_select' %}">Quizzes</a>
 					<a href="https://groundup.org.za/">GroundUp news</a>
 				</span>

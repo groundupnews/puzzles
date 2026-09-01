@@ -15,6 +15,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from allauth.account.views import request_login_code
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic.base import RedirectView
@@ -41,3 +43,7 @@ urlpatterns = [
     path('target/', include('target.urls')),
     path('players/', include('players.urls')),
     path('', games_hub, name='home'), ]
+
+if settings.DEBUG:
+    # In production nginx serves MEDIA_ROOT directly.
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

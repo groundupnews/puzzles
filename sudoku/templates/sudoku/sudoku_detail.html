@@ -1,9 +1,9 @@
 {% extends "sudoku/base.html" %}
 {% load static %}
 
-{% block title %}Sudoku{% endblock %}
+{% block title %}Sudoku {{ sudoku.number|default:sudoku.pk }}{% endblock %}
 {% block body_class %}game-sudoku{% endblock %}
-{% block head %}<link rel="stylesheet" href="{% static 'sudoku/sudoku.css' %}?v=3">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'sudoku/sudoku.css' %}?v=4">{% endblock %}
 {% block main_class %}gu-page sd-page{% endblock %}
 
 {% block chrome %}
@@ -27,24 +27,31 @@
 <div class="gu-screen-head">
   <div>
     <h1>Sudoku</h1>
-    <div class="gu-dateline">{% if sudoku.published %}{{ sudoku.published|date:"l, j F Y" }}{% endif %}</div>
+    <div class="gu-dateline">{% if sudoku.published %}{{ sudoku.published|date:"l, j F Y" }}{% endif %}{% if sudoku.number %} &middot; No. {{ sudoku.number }}{% endif %}</div>
   </div>
   <span class="gu-badge">{{ sudoku.get_difficulty_display }}</span>
 </div>
 
+{% comment %}Prev/next walk the archive at the chosen difficulty, which is
+what the sudoku:nav view does: it takes the puzzle you are on and the
+level you picked and redirects to the neighbouring one.{% endcomment %}
 <div class="sd-toolbar">
-  <div class="sd-tabs">
-    {% for tab in tabs %}
-      {% if tab.current %}
-        <span class="sd-tab is-current">{{ tab.label }}</span>
-      {% elif tab.available %}
-        <a class="sd-tab" href="{% url 'sudoku_latest' %}?difficulty={{ tab.value }}">{{ tab.label }}</a>
-      {% else %}
-        <span class="sd-tab is-empty" title="No puzzle at this level yet">{{ tab.label }}</span>
-      {% endif %}
-    {% endfor %}
+  <div class="sd-nav">
+    <a class="sd-nav__btn" id="sd-prev"
+       href="{% url 'sudoku:nav' sudoku.pk %}?nav=prev&amp;diff={{ difficulty }}">&lsaquo; Previous</a>
+    <select class="sd-level" id="sd-difficulty" aria-label="Difficulty">
+      <option value="0"{% if difficulty == '0' %} selected{% endif %}>Any level</option>
+      {% for value, label in choices|slice:"1:" %}
+      <option value="{{ value }}"{% if value == difficulty %} selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <a class="sd-nav__btn" id="sd-next"
+       href="{% url 'sudoku:nav' sudoku.pk %}?nav=next&amp;diff={{ difficulty }}">Next &rsaquo;</a>
   </div>
-  <a class="sd-archive" href="{% url 'sudoku_select' %}">Archive &rsaquo;</a>
+  <div class="sd-toolbar__links">
+    <a href="{% url 'sudoku:latest' %}">Latest</a>
+    <a href="{% url 'sudoku:list' %}">Archive &rsaquo;</a>
+  </div>
 </div>
 
 <div class="sd-layout">
@@ -102,6 +109,16 @@
     {pk: {{ sudoku.pk }}},
     JSON.parse(document.getElementById("sd-data").textContent)
   );
+
+  // Changing the level re-points prev/next at that level, so the reader
+  // picks a difficulty and then walks the archive within it.
+  document.getElementById("sd-difficulty").addEventListener("change", function (e) {
+    const diff = e.target.value;
+    document.getElementById("sd-prev").href =
+      "{% url 'sudoku:nav' sudoku.pk %}?nav=prev&diff=" + diff;
+    document.getElementById("sd-next").href =
+      "{% url 'sudoku:nav' sudoku.pk %}?nav=next&diff=" + diff;
+  });
 </script>
-<script src="{% static 'sudoku/sudoku_solver.js' %}?v=2"></script>
+<script src="{% static 'sudoku/sudoku_solver.js' %}?v=3"></script>
 {% endblock %}

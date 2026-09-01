@@ -1,0 +1,83 @@
+{% extends "target/base.html" %}
+{% load static %}
+
+{% block title %}Target puzzles{% endblock %}
+{% block body_class %}game-target{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'target/target.css' %}?v=3">{% endblock %}
+
+{% block content %}
+<div class="gu-screen-head">
+  <div>
+    <h1>Target</h1>
+    <div class="gu-dateline">Every published puzzle, newest first.</div>
+  </div>
+  <a class="gu-badge gu-badge--link" href="{% url 'target:latest' %}">Play today's &rsaquo;</a>
+</div>
+
+{% if perms.target.add_target %}
+<form class="tg-newbar" action="{% url 'target:create' %}" method="get" id="tg-new-form">
+  <label for="tg-new-letters">Make a new Target</label>
+  <input type="text" id="tg-new-letters" maxlength="9" placeholder="Nine letters (optional)"
+         autocomplete="off" spellcheck="false">
+  <button type="submit" class="tg-btn tg-btn--go">Create</button>
+</form>
+<script>
+  // Blank goes to the generator; nine letters build that grid instead.
+  document.getElementById("tg-new-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const letters = document.getElementById("tg-new-letters").value.trim().toLowerCase();
+    if (letters && letters.length !== 9) {
+      alert("Enter nine letters, or leave the box empty.");
+      return;
+    }
+    window.location.href = "{% url 'target:create' %}" + letters;
+  });
+</script>
+{% endif %}
+
+{% if object_list %}
+<div class="table-wrap">
+<table class="crossword-table">
+  <thead>
+    <tr>
+      <th>Puzzle</th>
+      <th>{% if perms.target.change_target %}Nine-letter word{% else %}Letters{% endif %}</th>
+      <th>Words</th>
+      <th>Published</th>
+      {% if perms.target.change_target %}<th></th>{% endif %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for target in object_list %}
+    <tr>
+      <td class="cw-name"><a href="{% url 'target:detail' target.pk %}">Target {{ target.number|default:target.pk }}</a></td>
+      <td class="tg-cell-letters">{% if perms.target.change_target %}{{ target.nineLetterWord|upper }}{% else %}{{ target.letters|upper }}{% endif %}</td>
+      <td>{{ target.wordCount }}</td>
+      <td>
+        {% if target.is_published %}
+          <span class="status-published">{{ target.published|date:"Y-m-d" }}</span>
+        {% else %}
+          <span class="status-unpublished">{% if target.published %}{{ target.published|date:"Y-m-d" }}{% else %}Unpublished{% endif %}</span>
+        {% endif %}
+      </td>
+      {% if perms.target.change_target %}
+      <td><a href="{% url 'target:update' target.pk %}">Edit</a></td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if is_paginated %}
+<nav class="tg-pager">
+  {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">&lsaquo; Newer</a>{% else %}<span></span>{% endif %}
+  <span class="gu-dateline">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Older &rsaquo;</a>{% endif %}
+</nav>
+{% endif %}
+
+{% else %}
+<p>No Target puzzles yet.</p>
+{% endif %}
+{% endblock %}

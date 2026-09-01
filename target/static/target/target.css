@@ -243,3 +243,263 @@
   .tg-grid { grid-template-columns: repeat(3, 60px); }
   .tg-cell { width: 60px; height: 60px; font-size: 28px; }
 }
+
+/* --- Editor bar, shown to people who can change the puzzle --- */
+
+.tg-editbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: -8px 0 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--gu-border-strong);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tg-editbar a {
+  color: var(--gu-link);
+  text-decoration: none;
+}
+
+.tg-editbar a:hover { text-decoration: underline; }
+
+/* --- Solution, once the puzzle is old enough to give it away --- */
+
+.tg-solution {
+  margin: 20px 0;
+  padding: 14px;
+  background: var(--gu-surface-2);
+}
+
+.tg-solution__toggle {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gu-link);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.tg-solution__words {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.7;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--gu-gray-600);
+  word-spacing: 0.4em;
+}
+
+.tg-solution__nine {
+  font-weight: 700;
+  color: var(--game-deep);
+}
+
+/* --- Previous / next puzzle --- */
+
+.tg-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 24px;
+  padding-top: 14px;
+  border-top: 1px solid var(--gu-border-strong);
+}
+
+.tg-nav a {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gu-link);
+  text-decoration: none;
+}
+
+.tg-nav a:hover { text-decoration: underline; }
+
+/* --- Archive --- */
+
+.tg-cell-letters {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.tg-pager {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.tg-pager a {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gu-link);
+  text-decoration: none;
+}
+
+.tg-newbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  background: var(--gu-surface-2);
+}
+
+.tg-newbar label {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tg-newbar input {
+  height: 36px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  border: 1.5px solid var(--gu-ink);
+  background: #fff;
+}
+
+.tg-newbar .tg-btn { width: auto; height: 36px; padding: 0 16px; font-weight: 700; font-size: 14px; }
+
+/* --- The puzzle editor --- */
+
+.tg-form-edit label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gu-gray-500);
+}
+
+.tg-form-edit input[type="text"],
+.tg-form-edit input[type="number"],
+.tg-form-edit textarea {
+  width: 100%;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 15px;
+  border: 1.5px solid var(--gu-ink);
+  background: #fff;
+}
+
+.tg-form-edit textarea { min-height: 14rem; line-height: 1.5; }
+.tg-form-edit #id_letters { max-width: 12rem; letter-spacing: 0.14em; text-transform: uppercase; }
+.tg-form-edit #id_published { max-width: 16rem; }
+.tg-form-edit p { margin: 0 0 16px; }
+
+.tg-form-edit .helptext {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--gu-gray-350);
+}
+
+.tg-form-edit .errorlist {
+  margin: 0 0 6px;
+  padding: 8px 12px;
+  list-style: none;
+  font-size: 13px;
+  font-weight: 600;
+  background: #fbeaea;
+  border-left: 3px solid var(--danger, #d0021b);
+}
+
+.tg-form-edit__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.tg-form-edit__buttons .tg-btn {
+  width: auto;
+  height: 40px;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.tg-btn--danger {
+  border-color: var(--danger, #d0021b);
+  color: var(--danger, #d0021b);
+}
+
+.tg-btn--danger:hover { background: #fbeaea; }
+
+.tg-grid-image {
+  margin-top: 24px;
+  padding-top: 14px;
+  border-top: 1px solid var(--gu-border-strong);
+}
+
+.tg-grid-image img {
+  display: block;
+  margin-top: 8px;
+  width: 150px;
+  height: 150px;
+  border: 1px solid var(--gu-border-strong);
+}
+
+/* --- Teaser, for embedding the puzzle in another page --- */
+
+.tg-teaser {
+  --game: #1f8a5b;
+  --game-soft: #e7f3ec;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  max-width: 26rem;
+  padding: 16px;
+  border: 2px solid var(--gu-ink, #151F22);
+  color: inherit;
+  text-decoration: none;
+}
+
+.tg-teaser__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 34px);
+  grid-auto-rows: 34px;
+  gap: 3px;
+  flex: none;
+}
+
+.tg-teaser__grid div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--game);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.tg-teaser__grid .is-centre {
+  background: var(--game);
+  color: #fff;
+}
+
+.tg-teaser__body h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.tg-teaser__body p {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.tg-teaser__cta {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--game);
+}

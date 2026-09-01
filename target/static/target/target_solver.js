@@ -258,3 +258,15 @@ document.getElementById("tg-clear-btn").addEventListener("click", () => {
 
 loadState();
 render();
+
+// The solution is on the page only once the puzzle is old enough for the
+// server to have sent it (Target.is_solution_public).
+const solutionToggle = document.getElementById("tg-solution-toggle");
+if (solutionToggle) {
+  solutionToggle.addEventListener("click", () => {
+    const words = document.getElementById("tg-solution-words");
+    words.hidden = !words.hidden;
+    solutionToggle.textContent = words.hidden ? "Show solution" : "Hide solution";
+    solutionToggle.setAttribute("aria-expanded", String(!words.hidden));
+  });
+}

@@ -63,10 +63,10 @@
 
 <div class="hub-grid">
 
-  <a class="hub-tile theme-target" href="{% if target %}{% url 'target_latest' %}{% else %}{% url 'target_select' %}{% endif %}">
+  <a class="hub-tile theme-target" href="{% if target %}{% url 'target:latest' %}{% else %}{% url 'target:list' %}{% endif %}">
     <div class="hub-tile__art">
       <div class="tile-letters">
-        {% for letter in target.tile_letters %}
+        {% for letter in target_tile %}
         <div{% if letter.centre %} class="is-centre"{% endif %}>{{ letter.char|upper }}</div>
         {% endfor %}
       </div>
@@ -81,10 +81,10 @@
     </div>
   </a>
 
-  <a class="hub-tile theme-sudoku" href="{% if sudoku %}{% url 'sudoku_latest' %}{% else %}{% url 'sudoku_select' %}{% endif %}">
+  <a class="hub-tile theme-sudoku" href="{% if sudoku %}{% url 'sudoku:latest' %}{% else %}{% url 'sudoku:list' %}{% endif %}">
     <div class="hub-tile__art">
       <div class="tile-sudoku">
-        {% for digit in sudoku.tile_digits %}<div>{{ digit }}</div>{% endfor %}
+        {% for digit in sudoku_tile %}<div>{{ digit }}</div>{% endfor %}
       </div>
     </div>
     <div class="hub-tile__body">

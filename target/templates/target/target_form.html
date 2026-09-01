@@ -1,0 +1,64 @@
+{% extends "target/base.html" %}
+{% load static %}
+
+{% block title %}{% if object %}Edit Target {{ object.number }}{% else %}New Target{% endif %}{% endblock %}
+{% block body_class %}game-target{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'target/target.css' %}?v=3">
+<link rel="stylesheet" href="{% static 'target/vendor/flatpickr.min.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="gu-screen-head">
+  <div>
+    <h1>{% if object %}Edit Target{% else %}New Target{% endif %}</h1>
+    <div class="gu-dateline">
+      {% if object %}#{{ object.pk }} &middot; No. {{ object.number }}{% else %}Generated from the dictionary; edit the word list before saving.{% endif %}
+    </div>
+  </div>
+  {% if nine_letter_word %}<span class="gu-badge">{{ nine_letter_word|upper }}</span>{% endif %}
+</div>
+
+<form id="tg-form-edit" class="tg-form-edit" method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <p id="tg-word-count" class="gu-dateline"></p>
+  <div class="tg-form-edit__buttons">
+    <button type="submit" name="save" value="1" class="tg-btn tg-btn--go">Save</button>
+    <button type="submit" name="save_continue" value="1" class="tg-btn">Save and keep editing</button>
+    <button type="submit" name="cancel" value="1" class="tg-btn">Cancel</button>
+    {% if object %}<button type="submit" name="delete" value="1" class="tg-btn tg-btn--danger">Delete</button>{% endif %}
+  </div>
+</form>
+
+{% if object.tweeted or object.tweeted_solution %}
+<p class="gu-dateline">
+  {% if object.tweeted %}Publication of this Target has been tweeted.{% endif %}
+  {% if object.tweeted_solution %}The solution notification has been tweeted.{% endif %}
+</p>
+{% endif %}
+
+{% if object and perms.target.change_target %}
+<div class="tg-grid-image">
+  <div class="gu-eyebrow">Share image</div>
+  <img src="{{ MEDIA_URL }}targets/target_{{ object.pk }}.png" alt="Target {{ object.number }} grid">
+</div>
+{% endif %}
+
+<script src="{% static 'target/vendor/flatpickr.min.js' %}"></script>
+<script>
+  // Live count of the answer list, as on the news site: centre letter,
+  // nine-letter word, number of words.
+  const wordList = document.getElementById("id_words");
+  const count = document.getElementById("tg-word-count");
+  function setCount() {
+    const words = wordList.value.split("\n").filter((w) => w.trim());
+    const centre = (document.getElementById("id_letters").value || " ")[0];
+    count.textContent = `${centre.toUpperCase()} | {{ nine_letter_word|upper }} | ${words.length} words`;
+  }
+  wordList.addEventListener("input", setCount);
+  document.getElementById("id_letters").addEventListener("input", setCount);
+  setCount();
+  flatpickr("#id_published", {enableTime: true, time_24hr: true, dateFormat: "Y-m-d H:i"});
+</script>
+{% endblock %}

@@ -1,70 +1,91 @@
+from django.views.generic.detail import DetailView
+from django.views.generic.list import ListView
+from django.shortcuts import get_object_or_404, render
+from django.utils.translation import gettext_lazy as _
+from django.contrib import messages
+from django.urls import reverse
+from django.http import HttpResponseRedirect
 from django.http import Http404
-from django.shortcuts import get_object_or_404, redirect, render
-from django.views.generic import ListView
 
-from .models import Sudoku
+from sudoku.models import Sudoku
 
-PERM = "sudoku.can_generate_sudokus"
+class SudokuDetailView(DetailView):
+    model = Sudoku
+
+    def get_object(self, queryset=None):
+        try:
+            sudoku = super().get_object(queryset)
+        except:
+            raise Http404
+
+        if self.request.user.is_staff is False:
+            if sudoku.is_published() is False:
+                raise Http404
+
+        if sudoku.is_published() is False:
+            messages.add_message(self.request, messages.INFO,
+                                 "This Sudoku puzzle is not published.")
+        return sudoku
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['choices'] = Sudoku.Difficulty.choices
+        if 'diff' in self.request.GET:
+            context['difficulty'] = self.request.GET['diff']
+        else:
+            context['difficulty'] = '0'
+        return context
+
+class SudokuLatest(SudokuDetailView):
+
+    def get_object(self, queryset=None):
+        sudoku = Sudoku.objects.published().latest('published')
+        return sudoku
 
 
-class SudokuSelectView(ListView):
-    """The sudoku archive. Everyone sees published puzzles; editors also
-    see the ones queued for future publication."""
+def nav(request, pk):
+    puzzle = get_object_or_404(Sudoku, pk=pk)
+    try:
+        nav = request.GET['nav']
+        difficulty = request.GET['diff']
+    except:
+        nav = 'prev'
+        difficulty = '0'
+
+    if difficulty == '0':
+        lo_diff = '0'
+        hi_diff = max(Sudoku.Difficulty.choices)[0]
+    else:
+        lo_diff = difficulty
+        hi_diff = difficulty
+
+    try:
+        if nav == 'next':
+            pk_new = Sudoku.objects.published(). \
+                filter(difficulty__gte=lo_diff). \
+                filter(difficulty__lte=hi_diff). \
+                filter(published__gt=puzzle.published).earliest('published').pk
+        else:
+            pk_new = Sudoku.objects.published(). \
+                filter(difficulty__gte=lo_diff). \
+                filter(difficulty__lte=hi_diff). \
+                filter(published__lt=puzzle.published).latest('published').pk
+    except Sudoku.DoesNotExist:
+        pk_new=puzzle.pk
+
+    url = reverse('sudoku:detail', args=(pk_new,)) + '?diff=' + difficulty
+    return HttpResponseRedirect(url)
+
+
+class SudokuList(ListView):
+    """The archive. Not on the news site, where readers reached puzzles
+    through prev/next alone, but the games hub links to a list per game.
+    Editors also see puzzles queued for future publication."""
 
     model = Sudoku
-    template_name = "sudoku/select.html"
-    context_object_name = "sudokus"
+    paginate_by = 20
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        if not self.request.user.has_perm(PERM):
-            qs = qs.published()
-        return qs
-
-
-def _latest(difficulty=None):
-    qs = Sudoku.objects.published()
-    if difficulty:
-        qs = qs.filter(difficulty=difficulty)
-    return qs.order_by("-published").first()
-
-
-def sudoku_latest(request):
-    """Today's puzzle, at the difficulty asked for if there is one.
-
-    The hub links here unconditionally, so an empty difficulty falls back
-    to the newest puzzle at any level rather than 404ing.
-    """
-    difficulty = request.GET.get("difficulty")
-    sudoku = _latest(difficulty) or _latest()
-    if sudoku is None:
-        raise Http404("No sudoku has been published yet.")
-    return redirect("sudoku_solve", pk=sudoku.pk)
-
-
-def sudoku_solve(request, pk):
-    """Play screen. Editors can preview an unpublished puzzle; everyone
-    else gets a 404 for one (mirrors crossword_solve)."""
-    sudoku = get_object_or_404(Sudoku, pk=pk)
-    if not sudoku.is_published() and not request.user.has_perm(PERM):
-        raise Http404
-
-    # Tabs point at the newest puzzle of each level.
-    counts = {
-        d: Sudoku.objects.published().filter(difficulty=d).exists()
-        for d in Sudoku.TAB_DIFFICULTIES
-    }
-    tabs = [
-        {
-            "value": d,
-            "label": Sudoku.Difficulty(d).label,
-            "current": d == sudoku.difficulty,
-            "available": counts[d],
-        }
-        for d in Sudoku.TAB_DIFFICULTIES
-    ]
-    return render(
-        request,
-        "sudoku/detail.html",
-        {"sudoku": sudoku, "tabs": tabs},
-    )
+        if self.request.user.is_staff:
+            return Sudoku.objects.all()
+        return Sudoku.objects.published()

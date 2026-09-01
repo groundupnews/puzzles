@@ -1,133 +1,138 @@
-import hashlib
+import json
 
 from django.contrib.auth.models import Permission, User
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from . import generator
-from .models import Target
-
-# "kaseflorw": centre k, with falsework as the nine-letter answer.
-LETTERS = "kaseflorw"
-WORDS = "falsework\nforks\nkales\nwalks"
+from target.models import Target
 
 
-def make(published=True, letters=LETTERS, words=WORDS):
+def make_target(letters="practical", words=None, published=None, **kwargs):
+    if words is None:
+        words = ["practical", "carat", "clap", "canal"]
     return Target.objects.create(
         letters=letters,
-        words=words,
-        published=timezone.now() if published else None,
+        words="\r\n".join(words),
+        published=published,
+        **kwargs,
     )
 
 
-class ModelTests(TestCase):
-    def test_word_list_ignores_blank_lines(self):
-        target = make(words="falsework\n\n  forks  \n")
-        self.assertEqual(target.word_list(), ["falsework", "forks"])
+class PublishingTest(TestCase):
+    """Unpublished puzzles are for editors only, as on the news site."""
 
-    def test_hashed_words_hides_the_answers(self):
-        target = make()
-        hashes = target.hashed_words()
-        self.assertEqual(len(hashes), 4)
-        self.assertIn(hashlib.sha256(b"forks").hexdigest(), hashes)
-        self.assertNotIn("forks", hashes)
+    def setUp(self):
+        self.published = make_target(
+            published=timezone.now() - timezone.timedelta(days=1))
+        self.queued = make_target(
+            letters="bacterium",
+            words=["bacterium", "curb", "brace"],
+            published=timezone.now() + timezone.timedelta(days=7))
 
-    def test_nine_letter_word_and_centre(self):
-        target = make()
-        self.assertEqual(target.nine_letter_word(), "falsework")
-        self.assertEqual(target.centre(), "k")
-
-    def test_number_is_assigned_on_first_publication(self):
-        first = make()
-        second = make(letters="tuvwxyzab")
-        self.assertEqual(first.number, 1)
-        self.assertEqual(second.number, 2)
-
-    def test_unpublished_puzzle_is_not_numbered(self):
-        self.assertIsNone(make(published=False).number)
-
-
-class PublicationTests(TestCase):
-    def test_unpublished_puzzle_is_hidden(self):
-        target = make(published=False)
-        response = self.client.get(reverse("target_solve", args=[target.pk]))
-        self.assertEqual(response.status_code, 404)
-
-    def test_editor_can_preview_unpublished_puzzle(self):
-        target = make(published=False)
-        user = User.objects.create_user("editor", password="x")
-        user.user_permissions.add(Permission.objects.get(codename="can_generate_targets"))
-        self.client.force_login(user)
-        response = self.client.get(reverse("target_solve", args=[target.pk]))
+    def test_published_puzzle_is_public(self):
+        response = self.client.get(
+            reverse("target:detail", args=[self.published.pk]))
         self.assertEqual(response.status_code, 200)
 
-    def test_play_screen_ships_hashes_not_words(self):
-        target = make()
-        response = self.client.get(reverse("target_solve", args=[target.pk]))
-        body = response.content.decode()
-        self.assertIn(hashlib.sha256(b"falsework").hexdigest(), body)
-        self.assertNotIn("forks", body)
-
-    def test_scoring_thresholds(self):
-        target = make()  # four answers
-        response = self.client.get(reverse("target_solve", args=[target.pk]))
-        self.assertEqual(response.context["total"], 4)
-        self.assertEqual(response.context["good"], 3)  # 75%
-        self.assertEqual(response.context["very_good"], 4)  # 90%, rounded
-
-
-class GeneratorTests(TestCase):
-    def test_solve_finds_only_words_the_grid_can_spell(self):
-        words = ["falsework", "forks", "flare", "oak", "kale"]
-        found = generator.solve(LETTERS, words)
-        self.assertIn("falsework", found)
-        self.assertIn("forks", found)
-        self.assertNotIn("flare", found)  # no centre letter
-        self.assertNotIn("oak", found)  # the caller's list is already filtered
-        self.assertIn("kale", found)
-
-    def test_solve_respects_letter_counts(self):
-        # One "s" in the grid, so a word needing two can't be made.
-        self.assertEqual(generator.solve("kseabcdfg", ["kiss", "kabs"]), ["kabs"])
-
-    def test_inflected_forms_are_excluded(self):
-        # The rules shipped with each puzzle promise none of these.
-        stems = {"fork", "ark", "dry", "cook", "clas"}
-        for word in ["forks", "arks", "dries", "cooks"]:
-            self.assertTrue(generator._is_inflected(word, stems), word)
-
-    def test_words_merely_ending_in_s_are_kept(self):
-        stems = {"fork", "ark", "dry"}
-        for word in ["class", "bliss", "chaos", "octopus"]:
-            self.assertFalse(generator._is_inflected(word, stems), word)
-
-    def test_hint_names_the_shortest_missing_word(self):
-        target = make()  # falsework, forks, kales, walks
-        url = reverse("target_hint", args=[target.pk])
-        response = self.client.post(
-            url, {"found": ["forks"]}, content_type="application/json"
-        )
-        # Shortest first, so a hint never spends the nine-letter word early.
-        self.assertEqual(response.json()["word"], "kales")
-
-    def test_hint_returns_nothing_once_everything_is_found(self):
-        target = make()
-        response = self.client.post(
-            reverse("target_hint", args=[target.pk]),
-            {"found": target.word_list()},
-            content_type="application/json",
-        )
-        self.assertIsNone(response.json()["word"])
-
-    def test_hint_404s_for_an_unpublished_puzzle(self):
-        target = make(published=False)
-        response = self.client.post(
-            reverse("target_hint", args=[target.pk]), {}, content_type="application/json"
-        )
+    def test_queued_puzzle_is_hidden(self):
+        response = self.client.get(
+            reverse("target:detail", args=[self.queued.pk]))
         self.assertEqual(response.status_code, 404)
 
-    def test_hash_word_matches_sha256(self):
-        self.assertEqual(
-            generator.hash_word("falsework"), hashlib.sha256(b"falsework").hexdigest()
-        )
+    def test_editor_may_preview_queued_puzzle(self):
+        editor = User.objects.create_user("editor", password="secret")
+        editor.user_permissions.add(
+            Permission.objects.get(codename="change_target"))
+        self.client.force_login(editor)
+        response = self.client.get(
+            reverse("target:detail", args=[self.queued.pk]))
+        self.assertEqual(response.status_code, 200)
+
+    def test_list_shows_only_published_to_readers(self):
+        response = self.client.get(reverse("target:list"))
+        self.assertEqual(list(response.context["object_list"]),
+                         [self.published])
+
+    def test_latest_redirects_to_newest_published(self):
+        response = self.client.get(reverse("target:latest"))
+        self.assertRedirects(
+            response, reverse("target:detail", args=[self.published.pk]),
+            fetch_redirect_response=False)
+
+    def test_number_assigned_on_publication(self):
+        self.assertEqual(self.published.number, 1)
+
+
+class AnswersStayOffThePageTest(TestCase):
+
+    def test_page_carries_hashes_not_words(self):
+        target = make_target(published=timezone.now())
+        response = self.client.get(
+            reverse("target:detail", args=[target.pk]))
+        body = response.content.decode()
+        self.assertNotIn("canal", body)
+        self.assertIn(target.hashedWords()[0], body)
+
+    def test_solution_shown_once_it_is_public(self):
+        target = make_target(published=timezone.now(), public_solution=True)
+        response = self.client.get(
+            reverse("target:detail", args=[target.pk]))
+        self.assertContains(response, "practical")
+
+
+class HintTest(TestCase):
+
+    def setUp(self):
+        self.target = make_target(published=timezone.now())
+        self.url = reverse("target:hint", args=[self.target.pk])
+
+    def post(self, found):
+        return self.client.post(
+            self.url, json.dumps({"found": found}),
+            content_type="application/json")
+
+    def test_hint_gives_the_shortest_missing_word(self):
+        # Never the nine-letter word while easier ones are still out there.
+        word = self.post([]).json()["word"]
+        self.assertEqual(word, "clap")
+
+    def test_hint_skips_words_already_found(self):
+        word = self.post(["clap", "carat", "canal"]).json()["word"]
+        self.assertEqual(word, "practical")
+
+    def test_no_word_left_to_give(self):
+        found = ["practical", "carat", "clap", "canal"]
+        self.assertIsNone(self.post(found).json()["word"])
+
+
+class EditorViewsTest(TestCase):
+    """The create/update/delete views the news site uses."""
+
+    def setUp(self):
+        self.editor = User.objects.create_user("editor", password="secret")
+        self.editor.user_permissions.set(Permission.objects.filter(
+            codename__in=["add_target", "change_target", "delete_target"]))
+        self.client.force_login(self.editor)
+
+    def test_readers_cannot_reach_the_editor(self):
+        self.client.logout()
+        response = self.client.get(reverse("target:create"))
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_update_rejects_a_word_without_the_centre_letter(self):
+        target = make_target(published=timezone.now())
+        response = self.client.post(
+            reverse("target:update", args=[target.pk]),
+            {"letters": "practical",
+             "words": "practical\r\ncarat\r\nclap\r\ncanal\r\nbrain",
+             "publish_solution_after": 24,
+             "tweet_text": "Try the latest GroundUp Target.",
+             "clue": "", "rules": ""})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("words", response.context["form"].errors)
+
+    def test_delete_view_renders(self):
+        target = make_target(published=timezone.now())
+        response = self.client.get(reverse("target:delete", args=[target.pk]))
+        self.assertEqual(response.status_code, 200)

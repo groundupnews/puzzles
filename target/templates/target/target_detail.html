@@ -1,9 +1,9 @@
 {% extends "target/base.html" %}
 {% load static %}
 
-{% block title %}Target{% endblock %}
+{% block title %}Target {{ target.number }}{% endblock %}
 {% block body_class %}game-target{% endblock %}
-{% block head %}<link rel="stylesheet" href="{% static 'target/target.css' %}?v=2">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'target/target.css' %}?v=3">{% endblock %}
 {% block main_class %}gu-page tg-page{% endblock %}
 
 {% block chrome %}
@@ -24,16 +24,27 @@
 {% endblock %}
 
 {% block content %}
+{% widthratio target.wordCount 4 3 as good %}
+{% widthratio target.wordCount 10 9 as very_good %}
+
 <div class="gu-screen-head">
   <div>
     <h1>Target</h1>
     <div class="gu-dateline">{% if target.published %}{{ target.published|date:"l, j F Y" }}{% endif %}{% if target.number %} &middot; No. {{ target.number }}{% endif %}</div>
   </div>
-  <span class="gu-badge">{{ total }} word{{ total|pluralize }}</span>
+  <span class="gu-badge">{{ target.wordCount }} word{{ target.wordCount|pluralize }}</span>
 </div>
 
-<p class="tg-intro">Make as many words as you can. Every word must use the centre letter, with no word shorter than four letters. There is at least one nine-letter word.</p>
-{% if target.clue %}<p class="tg-clue"><strong>Clue:</strong> {{ target.clue }}</p>{% endif %}
+{% if perms.target.change_target %}
+<div class="tg-editbar">
+  <a href="{% url 'target:update' target.pk %}">Edit</a>
+  <a href="{% url 'target:list' %}">All Targets</a>
+  {% if not target.is_published %}<span class="status-unpublished">Unpublished &mdash; editor preview</span>{% endif %}
+</div>
+{% endif %}
+
+<p class="tg-intro">Make as many words as you can. Every word must use the centre letter, with no word shorter than four letters. There is one nine-letter word.</p>
+{% if target.clue %}<p class="tg-clue"><strong>Clue:</strong> {{ target.clue|safe }}</p>{% endif %}
 
 <div id="tg-grid" class="tg-grid"></div>
 
@@ -66,8 +77,8 @@
   </div>
   <div class="tg-bar">
     <div id="tg-bar-fill" class="tg-bar__fill"></div>
-    <span class="tg-bar__tick" style="left:{% widthratio good total 100 %}%"></span>
-    <span class="tg-bar__tick" style="left:{% widthratio very_good total 100 %}%"></span>
+    <span class="tg-bar__tick" style="left:{% widthratio good target.wordCount 100 %}%"></span>
+    <span class="tg-bar__tick" style="left:{% widthratio very_good target.wordCount 100 %}%"></span>
   </div>
 </div>
 
@@ -77,21 +88,44 @@
   <p id="tg-found-empty" class="gu-dateline">No words yet. Type one in, or click the letters.</p>
 </div>
 
+{% if target.is_solution_public %}
+<div class="tg-solution">
+  <button type="button" id="tg-solution-toggle" class="tg-solution__toggle" aria-expanded="false">Show solution</button>
+  <p id="tg-solution-words" class="tg-solution__words" hidden>
+    <span class="tg-solution__nine">{{ target.nineLetterWord }}</span>
+    {{ target.wordsWithoutNineLetter }}
+  </p>
+</div>
+{% endif %}
+
 <section id="rules" class="shortcuts">
   <h2>How to play</h2>
-  <div class="tg-rules">{{ target.rules|linebreaks }}</div>
+  <div class="tg-rules">{{ target.rules|safe|linebreaks }}</div>
 </section>
 
-<script id="tg-data" type="application/json">{"letters": "{{ target.letters }}", "centre": "{{ target.centre }}", "hashedWords": {{ hashed_words|safe }}, "total": {{ total }}, "good": {{ good }}, "veryGood": {{ very_good }}}</script>
+{% if previous_target or next_target %}
+<nav class="tg-nav">
+  {% if previous_target %}<a href="{% url 'target:detail' previous_target.pk %}">&lsaquo; Target {{ previous_target.number }}</a>{% else %}<span></span>{% endif %}
+  {% if next_target %}<a href="{% url 'target:detail' next_target.pk %}">Target {{ next_target.number }} &rsaquo;</a>{% endif %}
+</nav>
+{% endif %}
+
+{% comment %}The answers never reach the browser in the clear: the page
+carries a SHA-256 of each one, and a guess is checked by hashing it. The
+list is a Python literal rather than JSON -- single-quoted strings, which
+JavaScript reads the same way.{% endcomment %}
 <script>
-  window.TARGET = Object.assign(
-    {
-      pk: {{ target.pk }},
-      hintUrl: "{% url 'target_hint' target.pk %}",
-      csrfToken: "{{ csrf_token }}"
-    },
-    JSON.parse(document.getElementById("tg-data").textContent)
-  );
+  window.TARGET = {
+    pk: {{ target.pk }},
+    letters: "{{ target.letters }}",
+    centre: "{{ target.letters.0 }}",
+    hashedWords: {{ target.hashedWords|safe }},
+    total: {{ target.wordCount }},
+    good: {{ good }},
+    veryGood: {{ very_good }},
+    hintUrl: "{% url 'target:hint' target.pk %}",
+    csrfToken: "{{ csrf_token }}"
+  };
 </script>
-<script src="{% static 'target/target_solver.js' %}?v=2"></script>
+<script src="{% static 'target/target_solver.js' %}?v=3"></script>
 {% endblock %}

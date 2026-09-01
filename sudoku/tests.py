@@ -1,83 +1,90 @@
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Sudoku
+from sudoku.models import Sudoku
 
-PUZZLE = ("530070000" "600195000" "098000060"
-          "800060003" "400803001" "700020006"
-          "060000280" "000419005" "000080079")
-SOLUTION = ("534678912" "672195348" "198342567"
-            "859761423" "426853791" "713924856"
-            "961537284" "287419635" "345286179")
+PUZZLE = "0" * 81
+SOLVED = "1" * 81
 
 
-def make(published=True, difficulty=Sudoku.Difficulty.MEDIUM, puzzle=PUZZLE):
+def make_sudoku(puzzle, difficulty=Sudoku.Difficulty.MEDIUM, days=0):
     return Sudoku.objects.create(
         puzzle=puzzle,
-        solution=SOLUTION,
+        solution=SOLVED,
         difficulty=difficulty,
-        published=timezone.now() if published else None,
+        published=timezone.now() + timezone.timedelta(days=days),
     )
 
 
-class PublicationTests(TestCase):
-    def test_unpublished_puzzle_is_hidden(self):
-        sudoku = make(published=False)
-        self.assertFalse(sudoku.is_published())
-        response = self.client.get(reverse("sudoku_solve", args=[sudoku.pk]))
-        self.assertEqual(response.status_code, 404)
+class PublishingTest(TestCase):
+    """Unpublished puzzles are for staff only, as on the news site."""
 
-    def test_editor_can_preview_unpublished_puzzle(self):
-        sudoku = make(published=False)
-        user = User.objects.create_user("editor", password="x")
-        user.user_permissions.add(Permission.objects.get(codename="can_generate_sudokus"))
-        self.client.force_login(user)
-        response = self.client.get(reverse("sudoku_solve", args=[sudoku.pk]))
+    def setUp(self):
+        self.published = make_sudoku("1" + "0" * 80, days=-1)
+        self.queued = make_sudoku("2" + "0" * 80, days=7)
+
+    def test_published_puzzle_is_public(self):
+        response = self.client.get(
+            reverse("sudoku:detail", args=[self.published.pk]))
         self.assertEqual(response.status_code, 200)
 
-    def test_archive_lists_only_published_for_readers(self):
-        published = make()
-        make(published=False, puzzle=SOLUTION)
-        response = self.client.get(reverse("sudoku_select"))
-        self.assertEqual(list(response.context["sudokus"]), [published])
+    def test_queued_puzzle_is_hidden(self):
+        response = self.client.get(
+            reverse("sudoku:detail", args=[self.queued.pk]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_staff_may_preview_queued_puzzle(self):
+        self.client.force_login(
+            User.objects.create_user("editor", password="secret", is_staff=True))
+        response = self.client.get(
+            reverse("sudoku:detail", args=[self.queued.pk]))
+        self.assertEqual(response.status_code, 200)
+
+    def test_latest_shows_newest_published(self):
+        response = self.client.get(reverse("sudoku:latest"))
+        self.assertEqual(response.context["object"], self.published)
+
+    def test_list_shows_only_published_to_readers(self):
+        response = self.client.get(reverse("sudoku:list"))
+        self.assertEqual(list(response.context["object_list"]),
+                         [self.published])
 
 
-class LatestTests(TestCase):
-    def test_latest_redirects_to_newest_puzzle(self):
-        make(difficulty=Sudoku.Difficulty.EASY)
-        newest = make(difficulty=Sudoku.Difficulty.HARD, puzzle=SOLUTION)
-        response = self.client.get(reverse("sudoku_latest"))
+class NavTest(TestCase):
+    """Prev/next walk the archive, optionally within one difficulty."""
+
+    def setUp(self):
+        self.easy_old = make_sudoku("1" + "0" * 80,
+                                    Sudoku.Difficulty.EASY, days=-30)
+        self.hard_mid = make_sudoku("2" + "0" * 80,
+                                    Sudoku.Difficulty.HARD, days=-20)
+        self.easy_new = make_sudoku("3" + "0" * 80,
+                                    Sudoku.Difficulty.EASY, days=-10)
+
+    def nav(self, puzzle, direction, difficulty):
+        return self.client.get(
+            reverse("sudoku:nav", args=[puzzle.pk]),
+            {"nav": direction, "diff": difficulty})
+
+    def test_previous_at_any_level(self):
+        response = self.nav(self.easy_new, "prev", "0")
         self.assertRedirects(
-            response, reverse("sudoku_solve", args=[newest.pk]), fetch_redirect_response=False
-        )
+            response,
+            reverse("sudoku:detail", args=[self.hard_mid.pk]) + "?diff=0",
+            fetch_redirect_response=False)
 
-    def test_latest_honours_requested_difficulty(self):
-        easy = make(difficulty=Sudoku.Difficulty.EASY)
-        make(difficulty=Sudoku.Difficulty.HARD, puzzle=SOLUTION)
-        response = self.client.get(reverse("sudoku_latest"), {"difficulty": Sudoku.Difficulty.EASY})
+    def test_previous_within_a_difficulty_skips_other_levels(self):
+        response = self.nav(self.easy_new, "prev", Sudoku.Difficulty.EASY)
         self.assertRedirects(
-            response, reverse("sudoku_solve", args=[easy.pk]), fetch_redirect_response=False
-        )
+            response,
+            reverse("sudoku:detail", args=[self.easy_old.pk]) + "?diff=2",
+            fetch_redirect_response=False)
 
-    def test_latest_falls_back_when_difficulty_has_no_puzzles(self):
-        # The hub links here unconditionally, so this must stay playable.
-        only = make(difficulty=Sudoku.Difficulty.EASY)
-        response = self.client.get(reverse("sudoku_latest"), {"difficulty": Sudoku.Difficulty.HARD})
+    def test_no_neighbour_stays_put(self):
+        response = self.nav(self.easy_old, "prev", "0")
         self.assertRedirects(
-            response, reverse("sudoku_solve", args=[only.pk]), fetch_redirect_response=False
-        )
-
-    def test_latest_404s_when_nothing_is_published(self):
-        self.assertEqual(self.client.get(reverse("sudoku_latest")).status_code, 404)
-
-
-class PlayScreenTests(TestCase):
-    def test_tabs_flag_the_current_and_the_empty_levels(self):
-        sudoku = make(difficulty=Sudoku.Difficulty.MEDIUM)
-        response = self.client.get(reverse("sudoku_solve", args=[sudoku.pk]))
-        tabs = {tab["value"]: tab for tab in response.context["tabs"]}
-        self.assertTrue(tabs[Sudoku.Difficulty.MEDIUM]["current"])
-        self.assertTrue(tabs[Sudoku.Difficulty.MEDIUM]["available"])
-        self.assertFalse(tabs[Sudoku.Difficulty.HARD]["available"])
+            response,
+            reverse("sudoku:detail", args=[self.easy_old.pk]) + "?diff=0",
+            fetch_redirect_response=False)

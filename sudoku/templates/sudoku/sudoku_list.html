@@ -1,0 +1,52 @@
+{% extends "sudoku/base.html" %}
+{% load static %}
+
+{% block title %}Sudoku puzzles{% endblock %}
+{% block body_class %}game-sudoku{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'sudoku/sudoku.css' %}?v=4">{% endblock %}
+
+{% block content %}
+<div class="gu-screen-head">
+  <div>
+    <h1>Sudoku</h1>
+    <div class="gu-dateline">Every published puzzle, newest first.</div>
+  </div>
+  <a class="gu-badge gu-badge--link" href="{% url 'sudoku:latest' %}">Play today's &rsaquo;</a>
+</div>
+
+{% if object_list %}
+<div class="table-wrap">
+<table class="crossword-table">
+  <thead>
+    <tr><th>Puzzle</th><th>Difficulty</th><th>Published</th></tr>
+  </thead>
+  <tbody>
+    {% for sudoku in object_list %}
+    <tr>
+      <td class="cw-name"><a href="{% url 'sudoku:detail' sudoku.pk %}">Sudoku {{ sudoku.number|default:sudoku.pk }}</a></td>
+      <td>{{ sudoku.get_difficulty_display }}</td>
+      <td>
+        {% if sudoku.is_published %}
+          <span class="status-published">{{ sudoku.published|date:"Y-m-d" }}</span>
+        {% else %}
+          <span class="status-unpublished">{% if sudoku.published %}{{ sudoku.published|date:"Y-m-d" }}{% else %}Unpublished{% endif %}</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if is_paginated %}
+<nav class="sd-pager">
+  {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">&lsaquo; Newer</a>{% else %}<span></span>{% endif %}
+  <span class="gu-dateline">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Older &rsaquo;</a>{% endif %}
+</nav>
+{% endif %}
+
+{% else %}
+<p>No sudoku puzzles yet.</p>
+{% endif %}
+{% endblock %}
