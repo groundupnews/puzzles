@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}{{ crossword.name|default:"Crossword" }}{% endblock %}
-{% block body_class %}game-crossword{% endblock %}
+{% block body_class %}game-crossword cw-solve{% endblock %}
 
 {% block chrome %}
 <header class="gu-playbar">
@@ -14,12 +14,12 @@
     <div class="gu-playbar__status">
       <span id="timer">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--game)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
-        <span id="timer-value">00:00:00</span>
+        <span id="timer-value">00:00</span>
       </span>
       <button id="timer-toggle" type="button">Hide</button>
-      <a class="gu-dark-btn" href="#shortcuts" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">
+      <button id="info-btn" class="gu-dark-btn" type="button" title="About this puzzle" aria-label="About this puzzle">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.2a2.8 2.8 0 0 1 5.5.8c0 1.9-2.7 2.5-2.7 2.5"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      </a>
+      </button>
     </div>
   </div>
 </header>
@@ -28,7 +28,7 @@
 {% block main_class %}gu-page cw-page{% endblock %}
 
 {% block content %}
-<div class="gu-screen-head">
+<div class="gu-screen-head cw-head">
   <div>
     <h1>{{ crossword.name|default:"Untitled crossword" }}</h1>
     <div class="gu-dateline">{% spaceless %}
@@ -39,12 +39,12 @@
   <span class="gu-badge">{{ crossword.num_cols }} &times; {{ crossword.num_rows }}</span>
 </div>
 
-{% if crossword.description %}<div class="cw-description">{{ crossword.description|linebreaks }}</div>{% endif %}
+{% if crossword.description %}<div class="cw-description cw-head">{{ crossword.description|linebreaks }}</div>{% endif %}
 
 <audio id="click-sound" src="{% static 'crossword/click_001.ogg' %}" preload="auto"></audio>
 <audio id="tada-sound" src="{% static 'crossword/tada-fanfare-g-sound.flac' %}" preload="auto"></audio>
 
-<div class="editor editor--solve" style="--cw-cols:{{ crossword.num_cols }}">
+<div class="editor editor--solve" id="editor" style="--cw-cols:{{ crossword.num_cols }}">
   <div class="grid-pane">
     <div class="buttons">
       <div class="check-dropdown">
@@ -64,22 +64,33 @@
         </ul>
       </div>
       <button id="sound-btn" type="button" title="Toggle sound"><i id="sound-icon" class="fa-solid fa-volume-high"></i></button>
+      {% comment %}Collapses the side clue lists, leaving a wide screen laid
+      out the way the phone one is: the grid, with only the current clue
+      above it.{% endcomment %}
+      <button id="clues-toggle" type="button" aria-expanded="true">
+        <i class="fa-solid fa-list-ul"></i> <span id="clues-toggle-label">Hide clues</span>
+      </button>
       {% if perms.crossword.can_generate_crosswords %}
       <a href="{% url 'crossword_edit' crossword.pk %}" class="btn-icon" title="Edit crossword"><i class="fa-solid fa-pen"></i></a>
       {% endif %}
     </div>
 
     <div class="clue-display">
-      <button id="prev-slot-btn" class="slot-nav-btn" type="button">&lsaquo;</button>
-      <div class="clue-text-wrap">
+      <button id="prev-slot-btn" class="slot-nav-btn" type="button" aria-label="Previous clue">&lsaquo;</button>
+      <div class="clue-text-wrap" id="clue-text-wrap">
         <strong id="current-slot">&mdash;</strong>
         <span id="clue-text"></span>
       </div>
-      <button id="next-slot-btn" class="slot-nav-btn" type="button">&rsaquo;</button>
+      <button id="next-slot-btn" class="slot-nav-btn" type="button" aria-label="Next clue">&rsaquo;</button>
     </div>
 
-    <svg id="grid" tabindex="0"
-         viewBox="0 0 {{ crossword.num_cols }} {{ crossword.num_rows }}"></svg>
+    {% comment %}The grid takes whatever room is left on a phone: the SVG
+    fills this box and its viewBox keeps the puzzle in proportion within
+    it.{% endcomment %}
+    <div class="grid-area">
+      <svg id="grid" tabindex="0"
+           viewBox="0 0 {{ crossword.num_cols }} {{ crossword.num_rows }}"></svg>
+    </div>
 
     <div id="completion-message" hidden></div>
 
@@ -106,8 +117,15 @@
         <button type="button" class="kb-key" data-key="J">J</button>
         <button type="button" class="kb-key" data-key="K">K</button>
         <button type="button" class="kb-key" data-key="L">L</button>
+        <button type="button" class="kb-key kb-key--wide kb-clues" id="kb-clues">Clues</button>
       </div>
       <div class="kb-row">
+        {% comment %}Does what the arrow keys do on a desktop keyboard:
+        turns the cursor from across to down and back.{% endcomment %}
+        <button type="button" class="kb-key kb-key--wide kb-flip" id="kb-flip" data-key="."
+                aria-label="Switch between across and down">
+          <svg class="kb-flip__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><polyline points="7 8 3 12 7 16"/><polyline points="17 8 21 12 17 16"/></svg>
+        </button>
         <button type="button" class="kb-key" data-key="Z">Z</button>
         <button type="button" class="kb-key" data-key="X">X</button>
         <button type="button" class="kb-key" data-key="C">C</button>
@@ -115,38 +133,67 @@
         <button type="button" class="kb-key" data-key="B">B</button>
         <button type="button" class="kb-key" data-key="N">N</button>
         <button type="button" class="kb-key" data-key="M">M</button>
-        <button type="button" class="kb-key kb-backspace" data-key="Backspace"><i class="fa-solid fa-delete-left"></i></button>
+        <button type="button" class="kb-key kb-key--wide kb-backspace" data-key="Backspace" aria-label="Delete"><i class="fa-solid fa-delete-left"></i></button>
       </div>
     </div>
   </div>
 
-  <aside class="clue-list">
-    <div>
-      <h2>Across</h2>
-      <ol id="clue-list-across"></ol>
+  {% comment %}Part of the layout on a wide screen; the full-screen sheet
+  the Clues key opens on a phone.{% endcomment %}
+  <div class="cw-sheet" id="clue-sheet">
+    <div class="cw-sheet__head">
+      <strong>Clues</strong>
+      <button type="button" class="cw-sheet__close" data-close>Done</button>
     </div>
-    <div>
-      <h2>Down</h2>
-      <ol id="clue-list-down"></ol>
-    </div>
-  </aside>
+    <aside class="clue-list">
+      <div>
+        <h2>Across</h2>
+        <ol id="clue-list-across"></ol>
+      </div>
+      <div>
+        <h2>Down</h2>
+        <ol id="clue-list-down"></ol>
+      </div>
+    </aside>
+  </div>
 </div>
 
-<section id="shortcuts" class="shortcuts">
-  <h2>Keyboard shortcuts</h2>
-  <dl class="key-legend">
-    <dt><kbd>A&ndash;Z</kbd></dt><dd>Type letter</dd>
-    <dt><kbd>&larr;</kbd> <kbd>&rarr;</kbd> <kbd>&uarr;</kbd> <kbd>&darr;</kbd></dt><dd>Turn, then move</dd>
-    <dt><kbd>Backspace</kbd></dt><dd>Delete / retreat</dd>
-    <dt><kbd>Delete</kbd></dt><dd>Delete / advance</dd>
-    <dt><kbd>Space</kbd></dt><dd>Delete / advance</dd>
-    <dt><kbd>.</kbd></dt><dd>Toggle direction</dd>
-    <dt><kbd>Home</kbd> / <kbd>End</kbd></dt><dd>First / last cell</dd>
-    <dt><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd></dt><dd>Next / prev slot</dd>
-  </dl>
-</section>
+{% comment %}Everything about the puzzle that the play screen itself has no
+room for on a phone, plus the shortcut legend.{% endcomment %}
+<div class="cw-modal" id="info-sheet">
+  <div class="cw-modal__panel">
+    <div class="cw-sheet__head">
+      <strong>About this puzzle</strong>
+      <button type="button" class="cw-sheet__close" data-close>Done</button>
+    </div>
+    <div class="cw-sheet__body">
+      <h2>{{ crossword.name|default:"Untitled crossword" }}</h2>
+      <p class="gu-dateline">{% spaceless %}
+        {{ crossword.num_cols }} &times; {{ crossword.num_rows }}
+        {% if crossword.published %} &middot; {{ crossword.published|date:"l, j F Y" }}{% endif %}
+        {% if crossword.authors %} &middot; by {{ crossword.authors }}{% endif %}
+      {% endspaceless %}</p>
+      {% if crossword.description %}<div class="cw-description">{{ crossword.description|linebreaks }}</div>{% endif %}
+      <h3>Keyboard shortcuts</h3>
+      <dl class="key-legend">
+        <dt><kbd>A&ndash;Z</kbd></dt><dd>Type letter</dd>
+        <dt><kbd>&larr;</kbd> <kbd>&rarr;</kbd> <kbd>&uarr;</kbd> <kbd>&darr;</kbd></dt><dd>Turn, then move</dd>
+        <dt><kbd>Backspace</kbd></dt><dd>Delete / retreat</dd>
+        <dt><kbd>Delete</kbd></dt><dd>Delete / advance</dd>
+        <dt><kbd>Space</kbd></dt><dd>Delete / advance</dd>
+        <dt><kbd>.</kbd></dt><dd>Toggle direction</dd>
+        <dt><kbd>Home</kbd> / <kbd>End</kbd></dt><dd>First / last cell</dd>
+        <dt><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd></dt><dd>Next / prev slot</dd>
+      </dl>
+      <p class="cw-meta">{% spaceless %}
+        {% if crossword.editors %}Edited by {{ crossword.editors }}.{% endif %}
+        {% if crossword.copyright %} {{ crossword.copyright }}.{% endif %}
+      {% endspaceless %}</p>
+    </div>
+  </div>
+</div>
 
-<p class="cw-meta">{% spaceless %}
+<p class="cw-meta cw-head">{% spaceless %}
   {% if crossword.editors %}Edited by {{ crossword.editors }}.{% endif %}
   {% if crossword.copyright %} {{ crossword.copyright }}.{% endif %}
 {% endspaceless %}</p>
@@ -165,5 +212,5 @@
     csrfToken: "{{ csrf_token }}",
   };
 </script>
-<script src="{% static 'crossword/solver.js' %}?v=45"></script>
+<script src="{% static 'crossword/solver.js' %}?v=46"></script>
 {% endblock %}

@@ -337,6 +337,23 @@ button:focus-visible {
   touch-action: manipulation;
 }
 
+.editor--solve #grid {
+  border: none;
+}
+
+.editor--solve .cell {
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.grid-border {
+  fill: none;
+  stroke: var(--gu-ink);
+  stroke-width: 5px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
 #grid:focus {
   outline: none;
   box-shadow: 0 0 0 3px var(--game-soft);
@@ -373,9 +390,9 @@ button:focus-visible {
 }
 
 .cell-number {
-  font-size: 0.2px;
-  font-weight: 600;
-  fill: #888;
+  font-size: 0.26px;
+  font-weight: 700;
+  fill: var(--gu-gray-600);
   pointer-events: none;
 }
 
@@ -384,7 +401,7 @@ button:focus-visible {
 }
 
 .cell-letter {
-  font-size: 0.55px;
+  font-size: 0.58px;
   font-weight: 700;
   fill: var(--ink);
   pointer-events: none;
@@ -816,23 +833,6 @@ button:focus-visible {
   border-left-color: var(--game);
 }
 
-/* The "?" in the play bar jumps here. */
-.shortcuts {
-  max-width: 44rem;
-  margin: 40px 0 0;
-  padding-top: 14px;
-  border-top: 2px solid var(--gu-border-strong);
-}
-
-.shortcuts h2 {
-  margin: 0 0 12px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--faint);
-}
-
 kbd {
   font-family: inherit;
   font-size: 0.75rem;
@@ -874,6 +874,133 @@ kbd {
 
 .clue-list li.no-clue {
   color: var(--faint);
+}
+
+.editor--solve.is-collapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.editor--solve.is-collapsed .cw-sheet {
+  display: none;
+}
+
+.editor--solve.is-collapsed .grid-pane {
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+#clues-toggle {
+  background: var(--surface);
+  border: 1px solid var(--gu-ink);
+  border-radius: 0;
+  color: var(--gu-ink);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  box-shadow: none;
+}
+
+#clues-toggle:hover {
+  background: var(--surface-sunken);
+  border-color: var(--gu-ink);
+}
+
+.cw-sheet {
+  display: contents;
+}
+
+.cw-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: none;
+  padding: 12px 16px;
+  background: var(--gu-ink);
+  color: #fff;
+  font-size: 15px;
+}
+
+#clue-sheet .cw-sheet__head {
+  display: none;
+}
+
+.cw-sheet__close {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 5px 12px;
+  background: none;
+  border: 1px solid var(--gu-ink-700);
+  border-radius: 0;
+  color: var(--gu-on-dark-dim);
+  box-shadow: none;
+}
+
+.cw-sheet__close:hover {
+  background: none;
+  color: #fff;
+  border-color: var(--gu-on-dark-dim);
+}
+
+/* "About this puzzle": the description, credits and shortcut legend,
+   opened from the play bar at any width. */
+.cw-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.45);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.cw-modal.is-open {
+  display: flex;
+}
+
+.cw-modal__panel {
+  display: flex;
+  flex-direction: column;
+  width: min(34rem, 100%);
+  max-height: min(80vh, 40rem);
+  background: var(--surface);
+  border: 1px solid var(--gu-ink);
+}
+
+.cw-sheet__body {
+  overflow-y: auto;
+  padding: 18px 20px 26px;
+}
+
+.cw-sheet__body h2 {
+  margin: 0 0 2px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  text-transform: none;
+}
+
+.cw-sheet__body h3 {
+  margin: 22px 0 9px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--faint);
+}
+
+.cw-sheet__body .cw-description {
+  margin: 13px 0 0;
+  max-width: none;
+  color: var(--ink);
+}
+
+.cw-sheet__body .cw-meta {
+  margin-top: 20px;
 }
 
 /* Mobile keyboard */
@@ -956,17 +1083,266 @@ kbd {
     max-height: none;
   }
 
-  .editor--solve .clue-list {
-    grid-template-columns: 1fr;
-    gap: 24px;
+  body.cw-solve {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body.cw-solve .gu-footer {
+    display: none;
+  }
+
+  body.cw-solve .cw-head {
+    display: none;
+  }
+
+  body.cw-solve main.cw-page {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body.cw-solve .editor--solve,
+  body.cw-solve .grid-pane {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* The grid stays high on the screen; the clue drops down to sit with
+     the keys that answer it. */
+  body.cw-solve .buttons { order: 1; }
+  body.cw-solve .grid-area { order: 2; }
+  body.cw-solve #completion-message { order: 3; }
+  body.cw-solve .clue-display { order: 4; }
+  body.cw-solve .mobile-keyboard { order: 5; }
+
+  .editor--solve .buttons {
+    flex: none;
+    gap: 6px;
+    margin: 0;
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--gu-border-strong);
+  }
+
+  #check-btn,
+  #reveal-btn,
+  #sound-btn {
+    font-size: 14px;
+    padding: 7px 14px;
+  }
+
+  /* The phone has the Clues key instead. */
+  #clues-toggle {
+    display: none;
+  }
+
+  .grid-pane .btn-icon {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+
+  /* Whatever room is left between the controls and the clue. */
+  .grid-area {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 8px 6px;
+  }
+
+  .editor--solve #grid {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+  }
+
+  .cell-number {
+    font-size: 0.32px;
+  }
+
+  /* The box is taller than the puzzle drawn in it, so a focus ring round
+     the box would sit well clear of the grid. The cursor cell shows
+     where the typing is going anyway. */
+  .editor--solve #grid:focus {
+    box-shadow: none;
+  }
+
+  #completion-message {
+    flex: none;
+    margin: 0 10px 8px;
+    max-width: none;
+  }
+
+  .clue-display {
+    position: relative;
+    flex: none;
+    height: 4.3rem;
+    min-height: 0;
+    margin: 0;
+    padding: 6px 4px;
+    gap: 0;
+    border-left: none;
+    border-top: 1px solid var(--gu-border-strong);
+  }
+
+  .clue-display::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 15px;
+    background: linear-gradient(to top, var(--game-soft), transparent);
+    pointer-events: none;
+  }
+
+  .clue-text-wrap {
+    display: block;
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* Tapping the clue opens the full list. */
+    cursor: pointer;
+  }
+
+  #current-slot {
+    display: inline;
+    font-size: 13px;
+    margin-right: 7px;
+  }
+
+  .clue-display #clue-text {
+    display: inline;
+    font-size: 16px;
+  }
+
+  .clue-display .slot-nav-btn {
+    width: 32px;
+    height: 100%;
+    font-size: 22px;
+    border: none;
+    background: none;
+  }
+
+  .clue-display .slot-nav-btn:hover {
+    background: none;
+    color: var(--game-deep);
   }
 
   .mobile-keyboard {
     display: flex;
+    flex: none;
+    gap: 6px;
+    margin: 0;
+    padding: 7px 4px calc(7px + env(safe-area-inset-bottom, 0px));
+    background: var(--gu-surface-2);
   }
 
-  .shortcuts {
+  .kb-row {
+    gap: 5px;
+  }
+
+  .kb-key {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: none;
+    height: 48px;
+    padding: 0;
+    font-size: 21px;
+    border: none;
+    border-radius: 5px;
+    background: #fff;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.28);
+  }
+
+  .kb-key--wide {
+    flex: 1.5;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .kb-clues {
+    background: var(--game);
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .kb-flip,
+  .kb-backspace {
+    background: var(--gu-surface-3);
+  }
+
+  .kb-backspace {
+    font-size: 1.25rem;
+  }
+
+  /* Points along the direction the cursor is travelling. */
+  .kb-flip.is-down .kb-flip__icon {
+    transform: rotate(90deg);
+  }
+
+  #clue-sheet {
     display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: var(--surface);
+    flex-direction: column;
+  }
+
+  #clue-sheet.is-open {
+    display: flex;
+  }
+
+  #clue-sheet .cw-sheet__head {
+    display: flex;
+  }
+
+  .editor--solve .clue-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 0 14px calc(32px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .clue-list h2 {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: 0;
+    padding: 14px 0 7px;
+    background: var(--surface);
+  }
+
+  .clue-list li {
+    font-size: 16px;
+    padding: 11px 8px 11px 12px;
+  }
+
+  .cw-modal {
+    padding: 0;
+  }
+
+  .cw-modal__panel {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border: none;
   }
 }
 

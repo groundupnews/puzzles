@@ -231,6 +231,16 @@ function render() {
       svg.appendChild(ind);
     }
   }
+  // Last, so it sits over the cells' own edges.
+  const border = document.createElementNS(SVG_NS, "rect");
+  border.setAttribute("x", 0);
+  border.setAttribute("y", 0);
+  border.setAttribute("width", cols);
+  border.setAttribute("height", rows);
+  border.setAttribute("class", "grid-border");
+  svg.appendChild(border);
+
+  flipBtn.classList.toggle("is-down", state.direction === DOWN);
   updateClueDisplay(active);
   renderClueList(slots, active, crossing);
   saveState();
@@ -288,6 +298,7 @@ function renderClueList(slots, active, crossing) {
     li.addEventListener("click", () => {
       state.direction = s.direction;
       state.cursor = s.start;
+      closeSheets();
       render();
       svg.focus();
     });
@@ -475,8 +486,60 @@ svg.addEventListener("keydown", (e) => {
   if (handleKey(e.key, e.shiftKey)) e.preventDefault();
 });
 
-document.querySelectorAll(".kb-key").forEach((btn) => {
+document.querySelectorAll(".kb-key[data-key]").forEach((btn) => {
   btn.addEventListener("click", () => handleKey(btn.dataset.key));
+});
+
+const editorEl = document.getElementById("editor");
+const cluesToggle = document.getElementById("clues-toggle");
+const cluesToggleLabel = document.getElementById("clues-toggle-label");
+const clueSheet = document.getElementById("clue-sheet");
+const infoSheet = document.getElementById("info-sheet");
+const flipBtn = document.getElementById("kb-flip");
+const COLLAPSE_KEY = "crossword-clues-collapsed";
+
+function setCollapsed(collapsed) {
+  editorEl.classList.toggle("is-collapsed", collapsed);
+  cluesToggle.setAttribute("aria-expanded", String(!collapsed));
+  cluesToggleLabel.textContent = collapsed ? "Show clues" : "Hide clues";
+}
+
+cluesToggle.addEventListener("click", () => {
+  const collapsed = !editorEl.classList.contains("is-collapsed");
+  setCollapsed(collapsed);
+  try {
+    localStorage.setItem(COLLAPSE_KEY, collapsed ? "1" : "");
+  } catch (_) {
+  }
+  svg.focus();
+});
+
+function closeSheets() {
+  clueSheet.classList.remove("is-open");
+  infoSheet.classList.remove("is-open");
+}
+
+function openClueSheet() {
+  if (!window.matchMedia("(max-width: 640px)").matches) return;
+  clueSheet.classList.add("is-open");
+  const current = clueSheet.querySelector("li.active");
+  if (current) current.scrollIntoView({ block: "center" });
+}
+
+document.getElementById("kb-clues").addEventListener("click", openClueSheet);
+document.getElementById("clue-text-wrap").addEventListener("click", openClueSheet);
+document.getElementById("info-btn").addEventListener("click", () => {
+  infoSheet.classList.add("is-open");
+});
+document.querySelectorAll("[data-close]").forEach((btn) => {
+  btn.addEventListener("click", closeSheets);
+});
+// A click on the backdrop, rather than on the panel itself, closes it.
+infoSheet.addEventListener("click", (e) => {
+  if (e.target === infoSheet) closeSheets();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeSheets();
 });
 
 // --- Check feature ---
@@ -700,7 +763,7 @@ function formatElapsed(totalSeconds) {
   const m = Math.floor((totalSeconds % 3600) / 60);
   const s = totalSeconds % 60;
   return (
-    String(h).padStart(2, "0") + ":" +
+    (h ? String(h).padStart(2, "0") + ":" : "") +
     String(m).padStart(2, "0") + ":" +
     String(s).padStart(2, "0")
   );
@@ -740,6 +803,12 @@ document.getElementById("next-slot-btn").addEventListener("click", () => {
     playClick();
   }
 });
+
+try {
+  if (localStorage.getItem(COLLAPSE_KEY)) setCollapsed(true);
+} catch (_) {
+  // Storage unavailable: start with the clue lists showing.
+}
 
 // Restores progress saved from a previous visit to this puzzle, if any.
 // Otherwise starts the solver on the first Across slot (if any) rather than
