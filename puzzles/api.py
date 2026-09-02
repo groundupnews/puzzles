@@ -22,6 +22,7 @@ def _crossword(request):
         ),
         "archive_url": archive,
         "title": crossword.name or "Today's crossword",
+        "short_description": crossword.short_description,
         "description": crossword.description,
         "published": crossword.published.isoformat(),
         "num_rows": crossword.num_rows,

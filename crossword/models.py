@@ -101,6 +101,7 @@ class Crossword(models.Model):
     slots, not independent data."""
 
     name = models.CharField(max_length=255, blank=True)
+    short_description = models.CharField(max_length=200, blank=True)
     description = models.TextField(blank=True)
     authors = models.CharField(max_length=200, blank=True)
     editors = models.CharField(max_length=200, blank=True)

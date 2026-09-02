@@ -522,6 +522,7 @@ document.getElementById("save-btn").addEventListener("click", async () => {
     blocked_out_squares: Array.from(state.blocks).sort((a, b) => a - b),
     name: document.getElementById("cw-name").value,
     competition: document.getElementById("cw-competition").value,
+    short_description: document.getElementById("cw-short-description").value,
     description: document.getElementById("cw-description").value,
     authors: document.getElementById("cw-authors").value,
     editors: document.getElementById("cw-editors").value,
@@ -837,7 +838,8 @@ updatePublishStatus();
 document.getElementById("blocks-pct").textContent =
   (state.blocks.size / (rows * cols) * 100).toFixed(1) + "% of cells blocked";
 
-["cw-name", "cw-authors", "cw-editors", "cw-copyright", "cw-description", "cw-published"].forEach(id => {
+["cw-name", "cw-authors", "cw-editors", "cw-copyright", "cw-short-description",
+  "cw-description", "cw-published"].forEach(id => {
   document.getElementById(id).addEventListener("input", markDirty);
 });
 document.getElementById("cw-private").addEventListener("change", markDirty);

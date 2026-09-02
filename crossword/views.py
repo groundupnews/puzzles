@@ -259,8 +259,8 @@ def crossword_private_solve(request, private_link):
 def crossword_save(request, pk):
     """Save the grid for the given crossword.
 
-    Accepts a JSON body: cells, blocked_out_squares, name, description,
-    requires_rotational_symmetry, clues ({"1A": "clue text", ...}). cells is
+    Accepts a JSON body: cells, blocked_out_squares, name,
+    short_description, description, requires_rotational_symmetry, clues ({"1A": "clue text", ...}). cells is
     the source of truth and is always saved. Entry rows are derived from the
     complete slots; partial slots touch nothing but cells.
     """
@@ -273,6 +273,7 @@ def crossword_save(request, pk):
         crossword.cells = payload["cells"]
         crossword.blocked_out_squares = payload["blocked_out_squares"]
         crossword.name = payload.get("name", "")
+        crossword.short_description = payload.get("short_description", "")
         crossword.description = payload.get("description", "")
         crossword.competition_id = payload.get("competition") or None
         crossword.authors = payload.get("authors", "")

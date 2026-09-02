@@ -37,7 +37,7 @@
       <img class="hub-hero__icon" src="{% static 'gu/icon.svg' %}" alt="">
       <h2>{{ crossword.name|default:"Today's crossword" }}</h2>
     </div>
-    <p>{% if crossword.description %}{{ crossword.description|truncatewords:34 }}{% else %}A quick daily solve with a local twist.{% endif %}</p>
+    <p>{% if crossword.short_description %}{{ crossword.short_description }}{% elif crossword.description %}{{ crossword.description|truncatewords:34 }}{% else %}A quick daily solve with a local twist.{% endif %}</p>
     <span class="gu-btn">Play today's puzzle</span>
   </div>
   <div class="hub-hero__art">

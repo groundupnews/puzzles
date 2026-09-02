@@ -48,7 +48,7 @@ class CrosswordAdmin(admin.ModelAdmin):
         "published",
         "date_modified",
     )
-    search_fields = ("name", "description")
+    search_fields = ("name", "short_description", "description")
     readonly_fields = ("date_added", "date_modified")
     view_on_site = True
 

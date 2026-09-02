@@ -312,6 +312,21 @@ class CrosswordSaveViewTest(TestCase):
         )
         self.assertFalse(Entry.objects.filter(crossword=self.cw).exists())
 
+    def test_saves_both_descriptions(self):
+        self._save(
+            {
+                "cells": ["C", "A", "T"],
+                "blocked_out_squares": [],
+                "name": "",
+                "short_description": "Three letters, one cat.",
+                "description": "A gentle start to the week.",
+                "clues": {},
+            }
+        )
+        self.cw.refresh_from_db()
+        self.assertEqual(self.cw.short_description, "Three letters, one cat.")
+        self.assertEqual(self.cw.description, "A gentle start to the week.")
+
     def test_saves_requires_rotational_symmetry(self):
         # The symmetry toggle lives on the edit screen (not the create form),
         # so crossword_save is where it must actually get persisted.
@@ -899,6 +914,11 @@ class RenderXdTest(TestCase):
     def test_description_header_present_when_set(self):
         out = render_xd(self._cw_with_entry(description="A quick Monday."))
         self.assertIn("Description: A quick Monday.", out)
+
+    def test_multiline_description_folds_onto_one_header_line(self):
+        # The editor takes a textarea, but an xd header is a single line.
+        out = render_xd(self._cw_with_entry(description="First line.\nSecond line."))
+        self.assertIn("Description: First line. Second line.", out)
 
     def test_description_header_absent_when_blank(self):
         out = render_xd(self._cw_with_entry())

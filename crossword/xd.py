@@ -97,7 +97,7 @@ def render_xd(crossword):
     """
     lines = [f"Title: {crossword.name}"]
     if crossword.description:
-        lines.append(f"Description: {crossword.description}")
+        lines.append("Description: " + " ".join(crossword.description.split()))
     if crossword.authors:
         lines.append(f"Author: {crossword.authors}")
     if crossword.editors:

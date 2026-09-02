@@ -105,6 +105,17 @@ class PuzzlesApiTest(TestCase):
             for cell in row:
                 self.assertEqual(set(cell), {"block", "number"})
 
+    def test_crossword_teaser_carries_both_descriptions(self):
+        # The news site's block is a teaser, so it wants the short blurb,
+        # but the long one is served too for callers that show more.
+        make_crossword(
+            short_description="Three letters, one cat.",
+            description="A gentle start to the week.",
+        )
+        crossword = self.puzzles()["crossword"]
+        self.assertEqual(crossword["short_description"], "Three letters, one cat.")
+        self.assertEqual(crossword["description"], "A gentle start to the week.")
+
     def test_sudoku_teaser_carries_givens_but_not_the_solution(self):
         make_sudoku()
         sudoku = self.puzzles()["sudoku"]
