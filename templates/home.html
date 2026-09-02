@@ -12,7 +12,7 @@
     </div>
     <div class="hub-stats">
       <div class="hub-stat">
-        <div class="hub-stat__value hub-stat__value--accent">4</div>
+        <div class="hub-stat__value hub-stat__value--accent">3</div>
         <div class="hub-stat__label">Games</div>
       </div>
       <div class="hub-stat">
@@ -97,6 +97,26 @@
     </div>
   </a>
 
+  {% comment %}quiz disabled!{% endcomment %}
+  <div class="hub-tile hub-tile--soon theme-quiz">
+    <div class="hub-tile__art">
+      <div style="width:118px;display:flex;flex-direction:column;gap:7px;padding:8px 0;">
+        <div style="height:13px;background:#d2d6db;border-radius:3px;width:90%;"></div>
+        <div style="height:18px;background:#fff;border:1px solid #e3e5e8;border-radius:4px;"></div>
+        <div style="height:18px;border:1.5px solid #d2d6db;background:#fff;border-radius:4px;display:flex;align-items:center;padding:0 6px;"><div style="width:9px;height:9px;border-radius:50%;background:#d2d6db;"></div></div>
+        <div style="height:18px;background:#fff;border:1px solid #e3e5e8;border-radius:4px;"></div>
+      </div>
+    </div>
+    <div class="hub-tile__body">
+      <h3>News Quiz</h3>
+      <p>Questions on the week's news.</p>
+      <div class="hub-tile__foot">
+        <span class="hub-tile__badge">Soon</span>
+      </div>
+    </div>
+  </div>
+
+  {% comment %}
   {% if quiz %}
   <a class="hub-tile theme-quiz" href="{% url 'quiz_solve' quiz.pk %}">
   {% else %}
@@ -119,6 +139,7 @@
       </div>
     </div>
   </a>
+  {% endcomment %}
 
   <div class="hub-tile hub-tile--soon">
     <div class="hub-tile__art">+</div>
