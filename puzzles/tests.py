@@ -1,9 +1,7 @@
 """Tests for the JSON API the news site's GroundUp Puzzles block reads.
 
-Two things here are worth pinning down: that a teaser never carries the
-answer -- the API is public and cached, so a leak wouldn't be recallable
--- and that an unpublished puzzle stays unpublished, since the news site
-would otherwise announce puzzles before their time.
+Worth pinning down: a teaser never carries the answer, and an
+unpublished puzzle is never announced.
 """
 
 from django.contrib.auth.models import User
@@ -14,8 +12,7 @@ from django.utils import timezone
 from crossword.models import Crossword
 from sudoku.models import Sudoku
 
-# A 3x3 grid, fully filled: "CAT" across and down on the top row and
-# left column. Every cell holds a letter, so a leak would be obvious.
+# Every cell holds a letter, so a leak would be obvious.
 FILLED = ["C", "A", "T", "A", "B", "C", "T", "C", "D"]
 PUZZLE = (
     "530070000"
@@ -34,8 +31,7 @@ SOLUTION = "9" * 81
 def make_crossword(days=-1, **kwargs):
     defaults = dict(
         name="Test crossword",
-        # Crossword.owner defaults to user 1, which doesn't exist in a
-        # fresh test database, so every crossword here names its owner.
+        # Crossword.owner defaults to user 1, absent in a fresh test db.
         owner=User.objects.get_or_create(username="setter")[0],
         num_rows=3,
         num_cols=3,
@@ -91,8 +87,6 @@ class PuzzlesApiTest(TestCase):
         puzzles = self.puzzles()
         self.assertFalse(puzzles["crossword"]["available"])
         self.assertFalse(puzzles["sudoku"]["available"])
-        # The archive link is still worth having: the block can point at
-        # the back catalogue even on a day with nothing new.
         self.assertIn("archive_url", puzzles["crossword"])
 
     def test_no_puzzles_at_all_is_not_an_error(self):
@@ -116,8 +110,7 @@ class PuzzlesApiTest(TestCase):
         sudoku = self.puzzles()["sudoku"]
         self.assertEqual(len(sudoku["cells"]), 81)
         self.assertEqual(sudoku["cells"][0], "5")
-        # A blank the solver has to fill, not the answer to it.
-        self.assertEqual(sudoku["cells"][2], "")
+        self.assertEqual(sudoku["cells"][2], "")  # a blank, not its answer
         self.assertNotIn("solution", sudoku)
         self.assertNotIn(SOLUTION, self.client.get(reverse("api_puzzles")).content.decode())
 

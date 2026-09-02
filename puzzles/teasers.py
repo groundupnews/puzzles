@@ -1,10 +1,8 @@
-"""Puzzle previews shared by the games hub and the public JSON API.
+"""Puzzle previews shared by the hub and the JSON API.
 
-Each function reduces a puzzle to just enough to draw a teaser -- the
-crossword's shape and clue numbers, the Target's nine letters, the
-Sudoku's givens -- and deliberately leaves out everything that would
-spoil it. A teaser is an invitation to solve, so no answers pass through
-here, and nothing that reaches these functions needs hiding again later.
+Each function reduces a puzzle to just enough to draw a teaser and
+deliberately leaves out anything that would spoil it, so no answers pass
+through here.
 """
 
 from crossword import grid
@@ -35,11 +33,7 @@ def grid_preview(crossword):
 
 
 def target_tile(target):
-    """The nine letters for a Target tile, centre letter in the middle.
-
-    The models are the ones the news site uses, where the tile didn't
-    exist, so this works the arrangement out rather than the model.
-    """
+    """The nine letters for a Target tile, centre letter in the middle."""
     if target is None:
         return None
     outer = list(target.letters[1:])
