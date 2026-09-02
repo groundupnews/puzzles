@@ -3,14 +3,13 @@
 // Rules carried over from the sudoku on the main GroundUp site: a cell
 // holds either one committed digit or a set of pencilled notes, digits
 // clash with their row, column and box, and the puzzle is done when every
-// cell holds a single digit with no clashes. The mistake count, the hint
-// and the undo stack lean on the stored solution.
+// cell holds a single digit with no clashes. The hint leans on the stored
+// solution; nothing else judges the solver's entries.
 
 const SD = window.SUDOKU;
 const SIZE = 9;
 const CELLS = SIZE * SIZE;
 const STORAGE_KEY = `sudoku-solver-${SD.pk}`;
-const MAX_MISTAKES = 3;
 const UNDO_LIMIT = 60;
 
 // Row, column and box membership for each cell, worked out once.
@@ -39,8 +38,12 @@ const state = {
   notes: {}, // cell index -> sorted digit string, e.g. "247"
   cursor: firstBlank,
   notesMode: false,
-  mistakes: 0,
   revealed: {}, // cells the hint gave away
+  // A trial run: the board as it stood when Try was pressed, so the whole
+  // line of reasoning can be thrown away in one go. Null when not in one.
+  // What's changed since is worked out by comparing against it rather than
+  // tracked as it happens, which can't drift out of step with the board.
+  trial: null,
   completed: false,
 };
 
@@ -53,8 +56,8 @@ function snapshot() {
     JSON.stringify({
       cells: state.cells,
       notes: state.notes,
-      mistakes: state.mistakes,
       revealed: state.revealed,
+      trial: state.trial,
     })
   );
   if (undoStack.length > UNDO_LIMIT) undoStack.shift();
@@ -66,8 +69,8 @@ function undo() {
   const saved = JSON.parse(previous);
   state.cells = saved.cells;
   state.notes = saved.notes;
-  state.mistakes = saved.mistakes;
   state.revealed = saved.revealed;
+  state.trial = saved.trial;
   state.completed = isSolved();
   paint();
   saveState();
@@ -87,8 +90,8 @@ function loadState() {
     state.notes = saved.notes || {};
     state.cursor = Number.isInteger(saved.cursor) ? saved.cursor : state.cursor;
     state.notesMode = !!saved.notesMode;
-    state.mistakes = saved.mistakes || 0;
     state.revealed = saved.revealed || {};
+    state.trial = saved.trial || null;
     state.completed = !!saved.completed;
   } catch (_) {
     // Corrupt or unavailable storage: start a fresh game rather than fail.
@@ -123,9 +126,10 @@ function placed(digit) {
 // --- The board is built once and repainted in place ------------------------
 
 let cellEls = [];
+const boardEl = document.getElementById("sd-board");
 
 function buildBoard() {
-  const board = document.getElementById("sd-board");
+  const board = boardEl;
   board.innerHTML = "";
   cellEls = [];
   for (let i = 0; i < CELLS; i++) {
@@ -172,6 +176,12 @@ function paint() {
     );
     cell.classList.toggle("is-clash", clashes(i));
     cell.classList.toggle("is-revealed", !!state.revealed[i]);
+    // Anything standing where the trial began differs from it: that's a
+    // digit the solver is only trying out, so it's coloured as such.
+    cell.classList.toggle(
+      "is-trial",
+      !!state.trial && state.cells[i] !== state.trial.cells[i]
+    );
 
     const digits = state.notes[i] || "";
     value.textContent = state.cells[i] || "";
@@ -183,7 +193,12 @@ function paint() {
     }
   }
 
-  document.getElementById("sd-mistakes").textContent = state.mistakes;
+  const trialling = !!state.trial;
+  boardEl.classList.toggle("is-trialling", trialling);
+  document.getElementById("sd-trial").hidden = !trialling;
+  const tryBtn = document.getElementById("sd-try-btn");
+  tryBtn.classList.toggle("is-on", trialling);
+  tryBtn.setAttribute("aria-pressed", trialling ? "true" : "false");
 
   const notesBtn = document.getElementById("sd-notes-btn");
   notesBtn.classList.toggle("is-on", state.notesMode);
@@ -198,19 +213,10 @@ function paint() {
   });
 
   const message = document.getElementById("sd-message");
+  message.hidden = !state.completed;
   if (state.completed) {
-    message.hidden = false;
     message.className = "sd-message is-success";
-    message.textContent =
-      state.mistakes === 0
-        ? "Solved, with no mistakes. Nicely done."
-        : `Solved, with ${state.mistakes} mistake${state.mistakes === 1 ? "" : "s"}.`;
-  } else if (state.mistakes >= MAX_MISTAKES) {
-    message.hidden = false;
-    message.className = "sd-message is-error";
-    message.textContent = `That's ${MAX_MISTAKES} mistakes. Keep going, or restart.`;
-  } else {
-    message.hidden = true;
+    message.textContent = "Solved. Nicely done.";
   }
 }
 
@@ -248,12 +254,9 @@ function enter(digit) {
       if (left) state.notes[j] = left;
       else delete state.notes[j];
     }
-    // A digit contradicting the solution is a mistake, counted once per
-    // entry. With no stored solution, only clashes give feedback.
-    if (SD.solution && SD.solution[i] !== digit) state.mistakes++;
   }
 
-  state.completed = isSolved();
+  refreshCompleted();
   paint();
   saveState();
 }
@@ -283,7 +286,7 @@ function hint() {
   state.cells[i] = SD.solution[i];
   state.revealed[i] = true;
   delete state.notes[i];
-  state.completed = isSolved();
+  refreshCompleted();
   paint();
   saveState();
 }
@@ -291,6 +294,56 @@ function hint() {
 function move(dr, dc) {
   const r = Math.floor(state.cursor / SIZE), c = state.cursor % SIZE;
   select(((r + dr + SIZE) % SIZE) * SIZE + ((c + dc + SIZE) % SIZE));
+}
+
+// Try starts a trial run; pressing it again keeps what was entered during
+// it. Discard is the other way out, and the destructive one, so it lives
+// on the trial bar rather than on this toggle -- a toggle that threw work
+// away on a second press would be a trap.
+function toggleTrial() {
+  if (state.completed) return;
+  if (state.trial) {
+    keepTrial();
+    return;
+  }
+  snapshot();
+  state.trial = {
+    cells: [...state.cells],
+    notes: { ...state.notes },
+    revealed: { ...state.revealed },
+  };
+  paint();
+  saveState();
+}
+
+function keepTrial() {
+  if (!state.trial) return;
+  snapshot();
+  state.trial = null;
+  paint();
+  saveState();
+}
+
+// Puts the board back as it stood when Try was pressed. Snapshotted first,
+// so an accidental discard is still one undo away.
+function discardTrial() {
+  if (!state.trial) return;
+  snapshot();
+  state.cells = [...state.trial.cells];
+  state.notes = { ...state.trial.notes };
+  state.revealed = { ...state.trial.revealed };
+  state.trial = null;
+  state.completed = isSolved();
+  paint();
+  saveState();
+}
+
+// Solving the grid settles any open trial: the digits that finished the
+// puzzle are plainly worth keeping, and leaving a "Discard" sitting under
+// a solved board only invites throwing the solution away.
+function refreshCompleted() {
+  state.completed = isSolved();
+  if (state.completed) state.trial = null;
 }
 
 function toggleNotes() {
@@ -307,7 +360,7 @@ function restart() {
   });
   state.notes = {};
   state.revealed = {};
-  state.mistakes = 0;
+  state.trial = null;
   state.completed = false;
   paint();
   saveState();
@@ -335,6 +388,7 @@ document.addEventListener("keydown", (e) => {
   else if (key === "Backspace" || key === "Delete" || key === "0") erase();
   else if (ARROWS[key]) move(...ARROWS[key]);
   else if (key === "n" || key === "N") toggleNotes();
+  else if (key === "t" || key === "T") toggleTrial();
   else if (key === "h" || key === "H") hint();
   else handled = false;
 
@@ -348,6 +402,9 @@ document.getElementById("sd-erase-btn").addEventListener("click", erase);
 document.getElementById("sd-notes-btn").addEventListener("click", toggleNotes);
 document.getElementById("sd-undo-btn").addEventListener("click", undo);
 document.getElementById("sd-restart-btn").addEventListener("click", restart);
+document.getElementById("sd-try-btn").addEventListener("click", toggleTrial);
+document.getElementById("sd-keep-btn").addEventListener("click", keepTrial);
+document.getElementById("sd-discard-btn").addEventListener("click", discardTrial);
 const hintBtn = document.getElementById("sd-hint-btn");
 if (hintBtn) hintBtn.addEventListener("click", hint);
 

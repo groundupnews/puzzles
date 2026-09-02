@@ -1,3 +1,9 @@
+body.game-sudoku {
+  /* Amber, deliberately unlike the game colour used for settled entries
+     and unlike the red used for clashes: a trial is neither. */
+  --sd-trial: #fff6e0;
+  --sd-trial-deep: #b26a00;
+}
 
 .sd-page {
   max-width: 62rem;
@@ -17,13 +23,13 @@
   gap: 10px;
 }
 
-.sd-mistakes {
-  font-size: 14px;
+/* The puzzle's level, for the phone layout where the screen head that
+   normally carries it is hidden. Redundant on a wide screen, so it only
+   appears at the width that needs it. */
+.sd-playbar-level {
+  display: none;
+  font-size: 13px;
   font-weight: 700;
-}
-
-.sd-mistakes #sd-mistakes {
-  color: var(--game);
 }
 
 .sd-toolbar {
@@ -90,12 +96,27 @@
 .sd-board {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
+  /* Explicit equal rows. Left to size themselves, a row's height followed
+     its cells' borders, so the 3x3 seam rows came out a pixel taller than
+     the rest and the last row a pixel shorter. */
+  grid-template-rows: repeat(9, 1fr);
   width: min(100%, 34rem);
   aspect-ratio: 1;
   margin: 0 auto 18px;
   border: 2.5px solid var(--gu-ink);
   background: #fff;
+  /* Digits and pencil marks are sized from the board itself (cqw units
+     below) rather than from the viewport, so they stay in proportion at
+     any board size. inline-size, not size: the board's width is always
+     definite and its height follows from aspect-ratio, and full size
+     containment would leave an auto width with nothing to resolve
+     against, collapsing the board to nothing. */
+  container-type: inline-size;
 }
+
+/* While a trial is open the frame changes colour, so it's obvious at a
+   glance that what's on the board isn't settled yet. */
+.sd-board.is-trialling { border-color: var(--sd-trial-deep); }
 
 .sd-cell {
   position: relative;
@@ -104,22 +125,47 @@
   justify-content: center;
   padding: 0;
   font: inherit;
+  /* The clamp is the fallback; cqw wins wherever container queries are
+     supported. A cell is a ninth of the board, so this is ~55% of one. */
   font-size: clamp(15px, 4.4vw, 26px);
+  font-size: 6.2cqw;
   font-weight: 700;
   color: var(--game-deep);
   background: #fff;
-  border: 0;
-  /* Hairlines between cells, heavier ones on the 3x3 box seams. */
-  border-right: 1px solid #e3e5f2;
-  border-bottom: 1px solid #e3e5f2;
+  /* A button carries the browser's control styling, which rounds its
+     corners; the grid has to be square edge to edge. */
+  border-radius: 0;
+  appearance: none;
+  /* The same 1px border on all four sides of every cell, so all 81 boxes
+     are identical and the selection highlight is the same size wherever
+     it lands. Only the colours vary below: a thicker border on one cell
+     would make that cell's interior smaller than its neighbours'. */
+  border: 1px solid transparent;
+  border-right-color: #e3e5f2;
+  border-bottom-color: #e3e5f2;
+  /* Fill stops at the border, never under it. Otherwise the cells whose
+     borders are transparent -- the outer edges -- would show a highlight a
+     pixel larger than everywhere else. */
+  background-clip: padding-box;
   cursor: pointer;
 }
 
-.sd-cell:nth-child(9n) { border-right: 0; }
-.sd-cell:nth-child(3n):not(:nth-child(9n)) { border-right: 2px solid var(--gu-ink); }
-.sd-cell:nth-child(n+73) { border-bottom: 0; }
+/* The 3x3 seams take their weight from both sides of the join being inked
+   -- 1px from each neighbour reads as one 2px line -- rather than from a
+   2px border on one of them. */
+.sd-cell:nth-child(9n+3),
+.sd-cell:nth-child(9n+6) { border-right-color: var(--gu-ink); }
+.sd-cell:nth-child(9n+4),
+.sd-cell:nth-child(9n+7) { border-left-color: var(--gu-ink); }
 .sd-cell:nth-child(n+19):nth-child(-n+27),
-.sd-cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--gu-ink); }
+.sd-cell:nth-child(n+46):nth-child(-n+54) { border-bottom-color: var(--gu-ink); }
+.sd-cell:nth-child(n+28):nth-child(-n+36),
+.sd-cell:nth-child(n+55):nth-child(-n+63) { border-top-color: var(--gu-ink); }
+
+/* The outer edges are the board's own frame; the cells keep their boxes
+   but draw nothing there. */
+.sd-cell:nth-child(9n) { border-right-color: transparent; }
+.sd-cell:nth-child(n+73) { border-bottom-color: transparent; }
 
 /* The puzzle's own digits: ink, not the game colour. */
 .sd-cell.is-given {
@@ -148,6 +194,13 @@
 /* Given away by Hint, so it's clear it wasn't solved. */
 .sd-cell.is-revealed { font-style: italic; }
 
+/* Entered during a trial run: kept visibly apart from settled digits, so
+   the solver can see exactly what Discard would take away. */
+.sd-cell.is-trial { color: var(--sd-trial-deep); }
+.sd-cell.is-trial.is-cursor,
+.sd-cell.is-trial.is-clash { color: #fff; }
+.sd-cell.is-trial.is-clash { background: var(--danger, #d0021b); }
+
 .sd-value {
   line-height: 1;
 }
@@ -165,7 +218,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(7px, 1.5vw, 10px);
+  font-size: clamp(8px, 1.5vw, 11px);
+  font-size: 2.6cqw;
   font-weight: 600;
   line-height: 1;
   color: var(--gu-gray-500);
@@ -193,6 +247,8 @@
   color: var(--game-deep);
   background: #fff;
   border: 1.5px solid var(--game);
+  border-radius: 0;
+  appearance: none;
   cursor: pointer;
 }
 
@@ -235,6 +291,8 @@
   color: var(--gu-ink);
   background: #fff;
   border: 1.5px solid var(--gu-ink);
+  border-radius: 0;
+  appearance: none;
   cursor: pointer;
 }
 
@@ -251,6 +309,43 @@
   color: #fff;
 }
 
+/* Only on screen while a trial is open (sudoku_solver.js unhides it). */
+.sd-trial {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--sd-trial);
+  border: 1.5px solid var(--sd-trial-deep);
+}
+
+.sd-trial__label {
+  margin-right: auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sd-trial-deep);
+}
+
+.sd-trial__btn {
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--sd-trial-deep);
+  border: 1.5px solid var(--sd-trial-deep);
+  border-radius: 0;
+  appearance: none;
+  cursor: pointer;
+}
+
+.sd-trial__btn--ghost {
+  color: var(--sd-trial-deep);
+  background: transparent;
+}
+
+.sd-trial__btn:hover { opacity: 0.85; }
+
 .sd-message {
   margin: 0;
   padding: 13px 16px;
@@ -258,11 +353,6 @@
   font-weight: 700;
   border-left: 3px solid var(--game);
   background: var(--game-soft);
-}
-
-.sd-message.is-error {
-  border-left-color: var(--danger, #d0021b);
-  background: #fbeaea;
 }
 
 .sd-side .shortcuts {
@@ -282,16 +372,148 @@
     width: 100%;
   }
 
-  /* One row of nine again, now the pad has the full width. */
-  .sd-keys { grid-template-columns: repeat(9, 1fr); gap: 6px; }
+  /* One row of nine again, now the pad has the full width. minmax(0,1fr)
+     rather than 1fr: a plain fr track floors at the item's min-content,
+     which on a narrow phone pushes the row wider than the screen. */
+  .sd-keys { grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 6px; }
   .sd-key { height: 46px; font-size: 22px; }
 }
 
+/* The phone solving screen, on the same plan as the crossword's: the page
+   is exactly one viewport tall and never scrolls, so tapping a cell and
+   then tapping a digit can't move anything. The board takes whatever room
+   is left between the toolbar and the pad, and the pad sits at the bottom
+   within thumb reach. */
 @media (max-width: 640px) {
+  body.sd-solve {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body.sd-solve .gu-footer,
+  body.sd-solve .gu-screen-head,
+  body.sd-solve .sd-toolbar__links,
+  body.sd-solve .shortcuts,
+  /* The shortcuts it links to are hidden, and there's no keyboard here. */
+  body.sd-solve .gu-playbar__status .gu-dark-btn {
+    display: none;
+  }
+
+  /* Takes over the space the screen head would have shown it in. */
+  body.sd-solve .sd-playbar-level { display: block; }
+
+  body.sd-solve .gu-playbar__inner {
+    height: 46px;
+    padding: 0 12px;
+  }
+
+  body.sd-solve main.sd-page {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body.sd-solve .sd-toolbar {
+    flex: none;
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin: 0;
+    padding: 6px 8px;
+    border-bottom: 1px solid #e3e5f2;
+  }
+
+  body.sd-solve .sd-nav { width: 100%; }
+  body.sd-solve .sd-level { flex: 1 1 auto; min-width: 0; text-align: center; }
+  body.sd-solve .sd-nav__btn { padding: 6px 10px; }
+
+  body.sd-solve .sd-layout {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    /* The desktop grid sets align-items: start, which as a flex column
+       means "don't stretch" -- and a board pane sized to its content is
+       no width at all. */
+    align-items: stretch;
+    gap: 0;
+  }
+
+  body.sd-solve .sd-board-pane {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 8px 0;
+  }
+
+  body.sd-solve .sd-board-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body.sd-solve .sd-board {
+    width: 100%;
+    height: auto;
+    max-height: 100%;
+    margin: 0;
+  }
+
+  body.sd-solve .sd-message {
+    flex: none;
+    padding: 9px 12px;
+    font-size: 14px;
+  }
+
+  body.sd-solve .sd-side {
+    flex: none;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 8px;
+    gap: 7px;
+  }
+
   .sd-keys { gap: 4px; }
-  .sd-key { height: 42px; font-size: 18px; }
+  .sd-key { height: 50px; font-size: 20px; }
   .sd-key__left { display: none; }
-  .sd-actions { grid-template-columns: 1fr 1fr; }
+
+  /* One row whether or not the puzzle has a solution to give Hint. Same
+     minmax(0, ...) reason as the keys: six buttons floored at the width of
+     their own labels overflow a 360px screen. */
+  .sd-actions {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  /* Labels give way before the row does. */
+  .sd-action {
+    overflow: hidden;
+  }
+
+  .sd-action {
+    height: 46px;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 10px;
+    border-width: 1px;
+  }
+
+  .sd-trial { padding: 7px 8px; gap: 6px; }
+  .sd-trial__label { font-size: 12px; }
+  .sd-trial__btn { padding: 7px 10px; font-size: 12px; }
 }
 
 /* --- Archive --- */

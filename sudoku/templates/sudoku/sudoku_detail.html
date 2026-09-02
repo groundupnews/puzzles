@@ -2,8 +2,8 @@
 {% load static %}
 
 {% block title %}Sudoku {{ sudoku.number|default:sudoku.pk }}{% endblock %}
-{% block body_class %}game-sudoku{% endblock %}
-{% block head %}<link rel="stylesheet" href="{% static 'sudoku/sudoku.css' %}?v=4">{% endblock %}
+{% block body_class %}game-sudoku sd-solve{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'sudoku/sudoku.css' %}?v=6">{% endblock %}
 {% block main_class %}gu-page sd-page{% endblock %}
 
 {% block chrome %}
@@ -14,7 +14,7 @@
     </a>
     <a href="https://groundup.org.za/"><img class="gu-playbar__logo" src="{% static 'gu/logo-white.svg' %}" alt="GroundUp"></a>
     <div class="gu-playbar__status">
-      <span class="sd-mistakes">Mistakes <span id="sd-mistakes">0</span>/3</span>
+      <span class="sd-playbar-level">{{ sudoku.get_difficulty_display }}</span>
       <a class="gu-dark-btn" href="#shortcuts" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.2a2.8 2.8 0 0 1 5.5.8c0 1.9-2.7 2.5-2.7 2.5"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </a>
@@ -56,11 +56,22 @@ level you picked and redirects to the neighbouring one.{% endcomment %}
 
 <div class="sd-layout">
   <div class="sd-board-pane">
-    <div id="sd-board" class="sd-board"></div>
+    <div class="sd-board-wrap">
+      <div id="sd-board" class="sd-board"></div>
+    </div>
     <div id="sd-message" class="sd-message" hidden></div>
   </div>
 
   <div class="sd-side">
+    {% comment %}Shown by sudoku_solver.js only while a trial run is open.
+    Keep also happens by pressing Try again; Discard is deliberately only
+    here, where it can't be hit by mistake.{% endcomment %}
+    <div id="sd-trial" class="sd-trial" hidden>
+      <span class="sd-trial__label">Trying it out</span>
+      <button type="button" id="sd-keep-btn" class="sd-trial__btn">Keep</button>
+      <button type="button" id="sd-discard-btn" class="sd-trial__btn sd-trial__btn--ghost">Discard</button>
+    </div>
+
     <div class="sd-keys">
       {% for digit in "123456789" %}
       <button type="button" class="sd-key" data-digit="{{ digit }}">
@@ -79,6 +90,10 @@ level you picked and redirects to the neighbouring one.{% endcomment %}
       <button type="button" id="sd-notes-btn" class="sd-action" aria-pressed="false">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Notes
       </button>
+      <button type="button" id="sd-try-btn" class="sd-action" aria-pressed="false"
+              title="Try out a line of reasoning, then keep it or throw it away">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3H5a2 2 0 0 0-2 2v4M15 3h4a2 2 0 0 1 2 2v4M9 21H5a2 2 0 0 1-2-2v-4M15 21h4a2 2 0 0 0 2-2v-4"/><circle cx="12" cy="12" r="2.5"/></svg>Try
+      </button>
       {% if sudoku.solution %}
       <button type="button" id="sd-hint-btn" class="sd-action">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.7 15.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM4 9V4h5M20 15v5h-5"/></svg>Hint
@@ -96,6 +111,7 @@ level you picked and redirects to the neighbouring one.{% endcomment %}
         <dt><kbd>&larr;</kbd> <kbd>&rarr;</kbd> <kbd>&uarr;</kbd> <kbd>&darr;</kbd></dt><dd>Move around the grid</dd>
         <dt><kbd>Backspace</kbd> / <kbd>Delete</kbd></dt><dd>Erase cell</dd>
         <dt><kbd>N</kbd></dt><dd>Toggle notes</dd>
+        <dt><kbd>T</kbd></dt><dd>Start a trial run (again to keep it)</dd>
         <dt><kbd>H</kbd></dt><dd>Hint</dd>
         <dt><kbd>Ctrl</kbd> / <kbd>&#8984;</kbd> + <kbd>Z</kbd></dt><dd>Undo</dd>
       </dl>
@@ -120,5 +136,5 @@ level you picked and redirects to the neighbouring one.{% endcomment %}
       "{% url 'sudoku:nav' sudoku.pk %}?nav=next&diff=" + diff;
   });
 </script>
-<script src="{% static 'sudoku/sudoku_solver.js' %}?v=3"></script>
+<script src="{% static 'sudoku/sudoku_solver.js' %}?v=4"></script>
 {% endblock %}
