@@ -86,7 +86,9 @@
 
     {% comment %}The grid takes whatever room is left on a phone: the SVG
     fills this box and its viewBox keeps the puzzle in proportion within
-    it.{% endcomment %}
+    it. solver.js replaces the viewBox below with the same box plus a
+    margin for the outer frame; this one holds the proportions until it
+    does.{% endcomment %}
     <div class="grid-area">
       <svg id="grid" tabindex="0"
            viewBox="0 0 {{ crossword.num_cols }} {{ crossword.num_rows }}"></svg>
@@ -212,5 +214,5 @@ room for on a phone, plus the shortcut legend.{% endcomment %}
     csrfToken: "{{ csrf_token }}",
   };
 </script>
-<script src="{% static 'crossword/solver.js' %}?v=46"></script>
+<script src="{% static 'crossword/solver.js' %}?v=47"></script>
 {% endblock %}

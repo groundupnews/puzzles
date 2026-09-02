@@ -346,11 +346,11 @@ button:focus-visible {
   vector-effect: non-scaling-stroke;
 }
 
+/* stroke-width is set in solver.js, which sizes the viewBox margin to
+   match it -- the two have to agree, so they live together. */
 .grid-border {
   fill: none;
   stroke: var(--gu-ink);
-  stroke-width: 5px;
-  vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
 

@@ -19,6 +19,19 @@ const svg = document.getElementById("grid");
 const rows = CW.numRows;
 const cols = CW.numCols;
 
+// An SVG stroke straddles the path it's drawn on, so a frame drawn on the
+// grid's own edge covers the outer half of the first row and column -- and
+// with it their clue numbers, which sit in each cell's top-left corner. The
+// viewBox therefore carries a margin the frame can live in, clear of the
+// cells. In user units rather than pixels so it scales with the grid: a
+// fixed-pixel frame eats a far bigger share of a cell on a phone, which is
+// where the numbers were being covered.
+const BORDER = 0.06;
+svg.setAttribute(
+  "viewBox",
+  `${-BORDER} ${-BORDER} ${cols + BORDER * 2} ${rows + BORDER * 2}`
+);
+
 const idx = (r, c) => r * cols + c;
 const rowOf = (i) => Math.floor(i / cols);
 const colOf = (i) => i % cols;
@@ -231,12 +244,15 @@ function render() {
       svg.appendChild(ind);
     }
   }
-  // Last, so it sits over the cells' own edges.
+  // Last, so it covers the ragged half-strokes the outermost cells leave
+  // along the perimeter. Offset by half its own width so the stroke fills
+  // the viewBox margin exactly, touching the cells without covering them.
   const border = document.createElementNS(SVG_NS, "rect");
-  border.setAttribute("x", 0);
-  border.setAttribute("y", 0);
-  border.setAttribute("width", cols);
-  border.setAttribute("height", rows);
+  border.setAttribute("x", -BORDER / 2);
+  border.setAttribute("y", -BORDER / 2);
+  border.setAttribute("width", cols + BORDER);
+  border.setAttribute("height", rows + BORDER);
+  border.setAttribute("stroke-width", BORDER);
   border.setAttribute("class", "grid-border");
   svg.appendChild(border);
 
