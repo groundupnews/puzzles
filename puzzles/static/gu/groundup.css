@@ -74,46 +74,67 @@ body {
 
 /* ---------------- Masthead ---------------- */
 
+/* One thin bar: the logo home to Puzzles, a switch between the two
+   GroundUp destinations, then search and Donate. Login lives in the
+   footer, not here. */
 .gu-masthead {
-  background: var(--gu-ink);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: var(--gu-ink-900);
   color: var(--gu-white);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, .08);
 }
 
 .gu-masthead__inner {
   max-width: var(--gu-page);
   margin: 0 auto;
-  min-height: 60px;
-  padding: 10px 20px;
+  min-height: 56px;
+  padding: 8px 20px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
 }
 
-.gu-masthead__brand {
-  flex: none;
-  margin-right: 14px;
+.gu-masthead__brand { flex: none; display: flex; }
+.gu-masthead__logo { display: block; height: 30px; width: auto; }
+
+.gu-masthead__brand:focus-visible,
+.gu-switch a:focus-visible,
+.gu-dark-btn:focus-visible,
+.gu-donate:focus-visible {
+  outline: 2px solid var(--gu-cyan);
+  outline-offset: 3px;
 }
 
-.gu-masthead__logo { display: block; height: 32px; width: auto; }
+/* The section switch. Two sides on a recessed track, the one you are on
+   filled in, so where you are is legible without reading. */
+.gu-switch {
+  display: flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .07);
+}
 
-.gu-nav { display: flex; align-items: center; }
-
-.gu-nav a {
-  color: var(--gu-on-dark);
-  text-decoration: none;
-  padding: 10px 12px;
-  font-size: 14px;
+.gu-switch a {
+  padding: 6px 18px;
+  border-radius: 999px;
+  color: var(--gu-on-dark-dim);
+  font-size: 14.5px;
   font-weight: 600;
-  text-transform: uppercase;
-  border-bottom: 2px solid transparent;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
-.gu-nav a:hover { color: var(--gu-white); border-bottom-color: var(--gu-cyan); }
+.gu-switch a:hover { color: var(--gu-white); background: rgba(255, 255, 255, .09); }
 
-.gu-nav a.is-current {
-  color: var(--gu-white);
-  border-bottom-color: var(--gu-cyan);
+.gu-switch a.is-current {
+  background: var(--gu-cyan);
+  color: var(--gu-ink-900);
+  font-weight: 700;
 }
+
+.gu-switch a.is-current:hover { background: var(--gu-cyan); }
 
 .gu-masthead__right {
   margin-left: auto;
@@ -122,45 +143,13 @@ body {
   gap: 14px;
 }
 
-/* Off-screen rather than hidden, so it can still be reached and toggled
-   with a keyboard. */
-.gu-menu-checkbox {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.gu-menu-checkbox:focus-visible ~ .gu-masthead__right .gu-menu-icon {
-  outline: 2px solid var(--gu-cyan);
-  outline-offset: 3px;
-}
-
-/* Hamburger: shown only once the nav collapses. */
-.gu-menu-icon {
-  display: none;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 16px;
-  width: 24px;
-  cursor: pointer;
-}
-
-.gu-menu-icon span {
-  height: 2px;
-  background: var(--gu-white);
-  border-radius: 2px;
-}
-
 .gu-donate {
   background: var(--gu-yellow);
   color: var(--gu-ink);
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 7px 18px;
+  border-radius: 999px;
+  font-size: 13.5px;
   font-weight: 700;
-  text-transform: uppercase;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -180,12 +169,6 @@ body {
 }
 
 .gu-dark-btn:hover { color: var(--gu-white); }
-
-.gu-dark-btn--text {
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
 
 /* ---------------- Play-screen bar ---------------- */
 
@@ -350,6 +333,8 @@ body {
 .gu-footer a { color: var(--gu-link); text-decoration: none; }
 .gu-footer a:hover { text-decoration: underline; }
 .gu-footer__links { display: flex; gap: 22px; flex-wrap: wrap; }
+
+.gu-footer__account { display: flex; gap: 18px; }
 
 /* ---------------- Games hub ---------------- */
 
@@ -672,52 +657,18 @@ body {
   .hub-hero__art { border-left: none; border-top: 1px solid var(--gu-border-warm); }
 }
 
-/* The nav collapses into a panel under the header, as it does on the main
-   site. Same breakpoint, same treatment. */
-@media (max-width: 991px) {
-  .gu-masthead { position: relative; z-index: 1000; }
-  .gu-masthead__inner { padding: 8px 16px; }
-  .gu-menu-icon { display: flex; }
-
-  .gu-nav {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    flex-direction: column;
-    align-items: stretch;
-    background: var(--gu-ink-900);
-    border-top: 1px solid #000;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-    z-index: 1001;
-  }
-
-  .gu-menu-checkbox:checked ~ .gu-nav { display: flex; }
-
-  .gu-nav a {
-    padding: 15px 20px;
-    font-size: 16px;
-    color: #ddd;
-    border-bottom: 1px solid var(--gu-ink-700);
-  }
-
-  .gu-nav a:hover,
-  .gu-nav a.is-current {
-    background: var(--gu-ink-800);
-    color: var(--gu-white);
-    border-bottom-color: var(--gu-ink-700);
-  }
-}
-
 @media (max-width: 640px) {
   .gu-page { padding: 20px 16px 32px; }
   .gu-playbar__inner { padding-left: 16px; padding-right: 16px; }
-  .gu-masthead__brand { margin-right: 0; }
-  .gu-masthead__logo { height: 26px; }
+  .gu-masthead__inner { min-height: 52px; padding: 8px 12px; gap: 10px; }
+  .gu-masthead__logo { height: 23px; }
+  .gu-switch { padding: 2px; }
+  .gu-switch a { padding: 5px 12px; font-size: 13px; }
 
-  .gu-masthead__right { gap: 8px; }
-  .gu-donate { padding: 6px 12px; font-size: 11px; }
+  /* Not enough width for all four; search only reaches the news site, so
+     the switch and Donate keep the room. */
+  .gu-masthead__right .gu-dark-btn { display: none; }
+  .gu-donate { padding: 6px 13px; font-size: 12.5px; }
 
   .gu-playbar__inner { padding: 0 14px; }
   .gu-playbar__logo { display: none; }
@@ -728,6 +679,14 @@ body {
   .hub-hero__art { padding: 22px; }
   .hub-hero h2 { font-size: 30px; }
   .gu-footer__inner { flex-direction: column; align-items: flex-start; gap: 10px; }
+}
+
+/* Narrowest phones: the bar's four items only just fit. */
+@media (max-width: 360px) {
+  .gu-masthead__inner { padding: 8px 10px; gap: 8px; }
+  .gu-masthead__logo { height: 21px; }
+  .gu-switch a { padding: 5px 10px; font-size: 12.5px; }
+  .gu-donate { padding: 6px 11px; font-size: 12px; }
 }
 
 /* A badge that is a link -- "Play today's" on the archive screens. */
