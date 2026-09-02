@@ -498,16 +498,12 @@ body.game-sudoku {
     gap: 5px;
   }
 
-  /* Labels give way before the row does. */
-  .sd-action {
-    overflow: hidden;
-  }
-
   .sd-action {
     height: 46px;
     flex-direction: column;
     gap: 3px;
-    font-size: 10px;
+    padding: 0 2px;
+    font-size: clamp(7px, 2.3vw, 10px);
     border-width: 1px;
   }
 
