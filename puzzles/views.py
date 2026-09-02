@@ -5,8 +5,8 @@ from django.contrib.sessions.models import Session
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from crossword import grid
 from crossword.models import Crossword
+from puzzles.teasers import grid_preview, sudoku_tile, target_tile
 from quizzes.models import Quiz
 from sudoku.models import Sudoku
 from target.models import Target
@@ -23,54 +23,6 @@ def logout_everywhere(request):
     user_sessions.delete()
     auth_logout(request)
     return redirect("home")
-
-
-def _grid_preview(crossword):
-    """Rows of {block, number} cells for the hub's teaser grid.
-
-    Carries the puzzle's shape and its clue numbers but none of its
-    letters -- the hub is an invitation to solve, not a spoiler.
-    """
-    numbers = {
-        slot.start: slot.number
-        for slot in grid.slots(
-            crossword.num_rows,
-            crossword.num_cols,
-            crossword.blocked_out_squares,
-            crossword.cells,
-        )
-    }
-    blocked = set(crossword.blocked_out_squares)
-    return [
-        [
-            {
-                "block": row * crossword.num_cols + col in blocked,
-                "number": numbers.get(row * crossword.num_cols + col),
-            }
-            for col in range(crossword.num_cols)
-        ]
-        for row in range(crossword.num_rows)
-    ]
-
-
-def _target_tile(target):
-    """The nine letters for the Target tile, centre letter in the middle.
-
-    The models are the ones the news site uses, where the tile didn't
-    exist, so the hub works this out rather than the model.
-    """
-    if target is None:
-        return None
-    outer = list(target.letters[1:])
-    cells = outer[:4] + [target.letters[0]] + outer[4:]
-    return [{"char": c, "centre": i == 4} for i, c in enumerate(cells)]
-
-
-def _sudoku_tile(sudoku):
-    """The givens, with blanks for the rest, for the Sudoku tile."""
-    if sudoku is None:
-        return None
-    return [ch if ch != "0" else "" for ch in sudoku.puzzle]
 
 
 def _greeting(now):
@@ -107,9 +59,9 @@ def games_hub(request):
             "quiz": quizzes.order_by("-published").first(),
             "sudoku": sudoku,
             "target": target,
-            "target_tile": _target_tile(target),
-            "sudoku_tile": _sudoku_tile(sudoku),
-            "preview": _grid_preview(crossword) if crossword else None,
+            "target_tile": target_tile(target),
+            "sudoku_tile": sudoku_tile(sudoku),
+            "preview": grid_preview(crossword) if crossword else None,
             "greeting": _greeting(now),
             "today": now,
             "puzzle_count": (

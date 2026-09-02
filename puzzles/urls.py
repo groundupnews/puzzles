@@ -21,6 +21,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic.base import RedirectView
 
+from puzzles import api
 from puzzles.views import games_hub, logout_everywhere
 
 urlpatterns = [
@@ -37,6 +38,10 @@ urlpatterns = [
     path('accounts/login/', request_login_code, name='account_request_login_code'),
     path('accounts/settings/', include('allauth.usersessions.urls')),
     path('accounts/logout-everywhere/', logout_everywhere, name='logout_everywhere'),
+    # Read-only JSON for the news site's GroundUp Puzzles block.
+    # See puzzles/api.py.
+    path('api/puzzles/', api.all_puzzles, name='api_puzzles'),
+    path('api/puzzles/<str:name>/', api.one_puzzle, name='api_puzzle'),
     path('crossword/', include('crossword.urls')),
     path('quizzes/', include('quizzes.urls')),
     path('sudoku/', include('sudoku.urls')),
