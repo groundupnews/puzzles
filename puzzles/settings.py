@@ -29,6 +29,10 @@ ALLOWED_HOSTS = []
 
 SITE_ID = 1
 
+# The Matomo analytics instance. It lives on the main site, not this one --
+# see templates/piwik.html.
+PIWIK_SITE_URL = "https://traffic.groundup.org.za/"
+
 # nginx sets X-Forwarded-Proto via proxy_params; trust it so request.is_secure()
 # is correct behind the reverse proxy (needed for CSRF Origin checks on POST).
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -83,6 +87,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "puzzles.context_processors.piwik",
             ],
         },
     },
