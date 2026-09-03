@@ -160,6 +160,22 @@
   </div>
 </div>
 
+{% comment %}Reuses cw-head to hide on the phone layout, where the same
+legend lives in the info sheet below instead.{% endcomment %}
+<section id="shortcuts" class="shortcuts cw-head">
+  <h2>Keyboard shortcuts</h2>
+  <dl class="key-legend">
+    <dt><kbd>A&ndash;Z</kbd></dt><dd>Type letter</dd>
+    <dt><kbd>&larr;</kbd> <kbd>&rarr;</kbd> <kbd>&uarr;</kbd> <kbd>&darr;</kbd></dt><dd>Turn, then move</dd>
+    <dt><kbd>Backspace</kbd></dt><dd>Delete / retreat</dd>
+    <dt><kbd>Delete</kbd></dt><dd>Delete / advance</dd>
+    <dt><kbd>Space</kbd></dt><dd>Clear and advance</dd>
+    <dt><kbd>.</kbd></dt><dd>Toggle direction</dd>
+    <dt><kbd>Home</kbd> / <kbd>End</kbd></dt><dd>First / last cell</dd>
+    <dt><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd></dt><dd>Next / prev slot</dd>
+  </dl>
+</section>
+
 {% comment %}Everything about the puzzle that the play screen itself has no
 room for on a phone, plus the shortcut legend.{% endcomment %}
 <div class="cw-modal" id="info-sheet">
@@ -182,7 +198,7 @@ room for on a phone, plus the shortcut legend.{% endcomment %}
         <dt><kbd>&larr;</kbd> <kbd>&rarr;</kbd> <kbd>&uarr;</kbd> <kbd>&darr;</kbd></dt><dd>Turn, then move</dd>
         <dt><kbd>Backspace</kbd></dt><dd>Delete / retreat</dd>
         <dt><kbd>Delete</kbd></dt><dd>Delete / advance</dd>
-        <dt><kbd>Space</kbd></dt><dd>Delete / advance</dd>
+        <dt><kbd>Space</kbd></dt><dd>Clear and advance</dd>
         <dt><kbd>.</kbd></dt><dd>Toggle direction</dd>
         <dt><kbd>Home</kbd> / <kbd>End</kbd></dt><dd>First / last cell</dd>
         <dt><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd></dt><dd>Next / prev slot</dd>
