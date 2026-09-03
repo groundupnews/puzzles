@@ -532,6 +532,7 @@ document.getElementById("save-btn").addEventListener("click", async () => {
       : null,
     private: document.getElementById("cw-private").checked,
     requires_rotational_symmetry: document.getElementById("cw-rotational-symmetry").checked,
+    display_slot_length: document.getElementById("cw-display-slot-length").checked,
     clues: state.clues,
   };
   const resp = await fetch(CW.saveUrl, {
@@ -845,6 +846,7 @@ document.getElementById("blocks-pct").textContent =
 document.getElementById("cw-private").addEventListener("change", markDirty);
 document.getElementById("cw-competition").addEventListener("change", markDirty);
 document.getElementById("cw-rotational-symmetry").addEventListener("change", markDirty);
+document.getElementById("cw-display-slot-length").addEventListener("change", markDirty);
 
 // Triggers the browser's native "leave site?" confirmation on tab close/
 // reload when there are unsaved changes.

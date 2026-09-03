@@ -225,10 +225,11 @@ room for on a phone, plus the shortcut legend.{% endcomment %}
     numCols: {{ crossword.num_cols }},
     blocks: JSON.parse(document.getElementById("cw-blocks").textContent),
     clues: JSON.parse(document.getElementById("cw-clues").textContent),
+    displaySlotLength: {{ crossword.display_slot_length|yesno:"true,false" }},
     checkUrl: "{% if private_link %}{% url 'crossword_private_check' private_link %}{% else %}{% url 'crossword_check' crossword.pk %}{% endif %}",
     revealUrl: "{% if private_link %}{% url 'crossword_private_reveal' private_link %}{% else %}{% url 'crossword_reveal' crossword.pk %}{% endif %}",
     csrfToken: "{{ csrf_token }}",
   };
 </script>
-<script src="{% static 'crossword/solver.js' %}?v=47"></script>
+<script src="{% static 'crossword/solver.js' %}?v=48"></script>
 {% endblock %}

@@ -110,6 +110,7 @@ class Crossword(models.Model):
     date_added = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     published = models.DateTimeField(null=True, blank=True)
+    display_slot_length = models.BooleanField(default=True)
     num_rows = models.PositiveIntegerField()
     num_cols = models.PositiveIntegerField()
     blocked_out_squares = models.JSONField(default=list)

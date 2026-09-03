@@ -35,6 +35,10 @@
     <input type="checkbox" id="cw-rotational-symmetry"
            {% if crossword.requires_rotational_symmetry %}checked{% endif %}>
   </label>
+  <label class="checkbox-label">Display slot length
+    <input type="checkbox" id="cw-display-slot-length"
+           {% if crossword.display_slot_length %}checked{% endif %}>
+  </label>
   <label>Published
     <input type="datetime-local" id="cw-published"
            value="{{ crossword.published|date:'Y-m-d\TH:i'|default:'' }}">
@@ -158,5 +162,5 @@
     </div>
   </div>
 </div>
-<script src="{% static 'crossword/generator.js' %}?v=36"></script>
+<script src="{% static 'crossword/generator.js' %}?v=37"></script>
 {% endblock %}

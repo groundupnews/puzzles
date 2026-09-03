@@ -262,6 +262,14 @@ function render() {
   saveState();
 }
 
+// Appends a slot's cell count in brackets after its clue (e.g. "(8)"), the
+// way printed crosswords do, when the setter has turned that on. Read off
+// the slot itself rather than the stored answer, since the solver never
+// receives answers.
+function withSlotLength(clue, slot) {
+  return clue && CW.displaySlotLength ? `${clue} (${slot.indices.length})` : clue;
+}
+
 // Shows the active slot's label (e.g. "1 Across") and its clue text, or
 // blanks both when there's no active slot. CW.clues is keyed by slot key
 // ("1A"), not by the label.
@@ -276,7 +284,7 @@ function updateClueDisplay(active) {
   const key = slotKey(active);
   slotEl.textContent =
     active.number + (active.direction === ACROSS ? " Across" : " Down");
-  clueEl.textContent = CW.clues[key] || "";
+  clueEl.textContent = withSlotLength(CW.clues[key] || "", active);
 }
 
 // Renders the across/down clue lists, highlighting whichever slot is
@@ -299,7 +307,7 @@ function renderClueList(slots, active, crossing) {
     number.textContent = s.number;
     const text = document.createElement("span");
     text.className = "clue-text";
-    text.textContent = clue || key;
+    text.textContent = clue ? withSlotLength(clue, s) : key;
     li.append(number, text);
     if (!clue) li.classList.add("no-clue");
     if (active && s.number === active.number && s.direction === active.direction) {

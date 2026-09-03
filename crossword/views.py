@@ -260,7 +260,8 @@ def crossword_save(request, pk):
     """Save the grid for the given crossword.
 
     Accepts a JSON body: cells, blocked_out_squares, name,
-    short_description, description, requires_rotational_symmetry, clues ({"1A": "clue text", ...}). cells is
+    short_description, description, requires_rotational_symmetry,
+    display_slot_length, clues ({"1A": "clue text", ...}). cells is
     the source of truth and is always saved. Entry rows are derived from the
     complete slots; partial slots touch nothing but cells.
     """
@@ -281,6 +282,7 @@ def crossword_save(request, pk):
         crossword.copyright = payload.get("copyright", "")
         crossword.private = payload.get("private", False)
         crossword.requires_rotational_symmetry = payload.get("requires_rotational_symmetry", True)
+        crossword.display_slot_length = payload.get("display_slot_length", True)
         published_str = payload.get("published") or ""
         if published_str:
             dt = datetime.fromisoformat(published_str)
