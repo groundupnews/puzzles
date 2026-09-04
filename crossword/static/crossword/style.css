@@ -1259,6 +1259,63 @@ kbd {
     color: var(--game-deep);
   }
 
+  #clue-sheet {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: var(--surface);
+    flex-direction: column;
+  }
+
+  #clue-sheet.is-open {
+    display: flex;
+  }
+
+  #clue-sheet .cw-sheet__head {
+    display: flex;
+  }
+
+  .editor--solve .clue-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 0 14px calc(32px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .clue-list h2 {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: 0;
+    padding: 14px 0 7px;
+    background: var(--surface);
+  }
+
+  .clue-list li {
+    font-size: 16px;
+    padding: 11px 8px 11px 12px;
+  }
+
+  .cw-modal {
+    padding: 0;
+  }
+
+  .cw-modal__panel {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border: none;
+  }
+}
+
+/* The on-screen keyboard is for devices with no precise pointer (touch),
+   not for narrow screens specifically: a tablet needs it regardless of
+   its width, and it stays off for anything with a mouse or trackpad. */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
   .mobile-keyboard {
     display: flex;
     flex: none;
@@ -1311,58 +1368,6 @@ kbd {
   /* Points along the direction the cursor is travelling. */
   .kb-flip.is-down .kb-flip__icon {
     transform: rotate(90deg);
-  }
-
-  #clue-sheet {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 200;
-    background: var(--surface);
-    flex-direction: column;
-  }
-
-  #clue-sheet.is-open {
-    display: flex;
-  }
-
-  #clue-sheet .cw-sheet__head {
-    display: flex;
-  }
-
-  .editor--solve .clue-list {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    grid-template-columns: 1fr;
-    gap: 20px;
-    padding: 0 14px calc(32px + env(safe-area-inset-bottom, 0px));
-  }
-
-  .clue-list h2 {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    margin: 0;
-    padding: 14px 0 7px;
-    background: var(--surface);
-  }
-
-  .clue-list li {
-    font-size: 16px;
-    padding: 11px 8px 11px 12px;
-  }
-
-  .cw-modal {
-    padding: 0;
-  }
-
-  .cw-modal__panel {
-    width: 100%;
-    height: 100%;
-    max-height: none;
-    border: none;
   }
 }
 
