@@ -1,4 +1,3 @@
-import json
 import string
 
 from django.contrib import messages
@@ -8,10 +7,8 @@ from . import models
 from target.target import makeTarget
 from target.utils import saveTargetImage
 from django import forms
-from django.http import HttpResponseRedirect, Http404, JsonResponse
-from django.shortcuts import get_object_or_404
+from django.http import HttpResponseRedirect, Http404
 from django.urls import reverse, reverse_lazy
-from django.views.decorators.http import require_POST
 from django.contrib.auth.mixins import PermissionRequiredMixin
 
 
@@ -204,26 +201,3 @@ class TargetLatest(generic.RedirectView):
     def get_redirect_url(self, *args, **kwargs):
         target = models.Target.objects.published().latest('published')
         return reverse('target:detail', args=[target.pk])
-
-
-@require_POST
-def hint(request, pk):
-    """Give away one answer the solver hasn't found.
-
-    The play screen only ever holds hashes of the answers, so it can't
-    pick a word to reveal by itself -- it sends what it has and the server
-    names one it's missing. The shortest is chosen, so a hint never hands
-    over the nine-letter word while easier ones are still out there.
-    """
-    puzzle = get_object_or_404(models.Target, pk=pk)
-    if not puzzle.is_published() and \
-       not request.user.has_perm("target.change_target"):
-        raise Http404
-
-    payload = json.loads(request.body or "{}")
-    found = {w.lower() for w in payload.get("found", []) if isinstance(w, str)}
-    words = (w.strip().lower() for w in puzzle.splitWords())
-    missing = [w for w in words if w and w not in found]
-    if not missing:
-        return JsonResponse({"word": None})
-    return JsonResponse({"word": min(missing, key=len)})

@@ -1,25 +1,17 @@
-{% extends "target/base.html" %}
-{% load static %}
+{% extends "base.html" %}
 
-{% block title %}Delete Target {{ object.number }}{% endblock %}
-{% block body_class %}game-target{% endblock %}
-{% block head %}<link rel="stylesheet" href="{% static 'target/target.css' %}?v=3">{% endblock %}
+{% block title %}
+    Delete a Target puzzle {{block.super}}
+{% endblock %}
 
 {% block content %}
-<div class="gu-screen-head">
-  <div>
-    <h1>Delete Target</h1>
-    <div class="gu-dateline">This cannot be undone.</div>
-  </div>
-</div>
 
-<p>Delete <a href="{% url 'target:update' object.pk %}">{{ object }}</a>?</p>
+    <div id="content-area">
+        <form method="post">{% csrf_token %}
+            <p>Are you sure you want to delete Target:
+                <a href="{% url 'target:update' target.pk %}">{{ object }}</a>?</p>
+            <input type="submit" value="Confirm">
+        </form>
+    </div>
 
-<form method="post" class="tg-form-edit">
-  {% csrf_token %}
-  <div class="tg-form-edit__buttons">
-    <button type="submit" class="tg-btn tg-btn--danger">Delete it</button>
-    <a class="tg-btn" href="{% url 'target:list' %}">Keep it</a>
-  </div>
-</form>
 {% endblock %}
