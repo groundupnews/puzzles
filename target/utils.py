@@ -2,11 +2,6 @@ import os
 from PIL import Image, ImageDraw, ImageFont
 from django.conf import settings
 
-# As in target.py: the font ships with the app, so read it from the app's
-# own static directory rather than from a collected STATIC_ROOT.
-FONTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                         "static", "target", "fonts")
-
 def saveTargetImage(letters, pk):
     height = 300
     width = 300
@@ -57,7 +52,7 @@ def saveTargetImage(letters, pk):
 
     font_size = int(image.height / 3 - 8)
     font = ImageFont.truetype(os.path.join(
-        FONTS_DIR, "VeraMono-Bold.ttf"), font_size)
+        settings.STATIC_ROOT, "target/fonts/VeraMono-Bold.ttf"), font_size)
     x_start = 15
     y_start = -4
 
@@ -102,9 +97,6 @@ def saveTargetImage(letters, pk):
     xy = (x + w, y,)
     draw.text(xy, letters[8], font=font)
 
-    # The news site kept media/targets/ on disk; create it so a fresh
-    # checkout doesn't fall over on the first save.
-    os.makedirs(os.path.join(settings.MEDIA_ROOT, 'targets'), exist_ok=True)
     image.save(os.path.join(settings.MEDIA_ROOT,
                             'targets/target_' + str(pk) + '.png'))
     os.chmod(os.path.join(settings.MEDIA_ROOT,

@@ -1,22 +1,30 @@
-{% comment %}Rendered by the {% target_teaser %} tag, for embedding the
-puzzle in a page elsewhere. Self-contained: no page CSS to rely on.
-{% endcomment %}
-<a class="tg-teaser" href="{% url 'target:detail' object.pk %}"
-   aria-label="Play Target {{ object.number }}">
-  <div class="tg-teaser__grid" aria-hidden="true">
-    <div>{{ object.letters.1|upper }}</div>
-    <div>{{ object.letters.2|upper }}</div>
-    <div>{{ object.letters.3|upper }}</div>
-    <div>{{ object.letters.4|upper }}</div>
-    <div class="is-centre">{{ object.letters.0|upper }}</div>
-    <div>{{ object.letters.5|upper }}</div>
-    <div>{{ object.letters.6|upper }}</div>
-    <div>{{ object.letters.7|upper }}</div>
-    <div>{{ object.letters.8|upper }}</div>
-  </div>
-  <div class="tg-teaser__body">
-    <h3>Target {{ object.number }}</h3>
-    <p>Nine letters. How many words can you find?</p>
-    <span class="tg-teaser__cta">Play now &rarr;</span>
-  </div>
+{% load static %}
+<a href="{% url "target:detail" object.pk %}" class="target-teaser-link" aria-label="Play Target #{{object.number}}">
+    <div id="target-teaser">
+        <div class="teaser-grid">
+            <table aria-hidden="true">
+                <tr>
+                    <td>{{ object.letters.1|upper }}</td>
+                    <td>{{ object.letters.2|upper }}</td>
+                    <td>{{ object.letters.3|upper }}</td>
+                </tr>
+                <tr>
+                    <td>{{ object.letters.4|upper }}</td>
+                    <td class="filled">{{ object.letters.0|upper }}</td>
+                    <td>{{ object.letters.5|upper }}</td>
+                </tr>
+                <tr>
+                    <td>{{ object.letters.6|upper }}</td>
+                    <td>{{ object.letters.7|upper }}</td>
+                    <td>{{ object.letters.8|upper }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="teaser-content">
+            <h2>Target #{{object.number}}</h2>
+            <p>Can you solve it?</p>
+            <p style="font-size: 11px; margin-bottom: 5px;">New puzzle every Monday &amp; Friday</p>
+            <div class="target-cta">Play Now &rarr;</div>
+        </div>
+    </div>
 </a>
