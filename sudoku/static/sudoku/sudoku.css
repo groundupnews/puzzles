@@ -530,6 +530,43 @@ body.game-sudoku {
 
 /* --- Archive --- */
 
+.sd-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.sd-filter label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gu-ink);
+}
+
+.sd-filter select {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 10px;
+  color: var(--gu-ink);
+  background: #fff;
+  border: 1px solid #d8dae8;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.sd-filter select:focus {
+  outline: 2px solid var(--game);
+  outline-offset: -2px;
+}
+
+.sd-filter__check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
 .sd-pager {
   display: flex;
   justify-content: space-between;

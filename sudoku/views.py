@@ -94,12 +94,28 @@ def nav(request, pk):
 class SudokuList(ListView):
     """The archive. Not on the news site, where readers reached puzzles
     through prev/next alone, but the games hub links to a list per game.
-    Editors also see puzzles queued for future publication."""
+    Staff can additionally tick a box to see unpublished/queued puzzles
+    too, but published-only is the default even for them."""
 
     model = Sudoku
     paginate_by = 20
 
+    def show_all(self):
+        return self.request.user.is_staff and self.request.GET.get('all') == '1'
+
     def get_queryset(self):
-        if self.request.user.is_staff:
-            return Sudoku.objects.all()
-        return Sudoku.objects.published()
+        if self.show_all():
+            queryset = Sudoku.objects.all()
+        else:
+            queryset = Sudoku.objects.published()
+        difficulty = self.request.GET.get('diff', '0')
+        if difficulty != '0':
+            queryset = queryset.filter(difficulty=difficulty)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['choices'] = Sudoku.Difficulty.choices
+        context['difficulty'] = self.request.GET.get('diff', '0')
+        context['show_all'] = self.show_all()
+        return context
