@@ -3,7 +3,7 @@
 
 {% block title %}Sudoku {{ sudoku.number|default:sudoku.pk }}{% endblock %}
 {% block body_class %}game-sudoku sd-solve{% endblock %}
-{% block head %}<link rel="stylesheet" href="{% static 'sudoku/sudoku.css' %}?v=6">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'sudoku/sudoku.css' %}?v=12">{% endblock %}
 {% block main_class %}gu-page sd-page{% endblock %}
 
 {% block chrome %}
@@ -14,10 +14,14 @@
     </a>
     <a href="https://groundup.org.za/"><img class="gu-playbar__logo" src="{% static 'gu/logo-white.svg' %}" alt="GroundUp"></a>
     <div class="gu-playbar__status">
-      <span class="sd-playbar-level">{{ sudoku.get_difficulty_display }}</span>
-      <a class="gu-dark-btn" href="#shortcuts" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.2a2.8 2.8 0 0 1 5.5.8c0 1.9-2.7 2.5-2.7 2.5"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      </a>
+      <span class="sd-clock">
+        <span id="timer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--game)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+          <span id="timer-value">00:00</span>
+        </span>
+        <button id="timer-toggle" type="button">Hide</button>
+      </span>
+      <span class="sd-playbar-level">{% if sudoku.number %}No. {{ sudoku.number }} &middot; {% endif %}{{ sudoku.get_difficulty_display }}</span>
     </div>
   </div>
 </header>
@@ -37,20 +41,18 @@ what the sudoku:nav view does: it takes the puzzle you are on and the
 level you picked and redirects to the neighbouring one.{% endcomment %}
 <div class="sd-toolbar">
   <div class="sd-nav">
-    <a class="sd-nav__btn" id="sd-prev"
-       href="{% url 'sudoku:nav' sudoku.pk %}?nav=prev&amp;diff={{ difficulty }}">&lsaquo; Previous</a>
+    {% if has_prev %}<a class="sd-nav__btn" id="sd-prev" aria-label="Previous"
+       href="{% url 'sudoku:nav' sudoku.pk %}?nav=prev&amp;diff={{ difficulty }}">&lsaquo;</a>{% endif %}
     <select class="sd-level" id="sd-difficulty" aria-label="Difficulty">
       <option value="0"{% if difficulty == '0' %} selected{% endif %}>Any level</option>
       {% for value, label in choices|slice:"1:" %}
       <option value="{{ value }}"{% if value == difficulty %} selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
-    <a class="sd-nav__btn" id="sd-next"
-       href="{% url 'sudoku:nav' sudoku.pk %}?nav=next&amp;diff={{ difficulty }}">Next &rsaquo;</a>
-  </div>
-  <div class="sd-toolbar__links">
-    <a href="{% url 'sudoku:latest' %}">Latest</a>
-    <a href="{% url 'sudoku:list' %}">Archive &rsaquo;</a>
+    {% if has_next %}<a class="sd-nav__btn" id="sd-next" aria-label="Next"
+       href="{% url 'sudoku:nav' sudoku.pk %}?nav=next&amp;diff={{ difficulty }}">&rsaquo;</a>{% endif %}
+    {% if not is_latest %}<a class="sd-nav__btn" href="{% url 'sudoku:latest' %}">Latest</a>{% endif %}
+    <a class="sd-nav__btn" href="{% url 'sudoku:list' %}">Archive &rsaquo;</a>
   </div>
 </div>
 
@@ -130,11 +132,11 @@ level you picked and redirects to the neighbouring one.{% endcomment %}
   // picks a difficulty and then walks the archive within it.
   document.getElementById("sd-difficulty").addEventListener("change", function (e) {
     const diff = e.target.value;
-    document.getElementById("sd-prev").href =
-      "{% url 'sudoku:nav' sudoku.pk %}?nav=prev&diff=" + diff;
-    document.getElementById("sd-next").href =
-      "{% url 'sudoku:nav' sudoku.pk %}?nav=next&diff=" + diff;
+    const prevBtn = document.getElementById("sd-prev");
+    const nextBtn = document.getElementById("sd-next");
+    if (prevBtn) prevBtn.href = "{% url 'sudoku:nav' sudoku.pk %}?nav=prev&diff=" + diff;
+    if (nextBtn) nextBtn.href = "{% url 'sudoku:nav' sudoku.pk %}?nav=next&diff=" + diff;
   });
 </script>
-<script src="{% static 'sudoku/sudoku_solver.js' %}?v=4"></script>
+<script src="{% static 'sudoku/sudoku_solver.js' %}?v=5"></script>
 {% endblock %}

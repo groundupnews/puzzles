@@ -23,6 +23,46 @@ body.game-sudoku {
   gap: 10px;
 }
 
+/* Clock and its Hide/Show button, grouped tightly together and pulled
+   away from the level pill so it's clear the button belongs to the clock,
+   not to the puzzle's number/difficulty next to it. */
+.sd-clock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 10px;
+}
+
+#timer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+#timer-toggle {
+  font: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  background: none;
+  border: 1px solid var(--gu-ink-700);
+  border-radius: 0;
+  color: var(--gu-on-dark-dim);
+  cursor: pointer;
+  box-shadow: none;
+}
+
+#timer-toggle:hover {
+  color: #fff;
+  border-color: var(--gu-on-dark-dim);
+}
+
 /* The puzzle's level, for the phone layout where the screen head that
    normally carries it is hidden. Redundant on a wide screen, so it only
    appears at the width that needs it. */
@@ -62,6 +102,11 @@ body.game-sudoku {
 
 .sd-nav__btn:hover { background: var(--game-soft); }
 
+/* Divides Latest/Archive from Next (or from each other), the same way
+   .sd-level's own borders divide Previous from Next. Doesn't apply after
+   the select, which already carries that border itself. */
+.sd-nav__btn + .sd-nav__btn { border-left: 1px solid #d8dae8; }
+
 .sd-level {
   border: none;
   border-left: 1px solid #d8dae8;
@@ -76,20 +121,6 @@ body.game-sudoku {
 }
 
 .sd-level:focus { outline: 2px solid var(--game); outline-offset: -2px; }
-
-.sd-toolbar__links {
-  display: flex;
-  gap: 16px;
-}
-
-.sd-toolbar__links a {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--gu-link);
-  text-decoration: none;
-}
-
-.sd-toolbar__links a:hover { text-decoration: underline; }
 
 /* --- The grid --- */
 
@@ -241,6 +272,11 @@ body.game-sudoku {
   min-width: 0;
   position: relative;
   height: 54px;
+  /* Buttons lay out their content as a flex box by default, so centering
+     the digit takes justify-content, not text-align. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font: inherit;
   font-size: 24px;
   font-weight: 700;
@@ -395,10 +431,8 @@ body.game-sudoku {
 
   body.sd-solve .gu-footer,
   body.sd-solve .gu-screen-head,
-  body.sd-solve .sd-toolbar__links,
-  body.sd-solve .shortcuts,
-  /* The shortcuts it links to are hidden, and there's no keyboard here. */
-  body.sd-solve .gu-playbar__status .gu-dark-btn {
+  /* No keyboard here, so the shortcuts legend is pointless. */
+  body.sd-solve .shortcuts {
     display: none;
   }
 

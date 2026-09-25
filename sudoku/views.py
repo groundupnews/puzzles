@@ -9,6 +9,13 @@ from django.http import Http404
 
 from sudoku.models import Sudoku
 
+def difficulty_range(difficulty):
+    """The difficulty filter's bounds for prev/next/archive lookups: an
+    exact match, or the whole scale for 'Any level' (difficulty '0')."""
+    if difficulty == '0':
+        return '0', max(Sudoku.Difficulty.choices)[0]
+    return difficulty, difficulty
+
 class SudokuDetailView(DetailView):
     model = Sudoku
 
@@ -34,6 +41,19 @@ class SudokuDetailView(DetailView):
             context['difficulty'] = self.request.GET['diff']
         else:
             context['difficulty'] = '0'
+        latest = Sudoku.objects.published().order_by('-published').first()
+        context['is_latest'] = latest is not None and latest.pk == self.object.pk
+
+        if self.object.published:
+            lo_diff, hi_diff = difficulty_range(context['difficulty'])
+            neighbours = Sudoku.objects.published(). \
+                filter(difficulty__gte=lo_diff). \
+                filter(difficulty__lte=hi_diff)
+            context['has_prev'] = neighbours.filter(published__lt=self.object.published).exists()
+            context['has_next'] = neighbours.filter(published__gt=self.object.published).exists()
+        else:
+            context['has_prev'] = False
+            context['has_next'] = False
         return context
 
 class SudokuLatest(SudokuDetailView):
@@ -52,12 +72,7 @@ def nav(request, pk):
         nav = 'prev'
         difficulty = '0'
 
-    if difficulty == '0':
-        lo_diff = '0'
-        hi_diff = max(Sudoku.Difficulty.choices)[0]
-    else:
-        lo_diff = difficulty
-        hi_diff = difficulty
+    lo_diff, hi_diff = difficulty_range(difficulty)
 
     try:
         if nav == 'next':

@@ -93,6 +93,7 @@ function loadState() {
     state.revealed = saved.revealed || {};
     state.trial = saved.trial || null;
     state.completed = !!saved.completed;
+    if (Number.isInteger(saved.timerSeconds)) timerSeconds = saved.timerSeconds;
   } catch (_) {
     // Corrupt or unavailable storage: start a fresh game rather than fail.
   }
@@ -100,7 +101,7 @@ function loadState() {
 
 function saveState() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, timerSeconds }));
   } catch (_) {
     // Storage unavailable -- play still works, it just won't be restored.
   }
@@ -218,6 +219,9 @@ function paint() {
     message.className = "sd-message is-success";
     message.textContent = "Solved. Nicely done.";
   }
+
+  if (state.completed) stopTimer();
+  else startTimer();
 }
 
 // --- Playing ---------------------------------------------------------------
@@ -362,6 +366,8 @@ function restart() {
   state.revealed = {};
   state.trial = null;
   state.completed = false;
+  timerSeconds = 0;
+  timerValueEl.textContent = formatElapsed(timerSeconds);
   paint();
   saveState();
 }
@@ -408,6 +414,49 @@ document.getElementById("sd-discard-btn").addEventListener("click", discardTrial
 const hintBtn = document.getElementById("sd-hint-btn");
 if (hintBtn) hintBtn.addEventListener("click", hint);
 
+// --- Timer ---
+let timerSeconds = 0;
+let timerInterval = null;
+const timerEl = document.getElementById("timer");
+const timerValueEl = document.getElementById("timer-value");
+document.getElementById("timer-toggle").addEventListener("click", () => {
+  const hidden = !timerEl.hidden;
+  timerEl.hidden = hidden;
+  document.getElementById("timer-toggle").textContent = hidden ? "Show" : "Hide";
+});
+
+// Formats a duration in seconds as HH:MM:SS.
+function formatElapsed(totalSeconds) {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return (
+    (h ? String(h).padStart(2, "0") + ":" : "") +
+    String(m).padStart(2, "0") + ":" +
+    String(s).padStart(2, "0")
+  );
+}
+
+// Ticks once a second while the puzzle is unsolved. Kept in sync with
+// state.completed by paint(), so it doesn't matter which action finishes
+// the puzzle or reopens it (undo, discarding a trial, restart). Saves
+// state each tick too, so the elapsed time stays accurate on restore even
+// if the solver hasn't touched a cell for a while.
+function startTimer() {
+  if (timerInterval) return;
+  timerInterval = setInterval(() => {
+    timerSeconds++;
+    timerValueEl.textContent = formatElapsed(timerSeconds);
+    saveState();
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+}
+
 loadState();
+timerValueEl.textContent = formatElapsed(timerSeconds);
 buildBoard();
 paint();
