@@ -23,14 +23,12 @@ body.game-sudoku {
   gap: 10px;
 }
 
-/* Clock and its Hide/Show button, grouped tightly together and pulled
-   away from the level pill so it's clear the button belongs to the clock,
-   not to the puzzle's number/difficulty next to it. */
+/* Clock and its Hide/Show button, grouped tightly together on the
+   toolbar, opposite the prev/next/archive nav. */
 .sd-clock {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: 10px;
 }
 
 #timer {
@@ -39,7 +37,7 @@ body.game-sudoku {
   gap: 6px;
   font-size: 13px;
   font-weight: 700;
-  color: #fff;
+  color: var(--gu-ink);
   white-space: nowrap;
 }
 
@@ -50,17 +48,17 @@ body.game-sudoku {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 2px 7px;
-  background: none;
-  border: 1px solid var(--gu-ink-700);
+  background: #fff;
+  border: 1px solid #d8dae8;
   border-radius: 0;
-  color: var(--gu-on-dark-dim);
+  color: var(--gu-gray-500, #666);
   cursor: pointer;
   box-shadow: none;
 }
 
 #timer-toggle:hover {
-  color: #fff;
-  border-color: var(--gu-on-dark-dim);
+  color: var(--gu-ink);
+  border-color: var(--gu-ink);
 }
 
 /* The puzzle's level, for the phone layout where the screen head that
@@ -81,8 +79,8 @@ body.game-sudoku {
   margin-bottom: 16px;
 }
 
-/* Level picker plus prev/next: choose a difficulty, then walk the
-   archive within it, which is what the nav view does. */
+/* Previous/Next plus Latest/Archive: one bar of buttons for moving
+   around the archive. */
 .sd-nav {
   display: flex;
   align-items: stretch;
@@ -102,25 +100,8 @@ body.game-sudoku {
 
 .sd-nav__btn:hover { background: var(--game-soft); }
 
-/* Divides Latest/Archive from Next (or from each other), the same way
-   .sd-level's own borders divide Previous from Next. Doesn't apply after
-   the select, which already carries that border itself. */
+/* Divides each button in the bar from the one before it. */
 .sd-nav__btn + .sd-nav__btn { border-left: 1px solid #d8dae8; }
-
-.sd-level {
-  border: none;
-  border-left: 1px solid #d8dae8;
-  border-right: 1px solid #d8dae8;
-  padding: 6px 10px;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--gu-ink);
-  background: #fff;
-  cursor: pointer;
-}
-
-.sd-level:focus { outline: 2px solid var(--game); outline-offset: -2px; }
 
 /* --- The grid --- */
 
@@ -456,15 +437,16 @@ body.game-sudoku {
 
   body.sd-solve .sd-toolbar {
     flex: none;
-    flex-wrap: nowrap;
+    /* Nav buttons plus the clock don't reliably fit one line on a narrow
+       phone; wrapping beats clipping or a scrollbar. */
+    flex-wrap: wrap;
+    row-gap: 6px;
     gap: 8px;
     margin: 0;
     padding: 6px 8px;
     border-bottom: 1px solid #e3e5f2;
   }
 
-  body.sd-solve .sd-nav { width: 100%; }
-  body.sd-solve .sd-level { flex: 1 1 auto; min-width: 0; text-align: center; }
   body.sd-solve .sd-nav__btn { padding: 6px 10px; }
 
   body.sd-solve .sd-layout {

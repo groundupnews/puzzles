@@ -3,7 +3,7 @@
 
 {% block title %}Sudoku {{ sudoku.number|default:sudoku.pk }}{% endblock %}
 {% block body_class %}game-sudoku sd-solve{% endblock %}
-{% block head %}<link rel="stylesheet" href="{% static 'sudoku/sudoku.css' %}?v=12">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'sudoku/sudoku.css' %}?v=14">{% endblock %}
 {% block main_class %}gu-page sd-page{% endblock %}
 
 {% block chrome %}
@@ -14,13 +14,6 @@
     </a>
     <a href="https://groundup.org.za/"><img class="gu-playbar__logo" src="{% static 'gu/logo-white.svg' %}" alt="GroundUp"></a>
     <div class="gu-playbar__status">
-      <span class="sd-clock">
-        <span id="timer">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--game)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
-          <span id="timer-value">00:00</span>
-        </span>
-        <button id="timer-toggle" type="button">Hide</button>
-      </span>
       <span class="sd-playbar-level">{% if sudoku.number %}No. {{ sudoku.number }} &middot; {% endif %}{{ sudoku.get_difficulty_display }}</span>
     </div>
   </div>
@@ -36,24 +29,27 @@
   <span class="gu-badge">{{ sudoku.get_difficulty_display }}</span>
 </div>
 
-{% comment %}Prev/next walk the archive at the chosen difficulty, which is
-what the sudoku:nav view does: it takes the puzzle you are on and the
-level you picked and redirects to the neighbouring one.{% endcomment %}
+{% comment %}Prev/next walk the whole archive: sudoku:nav takes the puzzle
+you're on and redirects to the neighbouring one. difficulty stays '0'
+(any level) here -- there's no picker on this screen -- but the view and
+URL still take a diff param, for a future archive filter to link in
+with.{% endcomment %}
 <div class="sd-toolbar">
   <div class="sd-nav">
     {% if has_prev %}<a class="sd-nav__btn" id="sd-prev" aria-label="Previous"
        href="{% url 'sudoku:nav' sudoku.pk %}?nav=prev&amp;diff={{ difficulty }}">&lsaquo;</a>{% endif %}
-    <select class="sd-level" id="sd-difficulty" aria-label="Difficulty">
-      <option value="0"{% if difficulty == '0' %} selected{% endif %}>Any level</option>
-      {% for value, label in choices|slice:"1:" %}
-      <option value="{{ value }}"{% if value == difficulty %} selected{% endif %}>{{ label }}</option>
-      {% endfor %}
-    </select>
     {% if has_next %}<a class="sd-nav__btn" id="sd-next" aria-label="Next"
        href="{% url 'sudoku:nav' sudoku.pk %}?nav=next&amp;diff={{ difficulty }}">&rsaquo;</a>{% endif %}
     {% if not is_latest %}<a class="sd-nav__btn" href="{% url 'sudoku:latest' %}">Latest</a>{% endif %}
     <a class="sd-nav__btn" href="{% url 'sudoku:list' %}">Archive &rsaquo;</a>
   </div>
+  <span class="sd-clock">
+    <span id="timer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--game)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+      <span id="timer-value">00:00</span>
+    </span>
+    <button id="timer-toggle" type="button">Hide</button>
+  </span>
 </div>
 
 <div class="sd-layout">
@@ -127,16 +123,6 @@ level you picked and redirects to the neighbouring one.{% endcomment %}
     {pk: {{ sudoku.pk }}},
     JSON.parse(document.getElementById("sd-data").textContent)
   );
-
-  // Changing the level re-points prev/next at that level, so the reader
-  // picks a difficulty and then walks the archive within it.
-  document.getElementById("sd-difficulty").addEventListener("change", function (e) {
-    const diff = e.target.value;
-    const prevBtn = document.getElementById("sd-prev");
-    const nextBtn = document.getElementById("sd-next");
-    if (prevBtn) prevBtn.href = "{% url 'sudoku:nav' sudoku.pk %}?nav=prev&diff=" + diff;
-    if (nextBtn) nextBtn.href = "{% url 'sudoku:nav' sudoku.pk %}?nav=next&diff=" + diff;
-  });
 </script>
 <script src="{% static 'sudoku/sudoku_solver.js' %}?v=5"></script>
 {% endblock %}

@@ -36,7 +36,6 @@ class SudokuDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['choices'] = Sudoku.Difficulty.choices
         if 'diff' in self.request.GET:
             context['difficulty'] = self.request.GET['diff']
         else:
