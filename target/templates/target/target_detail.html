@@ -1,857 +1,131 @@
-{% extends "base.html" %}
+{% extends "target/base.html" %}
 {% load static %}
 
-{% block title %}
-    Target puzzle number {{target.number}} {{block.super}}
+{% block title %}Target {{ target.number }}{% endblock %}
+{% block body_class %}game-target{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'target/target.css' %}?v=3">{% endblock %}
+{% block main_class %}gu-page tg-page{% endblock %}
+
+{% block chrome %}
+<header class="gu-playbar">
+  <div class="gu-playbar__inner">
+    <a class="gu-playbar__back" href="{% url 'home' %}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Games
+    </a>
+    <a href="https://groundup.org.za/"><img class="gu-playbar__logo" src="{% static 'gu/logo-white.svg' %}" alt="GroundUp"></a>
+    <div class="gu-playbar__status">
+      <span id="tg-status"></span>
+      <a class="gu-dark-btn" href="#rules" title="How to play" aria-label="How to play">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.2a2.8 2.8 0 0 1 5.5.8c0 1.9-2.7 2.5-2.7 2.5"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
 {% endblock %}
 
 {% block content %}
+{% widthratio target.wordCount 4 3 as good %}
+{% widthratio target.wordCount 10 9 as very_good %}
 
-    {% block seo_fields %}
-        {{block.super}}
-        <meta property="og:title"
-              content="GroundUp Target {{target.number}}"/>
-        <meta property="og:type" content="article"/>
-        <meta property="og:image" itemprop="image"
-              content="https://{{request.META.HTTP_HOST}}{{MEDIA_URL}}targets/target_{{target.pk}}.png"/>
-        <meta name="twitter:image"
-              content="https://{{request.META.HTTP_HOST}}{{MEDIA_URL}}targets/target_{{target.pk}}.png"/>
-        <meta name="twitter:image:alt" content="" />
-    {% endblock %}
+<div class="gu-screen-head">
+  <div>
+    <h1>Target</h1>
+    <div class="gu-dateline">{% if target.published %}{{ target.published|date:"l, j F Y" }}{% endif %}{% if target.number %} &middot; No. {{ target.number }}{% endif %}</div>
+  </div>
+  <span class="gu-badge">{{ target.wordCount }} word{{ target.wordCount|pluralize }}</span>
+</div>
 
-    <script src="https://use.fontawesome.com/69e4efddab.js"></script>
+{% if perms.target.change_target %}
+<div class="tg-editbar">
+  <a href="{% url 'target:update' target.pk %}">Edit</a>
+  <a href="{% url 'target:list' %}">All Targets</a>
+  {% if not target.is_published %}<span class="status-unpublished">Unpublished &mdash; editor preview</span>{% endif %}
+</div>
+{% endif %}
 
-    <style>
-     h1 {
-	 font-size: 32px !important;
-         line-height: 0 !important;
-         margin-bottom: 20px !important;
-     }
-     h2 {
-         font-size: 22px !important;
-         margin-bottom: 12px;
-         line-height: 45px !important;
-     }
-     #target-container {
-         margin-left: auto;
-         margin-right: auto;
-         max-width: 320px;
-     }
-     #target-edit {
-         text-align: center;
-     }
-     .target-unused-letter {
-         background-color: white;
-         border: 1px solid black;*/
-     }
-     .target-unused-letter:hover, .target-used-letter:hover {
-         text-decoration: underline;
-         cursor: pointer;
-     }
-     #target-l0 {
-         color: white;
-         background-color: black;
-     }
-     .target-used-letter {
-         background-color: gray !important;
-         border: 1px inset black;
-     }
-     .target-wrong-letters {
-         color: red;
-     }
-     .target-hit {
-         color: gold;
-         font-weight: bold;
-     }
-     .target-word-hit {
-         color: blue;
-     }
-     .target-word-duplicate {
-         font-style: italic;
-     }
-     #target-word-list {
-         margin-top: 12px;
-         padding-left: 20px;
-         margin-bottom: 12px;
-     }
-     #target-word-list li {
-         text-transform: uppercase;
-         font-size: 80%;
-     }
-     #target-game-state {
-         width: 155px;
-         font-size: 75%;
-         border: 1px solid black;
-         border-radius: 12px;
-         padding: 6px;
-         margin: auto;
-     }
-     .target-good {
-         color: blue;
-     }
-     .target-very-good {
-         color: darkBlue;
-     }
-     .target-excellent {
-         color: purple;
-     }
+<p class="tg-intro">Make as many words as you can. Every word must use the centre letter, with no word shorter than four letters. There is one nine-letter word.</p>
+{% if target.clue %}<p class="tg-clue"><strong>Clue:</strong> {{ target.clue|safe }}</p>{% endif %}
 
-     #target-form {
-         text-align: center;
-     }
-     #target-label {
-         margin-top: 14px;
-         display: block;
-     }
-     #target-input {
-         height: 34px;
-         margin-top: 12px;
-         margin-bottom: 12px;
-         border-radius: 10px;
-         font-size: 24px;
-         font-weight: bold;
-         width: 7em;
-         text-transform: uppercase;
-     }
-     #target-accept, #target-clear {
-         font-size: 24px;
-         height: 36px;
-         border-radius: 12px;
-         font-weight: bold;
-         text-transform: uppercase;
-     }
-     #target-clear {
-         color: red;
-     }
-     #target-accept {
-         color: green;
-     }
-     #target-accept:disabled,
-     #target-accept[disabled] {
-         background-color: gray;
-         color: lightgreen;
-     }
+<div id="tg-grid" class="tg-grid"></div>
 
-     #target-results {
-         margin-left: 30px;
-     }
-     #target-solution-toggle {
-         margin-top: 12px;
-         margin-left: 83px;
-         color: blue;
-         cursor: pointer;
-     }
-     #target-solution-words {
-         text-transform: uppercase;
-     }
-     .target-9-letter-word {
-         font-weight: bold;
-     }
-     #target-navigator {
-         margin-top: 12px;
-         margin-left: 83px;
-     }
-     #target-rules {
-         border: 1px solid black;
-         border-radius: 10px;
-         padding: 6px;
-         margin: 6px;
-     }
-     #target-image {
-         margin-top: 12px;
-     }
-    </style>
-    <audio id="sound-button-press">
-        <source src="{% static 'target/sounds/button-pressed.ogg' %}"></source>
-        <source src="{% static 'target/sounds/button-pressed.mp3' %}"></source>
-    </audio>
-    <audio id="sound-9-letter">
-        <source src="{% static 'target/sounds/glass.mp3' %}"></source>
-        <source src="{% static 'target/sounds/glass.ogg' %}"></source>
-    </audio>
-    <audio id="sound-victory">
-        <source src="{% static 'target/sounds/applause.wav' %}"></source>
-    </audio>
+<form id="tg-form" class="tg-form" autocomplete="off">
+  <input id="tg-entry" type="text" inputmode="latin" placeholder="Type a word…"
+         aria-label="Your word" spellcheck="false">
+  <button type="submit" class="tg-btn tg-btn--go" title="Submit word" aria-label="Submit word">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+  </button>
+  <button type="button" id="tg-clear-btn" class="tg-btn" title="Clear" aria-label="Clear">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <button type="button" id="tg-shuffle-btn" class="tg-btn" title="Shuffle letters" aria-label="Shuffle letters">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 3 21 3 21 8"/><line x1="20" y1="4" x2="13" y2="11"/><polyline points="21 16 21 21 16 21"/><line x1="20" y1="20" x2="13" y2="13"/><line x1="3" y1="4" x2="9" y2="10"/></svg>
+  </button>
+  <button type="button" id="tg-hint-btn" class="tg-btn" title="Give me a word" aria-label="Give me a word">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.7 15.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM4 9V4h5M20 15v5h-5"/></svg>
+  </button>
+</form>
 
-    <div id="content-area">
-        <div id="target-container">
-            <h1>
-                Target # {{target.number}}
-            </h1>
-            <h2>
-                {{target.published|date:"j F Y"}}
-            </h2>
+<div id="tg-message" class="tg-message" hidden></div>
 
-            {% if  perms.target.change_target %}
-                <p id="target-edit">
-                    <a href="{% url 'target:update' target.pk %}">Edit</a>
-                    |
-                    <a href="{% url 'target:list' %}">List</a>
-                </p>
-            {% endif %}
-
-            {% if target.clue %}
-                <p id="target-clue">
-                    <b>Clue:</b> {{target.clue|safe}}
-                </p>
-            {% endif %}
-
-
-            {% include "target/target_grid.html" %}
-            <p id="target-game-state"></p>
-
-            <div id="target-form">
-                <label id="target-label"
-                       for="target-input">Click letters to make a word</label>
-                <input type="text" id="target-input" name="target-input" maxlength="9"
-                       onselectstart="return false" onpaste="return false;"
-                       onCopy="return false" onCut="return false" onDrag="return false"
-                       onDrop="return false" autocomplete=off>
-                <button id="target-accept">&#10004;</button>
-                <input type="button" id="target-clear" value="&#10799;">
-            </div>
-            <div id="target-results">
-                <button id="target-restart" class="btn btn-info"
-                        disabled>Restart</button>
-                <button id="target-sort" class="btn btn-info"
-                        disabled>Sort</button>
-
-                <span id="target-shares">
-                    <a id="facebook-share" class="btn btn-info"
-                       href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}"
-                       target="_blank"
-                       title="Share on Facebook">
-                        <i class="fa fa-facebook" aria-hidden="true"></i>
-                    </a>
-
-                    <a id="twitter-share"
-                       class="btn btn-info"
-                       href="#"
-                       target="_blank"
-                       title="Share on Twitter">
-                        <i class="fa fa-twitter" aria-hidden="true"></i>
-                    </a>
-                </span>
-
-
-                <ol id="target-word-list">
-                </ol>
-            </div>
-
-
-            {% if target.is_solution_public %}
-                <div id="target-solution">
-                    <p id="target-solution-toggle">Show solution</p>
-                    <p id="target-solution-words" style="display:none;">
-                        <span class="target-9-letter-word">{{target.nineLetterWord}}</span>
-                        {{target.wordsWithoutNineLetter}}
-                    </p>
-                </div>
-            {% endif %}
-
-            <div id="target-rules">
-                <h2>Rules</h2>
-                {{object.rules|safe|linebreaks}}
-            </div>
-
-            {% if previous_target or next_target %}
-                <div id="target-navigator">
-                    {% if previous_target %}
-                        <p>
-                            Previous:
-                            <a href="{% url "target:detail" previous_target.pk %}">
-                                Target # {{previous_target.number}}
-                            </a>
-                        </p>
-                    {% endif %}
-                    {% if next_target %}
-                        <p>
-                            Next:
-                            <a href="{% url "target:detail" next_target.pk %}">
-                                Target # {{next_target.number}}
-                            </a>
-                        </p>
-                    {% endif %}
-                </div>
-            {% endif %}
-
-            {% if  perms.target.change_target %}
-                <div id="target-image">
-                    <img src="{{MEDIA_URL}}targets/target_{{target.pk}}.png" />
-                </div>
-            {% endif %}
-        </div>
+<div class="tg-score">
+  <div class="tg-score__head">
+    <div class="tg-score__count"><span id="tg-count">0</span> <span class="tg-score__unit">words</span></div>
+    <div class="tg-score__tiers">
+      <span id="tg-tier" class="tg-tier" hidden></span>
+      <span id="tg-to-go" class="gu-dateline"></span>
     </div>
-
-    <script>
-     "use strict";
-
-     const minDeviceWidth = 800;
-     const storage = "target-words-" + "{{target.pk}}";
-     const letters = {{target.lettersJson|safe}};
-
-     {% if target.public_solution %}
-     const solution = {{object.splitWords|safe}};
-     {% else %}
-     const solution = [];
-     {% endif %}
-
-     var utf8_encode = function(s) {
-         return unescape(encodeURIComponent(s));
-     }
-
-     const K = new Uint32Array([
-         0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b,
-         0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01,
-         0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7,
-         0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
-         0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152,
-         0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147,
-         0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc,
-         0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
-         0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819,
-         0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08,
-         0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f,
-         0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
-         0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
-     ])
-
-     var arrayBufferToHex = function(buffer) {
-         const byteArray = new Uint8Array(buffer);
-
-         const hexCodes = [...byteArray].map(value => {
-             const hexCode = value.toString(16);
-             const paddedHexCode = hexCode.padStart(2, '0');
-             return paddedHexCode;
-         });
-         return hexCodes.join('');
-     }
-
-     var encodeUtf8 = function(message) {
-         const encoder = new TextEncoder();
-         const data = encoder.encode(message);
-         return data;
-     }
-
-     var hashBlocks = function (w, v, p) {
-         let a, b, c, d, e, f, g, h, u, i, j, t1, t2
-
-         let position = 0
-         let length = p.length
-
-         while (length >= 64) {
-             a = v[0]
-             b = v[1]
-             c = v[2]
-             d = v[3]
-             e = v[4]
-             f = v[5]
-             g = v[6]
-             h = v[7]
-
-             for (i = 0; i < 16; i++) {
-                 j = position + i * 4
-                 w[i] = (((p[j] & 0xff) << 24) | ((p[j + 1] & 0xff) << 16) | ((p[j + 2] & 0xff) << 8) | (p[j + 3] & 0xff))
-             }
-
-             for (i = 16; i < 64; i++) {
-                 u = w[i - 2]
-                 t1 = (u >>> 17 | u << (32 - 17)) ^ (u >>> 19 | u << (32 - 19)) ^ (u >>> 10)
-
-                 u = w[i - 15]
-                 t2 = (u >>> 7 | u << (32 - 7)) ^ (u >>> 18 | u << (32 - 18)) ^ (u >>> 3)
-
-                 w[i] = (t1 + w[i - 7] | 0) + (t2 + w[i - 16] | 0)
-             }
-
-             for (i = 0; i < 64; i++) {
-                 t1 = (((((e >>> 6 | e << (32 - 6)) ^ (e >>> 11 | e << (32 - 11)) ^ (e >>> 25 | e << (32 - 25))) + ((e & f) ^ (~e & g))) | 0) + ((h + ((K[i] + w[i]) | 0)) | 0)) | 0
-                 t2 = (((a >>> 2 | a << (32 - 2)) ^ (a >>> 13 | a << (32 - 13)) ^ (a >>> 22 | a << (32 - 22))) + ((a & b) ^ (a & c) ^ (b & c))) | 0
-
-                 h = g
-                 g = f
-                 f = e
-                 e = (d + t1) | 0
-                 d = c
-                 c = b
-                 b = a
-                 a = (t1 + t2) | 0
-             }
-
-             v[0] += a
-             v[1] += b
-             v[2] += c
-             v[3] += d
-             v[4] += e
-             v[5] += f
-             v[6] += g
-             v[7] += h
-
-             position += 64
-             length -= 64
-         }
-     }
-
-     var buildPadding = function (data) {
-         const dataLength = data.length
-         const trailerLength = (dataLength % 64)
-
-         const paddingLength = (dataLength % 64 < 56) ? 64 : 128
-         const padding = new Uint8Array(paddingLength)
-
-         const bitLenHi = (dataLength / 0x20000000) | 0
-         const bitLenLo = (dataLength << 3)
-
-         padding.set(data.subarray(dataLength - trailerLength))
-
-         padding[trailerLength] = 0x80
-
-         padding[paddingLength - 8] = (bitLenHi >>> 24) & 0xff
-         padding[paddingLength - 7] = (bitLenHi >>> 16) & 0xff
-         padding[paddingLength - 6] = (bitLenHi >>> 8) & 0xff
-         padding[paddingLength - 5] = (bitLenHi >>> 0) & 0xff
-         padding[paddingLength - 4] = (bitLenLo >>> 24) & 0xff
-         padding[paddingLength - 3] = (bitLenLo >>> 16) & 0xff
-         padding[paddingLength - 2] = (bitLenLo >>> 8) & 0xff
-         padding[paddingLength - 1] = (bitLenLo >>> 0) & 0xff
-
-         return padding
-     }
-
-     var sha256 = function(buffer) {
-         const state = new Int32Array(8)
-         const temp = new Int32Array(64)
-
-         state[0] = 0x6a09e667
-         state[1] = 0xbb67ae85
-         state[2] = 0x3c6ef372
-         state[3] = 0xa54ff53a
-         state[4] = 0x510e527f
-         state[5] = 0x9b05688c
-         state[6] = 0x1f83d9ab
-         state[7] = 0x5be0cd19
-
-         const data = new Uint8Array(buffer)
-         const padding = buildPadding(data)
-
-         hashBlocks(temp, state, data)
-         hashBlocks(temp, state, padding)
-
-         const output = new Uint8Array(32)
-
-         for (let i = 0; i < 8; i++) {
-             output[i * 4 + 0] = (state[i] >>> 24) & 0xff
-             output[i * 4 + 1] = (state[i] >>> 16) & 0xff
-             output[i * 4 + 2] = (state[i] >>> 8) & 0xff
-             output[i * 4 + 3] = (state[i] >>> 0) & 0xff
-         }
-
-         return output.buffer
-     }
-
-     var hashCode = function(text)
-     {
-         var input = encodeUtf8(text);
-         var hash = sha256(input);
-         return arrayBufferToHex(hash);
-     }
-
-     /***********************/
-     var words = {{object.hashedWords|safe}};
-
-     const target = "{{target.hashedNineLetterWord}}";
-     const bullseye = letters[0];
-     var bullseyePressed = false;
-     var usedWords = [];
-
-
-     var countOccurrences = function(arr, c)
-     {
-         var count = 0;
-         for (var i = 0; i < arr.length; i++) {
-             if (arr[i] == c) ++count;
-         }
-         return count;
-     }
-
-     var verifyLetters = function(string)
-     {
-         for (var c of string)
-             if (countOccurrences(string, c) > countOccurrences(letters, c))
-                 return false;
-         return true;
-     }
-
-     var checkIfWord = function(string)
-     {
-         if (words.includes(hashCode(string)) && !usedWords.includes(string) &&
-             bullseyePressed == true)
-             return true;
-         return false;
-     }
-
-     var checkIfDuplicate = function(string)
-     {
-         if (words.includes(hashCode(string)) && usedWords.includes(string))
-             return true;
-         return false;
-     }
-
-     var checkIfTarget = function(string)
-     {
-         if (target == hashCode(string) && !usedWords.includes(string))
-             return true;
-         return false;
-     }
-
-
-     var checkIfTargetInUsedWords = function()
-     {
-         for (const word of usedWords)
-             if (word.length == 9) return true;
-         return false;
-     }
-
-     var showInputStatus = function(inputElem)
-     {
-         var value = inputElem.value.toLowerCase();
-         var accept = document.getElementById('target-accept');
-
-         inputElem.classList.remove("target-hit");
-         inputElem.classList.remove("target-word-hit");
-         inputElem.classList.remove("target-word-duplicate");
-         inputElem.classList.remove("target-wrong-letters");
-
-         if (checkIfTarget(value) == true) {
-             inputElem.classList.add("target-hit");
-             accept.disabled = false;
-             var audio = document.getElementById("sound-9-letter");
-             audio.play();
-         } else if (checkIfWord(value) == true) {
-             inputElem.classList.add("target-word-hit");
-             accept.disabled = false;
-         } else if (checkIfDuplicate(value) == true) {
-             inputElem.classList.add("target-word-duplicate");
-             accept.disabled = true;
-         } else if (verifyLetters(value) == false) {
-             inputElem.classList.add("target-wrong-letters");
-             accept.disabled = true;
-         } else {
-             accept.disabled = true;
-         }
-     }
-
-     var letterPress = function(elem, pos = -1)
-     {
-         var input = document.getElementById("target-input");
-         if (elem.classList.contains('target-unused-letter')) {
-             elem.classList.add('target-used-letter');
-             elem.classList.remove('target-unused-letter');
-             if (pos == -1) {
-                 pos = input.value.length;
-                 input.value += elem.textContent[0];
-             } else {
-                 var last = input.value.length;
-                 var tmp1 = input.value.substring(0, pos);
-                 var tmp2 = input.value.substring(pos, input.value.length);
-                 input.value = tmp1 + elem.textContent[0] + tmp2;
-             }
-             if (document.documentElement.clientWidth > minDeviceWidth) {
-                 input.focus();
-                 input.setSelectionRange(pos+1, pos+1);
-             }
-             if (elem.id == "target-l0") bullseyePressed = true;
-         } else {
-             elem.classList.remove('target-used-letter');
-             elem.classList.add('target-unused-letter');
-             var index;
-             if (pos == -1) {
-                 index = input.value.lastIndexOf(elem.textContent[0]);
-             } else {
-                 index = pos;
-             }
-             if (index >= 0) {
-                 input.value = input.value.substring(0, index) +
-                               input.value.substring(index + 1,
-                                                     input.value.length);
-                 if (document.documentElement.clientWidth > minDeviceWidth) {
-                     input.focus();
-                     input.setSelectionRange(index, index);
-                 }
-                 if (elem.id == "target-l0") bullseyePressed = false;
-             }
-         }
-         showInputStatus(input);
-     }
-
-     document.addEventListener("DOMContentLoaded", function(event) {
-         var cells = document.querySelectorAll('.target-letter');
-         var cellHandler = function(e)
-         {
-             if (e.target.classList.contains("target-unused-letter"))
-                 letterPress(e.target, input.selectionStart);
-             else
-                 letterPress(e.target);
-         }
-         for(var i = 0; i < cells.length; i++) {
-             cells[i].addEventListener('click', cellHandler);
-         }
-
-         var updateGameState = function()
-         {
-             var statusBoard = document.getElementById("target-game-state");
-             var goodScore = Math.round(0.75 * words.length);
-             var excellentScore = Math.round(0.9 * words.length);
-             var perfectScore = words.length;
-
-             statusBoard.innerHTML = "";
-             if (usedWords.length == perfectScore) {
-                 statusBoard.innerHTML = "You've found all the words.<br/>";
-                 statusBoard.classList.add("target-excellent");
-                 let audio = document.getElementById("sound-victory");
-                 audio.play();
-                 let grid = document.getElementById("target-grid");
-                 grid.disabled = true;
-                 for (var i = 0; i < 9; i++) {
-                     cells[i].removeEventListener("click", cellHandler);
-                 }
-             } else if (usedWords.length >= excellentScore) {
-                 statusBoard.innerHTML = "Excellent score!<br/>"
-                 statusBoard.classList.add("target-very-good");
-             } else if (usedWords.length >= goodScore) {
-                 statusBoard.innerHTML = "Good score!<br/>";
-                 statusBoard.classList.add("target-good");
-             }
-             statusBoard.innerHTML +=
-                 "Your score: " + usedWords.length + "<br />" +
-                 "Perfect score: " + perfectScore + "<br />" +
-                 "Excellent score: " + excellentScore + "<br />" +
-                 "\nGood score: " + goodScore;
-         }
-
-
-         var displayWords = function(ol)
-         {
-             var ol = document.getElementById("target-word-list");
-             ol.innerHTML = "";
-             for (var w of usedWords) {
-                 var li = document.createElement("li");
-                 if (w.length == 9) {
-                     li.innerHTML = "<span class='target-9-letter-word'>" +
-                                    w + "</span>";
-                 } else {
-                     li.textContent = w;
-                 }
-                 ol.append(li);
-             }
-         }
-
-         var loadSavedState = function()
-         {
-             var savedState = localStorage.getItem(storage);
-
-             if (savedState) {
-                 var savedWords = savedState.split(",");
-                 for (var w of savedWords.sort()) {
-                     w = w.trim();
-                     if (words.includes(hashCode(w))) {
-                         usedWords.push(w.trim());
-                     } else { // Bail out if storage is corrupt
-                         usedWords = [];
-                         break;
-                     }
-                 }
-                 displayWords();
-             }
-             if (usedWords.length) {
-                 document.getElementById("target-restart").disabled = false;
-                 document.getElementById("target-sort").disabled = false;
-                 "inline-block";
-             }
-             updateGameState();
-         }
-
-         var clearGrid = function()
-         {
-             bullseyePressed = false;
-             var input = document.getElementById("target-input");
-             input.value = "";
-             for (var i = 0; i < cells.length; i++) {
-                 if (!cells[i].classList.contains("target-unused-letter"))
-                     cells[i].classList.add('target-unused-letter');
-                 cells[i].classList.remove('target-used-letter');
-             }
-             showInputStatus(input);
-         }
-
-         var clear = document.getElementById('target-clear');
-
-         clear.addEventListener('click', clearGrid, false);
-
-         var input = document.getElementById('target-input');
-
-         var accept = document.getElementById("target-accept");
-         accept.disabled = true;
-
-         var acceptWord = function(e) {
-             var word = input.value;
-             if (checkIfWord(word) == true) {
-                 let audio = document.getElementById("sound-button-press");
-                 audio.play();
-
-                 usedWords.push(word);
-                 document.getElementById("target-restart").disabled = false;
-                 if (usedWords.length > 2) {
-                     document.getElementById("target-sort").disabled = false;
-                 }
-                 var ol = document.getElementById("target-word-list");
-                 var li = document.createElement("li");
-                 if (word.length == 9) {
-                     li.innerHTML = "<span class='target-9-letter-word'>" +
-                                    word + "</span>";
-                 } else {
-                     li.textContent = word;
-                 }
-                 ol.insertBefore(li, ol.childNodes[0]);
-                 localStorage.setItem(storage, usedWords);
-                 updateGameState();
-             }
-             clearGrid();
-         }
-
-         accept.addEventListener('click', acceptWord);
-         var ua = navigator.userAgent.toLowerCase();
-         var isAndroid = ua.indexOf("android") > -1;
-
-         if (isAndroid) {
-             input.addEventListener('input', function(e) {
-                 var guess = input.value.toLowerCase();
-                 var cleanedValue = "";
-                 for (var i = 0; i < cells.length; i++) {
-                     cells[i].classList.remove("target-used-letter");
-                     cells[i].classList.add("target-unused-letter");
-                 }
-                 var matches = [false, false, false, false,
-                                false, false, false, false,
-                                false];
-                 for (var i = 0; i < guess.length; i++) {
-                     for (var j = 0; j < letters.length; j++) {
-                         if ( (guess[i] == letters[j]) && !matches[j]) {
-                             matches[j] = true;
-                             if (j == 0) bullseyePressed = true;
-                             cleanedValue += guess[i];
-                             var id = "target-l" + j;
-                             var c = document.getElementById(id);
-                             c.classList.add("target-used-letter");
-                             c.classList.remove("target-unused-letter");
-                             break;
-                         }
-                     }
-                 }
-                 input.value = cleanedValue;
-                 showInputStatus(input);
-                 e.preventDefault();
-                 return false;
-             });
-         } else {
-             input.addEventListener('keydown', function(e) {
-                 var keyCode = e.which;
-                 var chr = String.fromCharCode(keyCode).toLowerCase();
-
-                 if (keyCode == 37 || keyCode == 39) { // left and right arrows
-                     return true;
-                 }
-
-                 if ( (keyCode == 8)) { // backspace
-                     var pos = e.target.selectionStart;
-                     if (pos > 0) {
-                         chr = input.value[pos - 1].toLowerCase();
-                         for (var i = 8; i >=0; i--) {
-                             var idName = "target-l" + i;
-                             var elem = document.getElementById(idName);
-                             if (elem.classList.contains("target-used-letter") &&
-                                 chr == elem.textContent[0]) {
-                                 letterPress(elem, pos-1);
-                                 break;
-                             }
-                         }
-                     }
-                 } else if (keyCode == 13) { // enter
-                     if (accept.disabled == false) {
-                         acceptWord(accept);
-                     }
-                 } else if ( letters.includes(chr)) {
-                     for (var i = 0; i < 9; i++) {
-                         var idName = "target-l" + i;
-                         var elem = document.getElementById(idName);
-                         if (elem.classList.contains("target-unused-letter") &&
-                             chr == elem.textContent[0]) {
-                             letterPress(elem, e.target.selectionStart);
-                             break;
-                         }
-                     }
-                 }
-
-                 e.preventDefault();
-                 return false;
-             });
-         }
-
-         document.getElementById("target-restart").
-                  addEventListener('click', function(e) {
-                      if (confirm("Are you sure you want to restart?")) {
-                          usedWords = [];
-                          localStorage.setItem(storage, usedWords);
-                          clearGrid();
-                          document.getElementById("target-word-list").innerHTML = "";
-                          e.target.disabled = true;
-                          document.getElementById("target-sort").disabled = true;
-                          var statusBoard = document.getElementById("target-game-state");
-                          statusBoard.classList.remove("target-good");
-                          statusBoard.classList.remove("target-very-good");
-                          statusBoard.classList.remove("target-excellent");
-                          loadSavedState();
-                      }
-                  });
-
-         document.getElementById("target-sort").
-                  addEventListener('click', function(e) {
-                      usedWords.sort();
-                      displayWords();
-                  });
-
-         var solutionToggle = document.getElementById("target-solution-toggle");
-         if (solutionToggle) {
-             solutionToggle.addEventListener("click", function(e) {
-                 var solutionText = document.getElementById("target-solution-words");
-                 if (solutionText.style.display == "none") {
-                     solutionText.style.display = "block";
-                     solutionToggle.textContent = "Hide solution";
-                 } else {
-                     solutionText.style.display = "none";
-                     solutionToggle.textContent = "Show solution";
-                 }
-             });
-         }
-
-         loadSavedState();
-     });
-
-     // Sharing code
-     document.getElementById("twitter-share").
-              addEventListener('click', function(e) {
-                  if (checkIfTargetInUsedWords()) {
-                      document.getElementById('twitter-share').href =
-                          "https://twitter.com/share?text=I solved GroundUp Target {{target.number}}!";
-                  } else if (usedWords.length > 0.7 * words.length) {
-                      document.getElementById('twitter-share').href =
-                          "https://twitter.com/share?text=I have found " +
-                          usedWords.length.toString() +
-                          " words in GroundUp Target {{target.number}}.";
-                  } else {
-                      document.getElementById('twitter-share').href =
-                          "https://twitter.com/share?text=I am doing GroundUp Target {{target.number}}.";
-                  }
-              });
-    </script>
+  </div>
+  <div class="tg-bar">
+    <div id="tg-bar-fill" class="tg-bar__fill"></div>
+    <span class="tg-bar__tick" style="left:{% widthratio good target.wordCount 100 %}%"></span>
+    <span class="tg-bar__tick" style="left:{% widthratio very_good target.wordCount 100 %}%"></span>
+  </div>
+</div>
+
+<div class="tg-found-wrap">
+  <div class="gu-eyebrow">Found</div>
+  <div id="tg-found" class="tg-found"></div>
+  <p id="tg-found-empty" class="gu-dateline">No words yet. Type one in, or click the letters.</p>
+</div>
+
+{% if target.is_solution_public %}
+<div class="tg-solution">
+  <button type="button" id="tg-solution-toggle" class="tg-solution__toggle" aria-expanded="false">Show solution</button>
+  <p id="tg-solution-words" class="tg-solution__words" hidden>
+    <span class="tg-solution__nine">{{ target.nineLetterWord }}</span>
+    {{ target.wordsWithoutNineLetter }}
+  </p>
+</div>
+{% endif %}
+
+<section id="rules" class="shortcuts">
+  <h2>How to play</h2>
+  <div class="tg-rules">{{ target.rules|safe|linebreaks }}</div>
+</section>
+
+{% if previous_target or next_target %}
+<nav class="tg-nav">
+  {% if previous_target %}<a href="{% url 'target:detail' previous_target.pk %}">&lsaquo; Target {{ previous_target.number }}</a>{% else %}<span></span>{% endif %}
+  {% if next_target %}<a href="{% url 'target:detail' next_target.pk %}">Target {{ next_target.number }} &rsaquo;</a>{% endif %}
+</nav>
+{% endif %}
+
+{% comment %}The answers never reach the browser in the clear: the page
+carries a SHA-256 of each one, and a guess is checked by hashing it. The
+list is a Python literal rather than JSON -- single-quoted strings, which
+JavaScript reads the same way.{% endcomment %}
+<script>
+  window.TARGET = {
+    pk: {{ target.pk }},
+    letters: "{{ target.letters }}",
+    centre: "{{ target.letters.0 }}",
+    hashedWords: {{ target.hashedWords|safe }},
+    total: {{ target.wordCount }},
+    good: {{ good }},
+    veryGood: {{ very_good }},
+    hintUrl: "{% url 'target:hint' target.pk %}",
+    csrfToken: "{{ csrf_token }}"
+  };
+</script>
+<script src="{% static 'target/target_solver.js' %}?v=3"></script>
 {% endblock %}

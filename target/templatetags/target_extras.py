@@ -11,6 +11,6 @@ def target_teaser(pk=None):
         target = Target.objects.published().latest('published')
     else:
         pk = int(pk)
-        target = Target.objects.published()(pk=pk)
+        target = Target.objects.published().filter(pk=pk).first()
     return render_to_string("target/target_teaser.html",
                             {'object': target})
