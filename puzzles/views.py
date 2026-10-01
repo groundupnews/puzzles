@@ -65,7 +65,7 @@ def games_hub(request):
             "greeting": _greeting(now),
             "today": now,
             "puzzle_count": (
-                crosswords.count() + sudokus.count() + targets.count()
+                crosswords.count() + quizzes.count() + sudokus.count() + targets.count()
             ),
         },
     )
