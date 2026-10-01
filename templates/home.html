@@ -26,6 +26,7 @@
 
 {% block content %}
 
+<div class="hub-heroes{% if crossword %} hub-heroes--split{% endif %}">
 {% if crossword %}
 <a class="hub-hero theme-crossword" href="{% url 'crossword_solve' crossword.pk %}">
   <div class="hub-hero__body">
@@ -49,6 +50,25 @@
   </div>
 </a>
 {% endif %}
+
+<a class="hub-hero theme-groupup" href="{% if groupup %}{% url 'groupup:solve' groupup.pk %}{% else %}{% url 'groupup:list' %}{% endif %}">
+  <div class="hub-hero__body">
+    <div class="hub-hero__tags">
+      <span class="gu-badge gu-badge--solid">New game</span>
+      <span class="gu-badge">4 groups of 4</span>
+    </div>
+    <div class="hub-hero__title-row">
+      <div class="tile-groupup hub-hero__icon" aria-hidden="true">{% for _ in "0123456789abcdef" %}<div></div>{% endfor %}</div>
+      <h2>{{ groupup.name|default:"GroupUp" }}</h2>
+    </div>
+    <p>{% if not groupup %}New puzzles coming soon.{% elif groupup.description %}{{ groupup.description|truncatewords:34 }}{% else %}Sixteen words, four hidden groups. Find them fast for a time bonus.{% endif %}</p>
+    <span class="gu-btn">{% if groupup %}Play GroupUp{% else %}Browse GroupUp{% endif %}</span>
+  </div>
+  <div class="hub-hero__art">
+    <div class="tile-groupup">{% for _ in "0123456789abcdef" %}<div></div>{% endfor %}</div>
+  </div>
+</a>
+</div>
 
 <div class="gu-section-head">
   <h2>All Games</h2>
@@ -120,19 +140,17 @@
     </div>
   </a>
 
-  <a class="hub-tile theme-groupup" href="{% if groupup %}{% url 'groupup:solve' groupup.pk %}{% else %}{% url 'groupup:list' %}{% endif %}">
-    <div class="hub-tile__art">
-      <div class="tile-groupup">{% for _ in "0123456789abcdef" %}<div></div>{% endfor %}</div>
-    </div>
+  <div class="hub-tile hub-tile--soon">
+    <div class="hub-tile__art">+</div>
     <div class="hub-tile__body">
-      <h3>GroupUp</h3>
-      <p>Sixteen words, four hidden groups.</p>
+      <h3>More to come</h3>
+      <p>New games on the way.</p>
       <div class="hub-tile__foot">
-        <span class="hub-tile__badge">New</span>
-        <span class="hub-tile__play">Play &rsaquo;</span>
+        <span class="hub-tile__badge">Soon</span>
+        <a href="{% url 'crossword_select' %}" style="font-size:14px;font-weight:700;color:var(--gu-link);text-decoration:none;">Archive &rsaquo;</a>
       </div>
     </div>
-  </a>
+  </div>
 
 </div>
 {% endblock %}

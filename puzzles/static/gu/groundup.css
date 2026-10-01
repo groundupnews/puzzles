@@ -470,6 +470,49 @@ body {
   border-left: 1px solid var(--gu-border-warm);
 }
 
+.hub-heroes--split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 36px;
+}
+
+.hub-heroes--split .hub-hero {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr;
+  margin-bottom: 0;
+}
+
+.hub-heroes--split .hub-hero__art {
+  order: -1;
+  height: 290px;
+  border-left: none;
+  border-bottom: 1px solid var(--gu-border-warm);
+}
+
+.hub-heroes--split .hub-hero__body {
+  justify-content: flex-start;
+  padding: 28px 32px 32px;
+}
+
+.hub-heroes--split .hub-hero h2 { font-size: 34px; }
+.hub-heroes--split .hub-hero p { font-size: 17px; }
+.hub-heroes--split .mini-grid { width: min(100%, 222px); }
+
+.hub-hero .tile-groupup {
+  grid-template-columns: repeat(4, 44px);
+  gap: 8px;
+}
+
+.hub-hero .tile-groupup div { height: 44px; }
+
+.hub-hero .tile-groupup.hub-hero__icon {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+}
+
+.hub-hero .tile-groupup.hub-hero__icon div { height: auto; aspect-ratio: 1; }
+
 /* One tile per game. */
 .hub-grid {
   display: grid;
@@ -673,6 +716,7 @@ body {
 @media (max-width: 900px) {
   .hub-grid { grid-template-columns: repeat(2, 1fr); }
   .hub-hero { grid-template-columns: 1fr; }
+  .hub-heroes--split { grid-template-columns: 1fr; }
   .hub-hero__art { border-left: none; border-top: 1px solid var(--gu-border-warm); }
 }
 
