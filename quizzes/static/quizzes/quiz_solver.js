@@ -43,10 +43,12 @@ function resultFor(questionId) {
   return state.results.results.find((r) => r.question_id === questionId) || null;
 }
 
-const CHECK_SVG =
+const ICON_OPEN =
   '<svg class="qz-option__tick" width="20" height="20" viewBox="0 0 24 24" fill="none" ' +
   'stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" ' +
-  'aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+  'aria-hidden="true">';
+const CHECK_SVG = ICON_OPEN + '<polyline points="20 6 9 17 4 12"/></svg>';
+const CROSS_SVG = ICON_OPEN + '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
 
 // One answer row. `mode` is "" while taking the quiz, or "correct"/"wrong"
 // once the quiz has been marked, which is what colours the row.
@@ -66,7 +68,8 @@ function optionEl(question, answer, letter, selected, mode, interactive) {
   text.textContent = answer.text;
 
   el.append(tag, text);
-  if (selected || mode === "correct") el.insertAdjacentHTML("beforeend", CHECK_SVG);
+  if (mode === "wrong") el.insertAdjacentHTML("beforeend", CROSS_SVG);
+  else if (selected || mode === "correct") el.insertAdjacentHTML("beforeend", CHECK_SVG);
 
   if (interactive) {
     el.addEventListener("click", () => {
@@ -127,7 +130,6 @@ function renderReview(container) {
 
 function renderProgress() {
   const step = document.getElementById("qz-step");
-  const note = document.getElementById("qz-note");
   const bars = document.getElementById("qz-bars");
   const total = QZ.questions.length;
   const answered = Object.keys(state.selected).length;
@@ -139,20 +141,20 @@ function renderProgress() {
     if (state.results) {
       const result = resultFor(q.id);
       bar.classList.add(result && result.correct ? "is-correct" : "is-wrong");
-    } else if (qi <= state.index || state.selected[q.id] !== undefined) {
+    } else if (state.selected[q.id] !== undefined) {
       bar.classList.add("is-done");
+    } else if (qi === state.index) {
+      bar.classList.add("is-current");
     }
     bars.appendChild(bar);
   });
 
   if (state.results) {
     step.textContent = "Answers";
-    note.textContent = `${state.results.score} of ${state.results.total} correct`;
     document.getElementById("quiz-status").textContent =
       `Score ${state.results.score}/${state.results.total}`;
   } else {
     step.textContent = `Question ${state.index + 1} of ${total}`;
-    note.textContent = "";
     document.getElementById("quiz-status").textContent = `Answered ${answered}/${total}`;
   }
 }

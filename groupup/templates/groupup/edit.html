@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit GroupUp{% endblock %}
+{% block body_class %}game-groupup{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'groupup/groupup.css' %}?v=6">{% endblock %}
+
+{% block content %}
+<h1>Edit GroupUp {{ puzzle.pk }}</h1>
+
+<form method="post">
+  {% csrf_token %}
+  {% for error in form.non_field_errors %}<p class="warning">{{ error }}</p>{% endfor %}
+
+  <div class="meta">
+    {% for field in form.meta %}
+    <label>{{ field.label }} {{ field }}</label>
+    {% for error in field.errors %}<p class="warning">{{ error }}</p>{% endfor %}
+    {% endfor %}
+    <small class="dates">
+      Added {{ puzzle.date_added|date:"Y-m-d H:i" }},
+      modified {{ puzzle.date_modified|date:"Y-m-d H:i" }}
+    </small>
+  </div>
+
+  <p class="dates">Solvers see the groups in the order they find them, never in this order.</p>
+  <div class="gp-edit-groups">
+    {% for label, words in form.groups %}
+    <fieldset class="gp-edit-group">
+      <legend>Group {{ forloop.counter }}</legend>
+      {{ label }}
+      <div class="gp-edit-words">{% for word in words %}{{ word }}{% endfor %}</div>
+    </fieldset>
+    {% endfor %}
+  </div>
+
+  <div class="buttons">
+    <button type="submit">Save</button>
+    <a href="{% url 'groupup:solve' puzzle.pk %}" class="btn-icon">View</a>
+  </div>
+</form>
+{% endblock %}

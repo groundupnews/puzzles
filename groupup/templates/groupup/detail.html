@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ puzzle.name|default:"GroupUp" }}{% endblock %}
+{% block body_class %}game-groupup{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'groupup/groupup.css' %}?v=6">{% endblock %}
+
+{% block chrome %}
+<header class="gu-playbar">
+  <div class="gu-playbar__inner">
+    <a class="gu-playbar__back" href="{% url 'home' %}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Games
+    </a>
+    <a href="https://groundup.org.za/"><img class="gu-playbar__logo" src="{% static 'gu/logo-white.svg' %}" alt="GroundUp"></a>
+    <div class="gu-playbar__status">
+      <span class="gp-points"><span id="gp-points"></span></span>
+      <span id="gp-clock">0:00</span>
+      <button id="gp-rules-btn" class="gu-dark-btn gp-bar-btn" type="button" title="How to play" aria-label="How to play" hidden><i class="fa-solid fa-circle-question"></i></button>
+      <button id="gp-sound-btn" class="gu-dark-btn gp-bar-btn" type="button" title="Sound" aria-label="Sound" aria-pressed="true"><i class="fa-solid fa-volume-high"></i></button>
+      {% if perms.groupup.can_generate_groupups %}
+      <a class="gu-dark-btn" href="{% url 'groupup:edit' puzzle.pk %}" title="Edit puzzle" aria-label="Edit puzzle"><i class="fa-solid fa-pen"></i></a>
+      {% endif %}
+    </div>
+  </div>
+</header>
+{% endblock %}
+
+{% block main_class %}gu-page gp-page{% endblock %}
+
+{% block content %}
+{% if words %}
+<section id="gp-splash" class="gp-splash">
+  <div class="tile-groupup gp-splash__icon" aria-hidden="true">{% for _ in "0123456789abcdef" %}<div></div>{% endfor %}</div>
+  <h1 class="gp-splash__title">GroupUp</h1>
+  <p class="gp-splash__tagline">Sixteen words. Four hidden groups. Can you find them?</p>
+  <p class="gp-splash__note">Inspired by Connections, but with our own twist: guess as often as you like, and race the clock for points.</p>
+
+  <div class="gp-splash__rules">
+    <h2>How to play</h2>
+    <ul>
+      <li>Pick four words that have something in common, then press <b>Submit</b>.</li>
+      <li>A group can be anything: places, people, phrases, wordplay. Look out for words that seem to fit more than one group.</li>
+      <li>You start with <b>{{ scoring.start }} points</b>. Each wrong guess costs {{ scoring.mistake }}, but you can keep guessing as long as you like.</li>
+      <li>The clock starts when you press Start. Finish in under {{ scoring.bonus_seconds }} seconds for a <b>time bonus of up to {{ scoring.bonus_max }} points</b>. It stays full for the first {{ scoring.grace_seconds }} seconds, then drops by {{ scoring.bonus_per_second }} points every second.</li>
+    </ul>
+  </div>
+
+  <button id="gp-start" class="gu-btn gp-splash__start" type="button">Start</button>
+  <p class="gp-splash__meta">{% spaceless %}
+    {{ puzzle.name|default:"GroupUp" }}
+    {% if puzzle.published %} &middot; {{ puzzle.published|date:"j F Y" }}{% endif %}
+    {% if puzzle.authors %} &middot; by {{ puzzle.authors }}{% endif %}
+  {% endspaceless %}</p>
+</section>
+
+<div id="gp-game" hidden>
+  <div class="gu-screen-head">
+    <div>
+      <h1>{{ puzzle.name|default:"GroupUp" }}</h1>
+      <div class="gu-dateline">{% spaceless %}
+        {% if puzzle.published %}{{ puzzle.published|date:"j F Y" }}{% endif %}
+        {% if puzzle.authors %}{% if puzzle.published %} &middot; {% endif %}by {{ puzzle.authors }}{% endif %}
+      {% endspaceless %}</div>
+    </div>
+    <a class="gu-badge gu-badge--link" href="{% url 'groupup:list' %}">Archive &rsaquo;</a>
+  </div>
+
+  {% if puzzle.description %}<div class="cw-description">{{ puzzle.description|linebreaks }}</div>{% endif %}
+
+  <div id="gp-result" class="gp-result" hidden>
+    <div class="gp-result__eyebrow">Solved!</div>
+    <div class="gp-result__score"><span id="gp-result-score">0</span> points</div>
+    <div id="gp-result-detail" class="gp-result__detail"></div>
+    <button id="gp-share" class="gu-btn gp-share" type="button">Share your results</button>
+  </div>
+
+  <div id="gp-bonus" class="gp-bonus">
+    <div class="gp-bonus__track"><div id="gp-bonus-fill" class="gp-bonus__fill"></div></div>
+    <span id="gp-bonus-label" class="gp-bonus__label"></span>
+  </div>
+
+  <div id="gp-found" class="gp-found"></div>
+  <div id="gp-board" class="gp-board"></div>
+  <p id="gp-message" class="gp-message" role="status" aria-live="polite"></p>
+
+  <div id="gp-controls" class="gp-controls">
+    <span class="gp-mistakes">Mistakes: <b id="gp-mistakes">0</b></span>
+    <button id="gp-shuffle" class="gu-btn gu-btn--ghost" type="button">Shuffle</button>
+    <button id="gp-deselect" class="gu-btn gu-btn--ghost" type="button">Deselect all</button>
+    <button id="gp-submit" class="gu-btn" type="button">Submit</button>
+  </div>
+
+  <p class="cw-meta">{% spaceless %}
+    {% if puzzle.editors %}Edited by {{ puzzle.editors }}.{% endif %}
+    {% if puzzle.copyright %} {{ puzzle.copyright }}.{% endif %}
+  {% endspaceless %}</p>
+</div>
+
+{{ words|json_script:"gp-words" }}
+{{ scoring|json_script:"gp-scoring" }}
+<script>
+  window.GROUPUP = {
+    pk: {{ puzzle.pk }},
+    name: "{{ puzzle.name|default:'GroupUp'|escapejs }}",
+    words: JSON.parse(document.getElementById("gp-words").textContent),
+    scoring: JSON.parse(document.getElementById("gp-scoring").textContent),
+    checkUrl: "{% url 'groupup:check' puzzle.pk %}",
+    csrfToken: "{{ csrf_token }}"
+  };
+</script>
+<script src="{% static 'groupup/groupup.js' %}?v=4"></script>
+{% else %}
+<h1>{{ puzzle.name|default:"GroupUp" }}</h1>
+<p>This puzzle has no words yet.</p>
+{% endif %}
+{% endblock %}

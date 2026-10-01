@@ -60,25 +60,21 @@ li {
   margin-top: 0.5rem;
 }
 
-.crossword-table,
-.quiz-table {
+.crossword-table {
   width: 100%;
   border-collapse: collapse;
   white-space: nowrap;
 }
 
 .crossword-table th,
-.crossword-table td,
-.quiz-table th,
-.quiz-table td {
+.crossword-table td {
   padding: 0.5rem 1.25rem 0.5rem 0;
   text-align: left;
   border-bottom: 1px solid var(--line-soft);
   vertical-align: middle;
 }
 
-.crossword-table th,
-.quiz-table th {
+.crossword-table th {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -87,9 +83,7 @@ li {
 }
 
 .crossword-table td:last-child,
-.crossword-table th:last-child,
-.quiz-table td:last-child,
-.quiz-table th:last-child {
+.crossword-table th:last-child {
   padding-right: 0;
 }
 
@@ -1705,6 +1699,12 @@ body.waiting * {
   background: var(--game);
 }
 
+/* On screen but not yet answered. */
+.qz-bar.is-current {
+  background: var(--game-soft);
+  box-shadow: inset 0 0 0 1.5px var(--game);
+}
+
 .qz-bar.is-correct {
   background: #1f8a5b;
 }
@@ -1806,8 +1806,9 @@ button.qz-option:hover {
 }
 
 .qz-option.is-wrong .qz-option__letter {
+  background: var(--danger);
   border-color: var(--danger);
-  color: var(--danger);
+  color: #fff;
 }
 
 .qz-option.is-wrong .qz-option__tick {
@@ -1840,7 +1841,7 @@ button.qz-option:hover {
 }
 
 #quiz-result {
-  margin: 0 0 22px;
+  margin: 0 0 28px;
   padding: 13px 16px;
   font-size: 16px;
   font-weight: 700;

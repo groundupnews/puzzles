@@ -37,29 +37,33 @@
 
 {% if quiz.description %}<div class="cw-description">{{ quiz.description|linebreaks }}</div>{% endif %}
 
+{% if questions %}
 <div class="qz-progress">
   <div class="qz-progress__head">
     <span id="qz-step" class="qz-step"></span>
-    <span id="qz-note" class="gu-dateline"></span>
   </div>
   <div id="qz-bars" class="qz-bars"></div>
 </div>
 
-<div id="questions"></div>
-
 <div id="quiz-result" hidden></div>
+
+<div id="questions"></div>
 
 <div class="qz-actions">
   <button id="back-btn" class="gu-btn gu-btn--ghost" type="button" hidden>Back</button>
   <button id="next-btn" class="gu-btn" type="button"></button>
   <button id="retake-btn" class="gu-btn gu-btn--ghost" type="button" hidden>Retake quiz</button>
 </div>
+{% else %}
+<p>This quiz has no questions yet.</p>
+{% endif %}
 
 <p class="cw-meta">{% spaceless %}
   {% if quiz.editors %}Edited by {{ quiz.editors }}.{% endif %}
   {% if quiz.copyright %} {{ quiz.copyright }}.{% endif %}
 {% endspaceless %}</p>
 
+{% if questions %}
 {{ questions|json_script:"qz-questions" }}
 <script>
   window.QUIZ = {
@@ -69,5 +73,6 @@
     csrfToken: "{{ csrf_token }}"
   };
 </script>
-<script src="{% static 'quizzes/quiz_solver.js' %}?v=2"></script>
+<script src="{% static 'quizzes/quiz_solver.js' %}?v=4"></script>
+{% endif %}
 {% endblock %}

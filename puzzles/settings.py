@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "quizzes",
     "sudoku",
     "target",
+    "groupup",
 ]
 
 MIDDLEWARE = [
