@@ -1,14 +1,15 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static target_extras %}
 
 {% block title %}
     Target puzzle number {{target.number}} {{block.super}}
 {% endblock %}
 
-{% block content %}
+{% block body_class %}game-target{% endblock %}
+
+{% block head %}
 
     {% block seo_fields %}
-        {{block.super}}
         <meta property="og:title"
               content="GroundUp Target {{target.number}}"/>
         <meta property="og:type" content="article"/>
@@ -19,148 +20,405 @@
         <meta name="twitter:image:alt" content="" />
     {% endblock %}
 
-    <script src="https://use.fontawesome.com/69e4efddab.js"></script>
-
     <style>
-     h1 {
-	 font-size: 32px !important;
-         line-height: 0 !important;
-         margin-bottom: 20px !important;
-     }
-     h2 {
-         font-size: 22px !important;
-         margin-bottom: 12px;
-         line-height: 45px !important;
-     }
      #target-container {
          margin-left: auto;
          margin-right: auto;
-         max-width: 320px;
+         max-width: 30rem;
+     }
+     #target-container h1 {
+         margin: 0 0 4px;
+         line-height: 1.1;
+     }
+     #target-container > h2 {
+         margin: 0 0 20px;
+         font-size: 14px;
+         font-weight: 400;
+         color: var(--gu-gray-350);
      }
      #target-edit {
-         text-align: center;
+         display: flex;
+         gap: 10px;
+         margin: 0 0 18px;
+         padding-bottom: 12px;
+         border-bottom: 1px solid var(--gu-border-strong);
+         font-size: 13px;
+         font-weight: 600;
+         color: var(--gu-gray-350);
      }
-     .target-unused-letter {
-         background-color: white;
-         border: 1px solid black;*/
+     #target-edit a, #target-navigator a {
+         color: var(--gu-link);
+         text-decoration: none;
      }
-     .target-unused-letter:hover, .target-used-letter:hover {
+     #target-edit a:hover, #target-navigator a:hover {
          text-decoration: underline;
-         cursor: pointer;
      }
-     #target-l0 {
-         color: white;
-         background-color: black;
+     #target-clue {
+         margin: 0 0 18px;
+         font-size: 15px;
+     }
+     .target-unused-letter:hover {
+         background-color: var(--game-soft);
+     }
+     #target-l0.target-unused-letter:hover {
+         background-color: var(--game-deep);
      }
      .target-used-letter {
-         background-color: gray !important;
-         border: 1px inset black;
+         background-color: var(--gu-surface-3) !important;
+         border-color: var(--gu-gray-300) !important;
+         color: var(--gu-gray-500) !important;
      }
      .target-wrong-letters {
-         color: red;
+         color: var(--danger) !important;
      }
      .target-hit {
-         color: gold;
-         font-weight: bold;
+         color: var(--game-deep) !important;
+         background-color: #fff6cc !important;
+         border-color: var(--gu-yellow) !important;
      }
      .target-word-hit {
-         color: blue;
+         color: var(--game-deep) !important;
+         border-color: var(--game) !important;
      }
      .target-word-duplicate {
          font-style: italic;
+         color: var(--gu-gray-350) !important;
      }
      #target-word-list {
-         margin-top: 12px;
-         padding-left: 20px;
-         margin-bottom: 12px;
+         flex: 0 0 100%;
+         margin: 10px 0 0;
+         padding: 14px 0 0 2.2em;
+         border-top: 2px solid var(--gu-border-strong);
+         columns: 3 8rem;
+         column-gap: 2.2em;
+     }
+     #target-word-list:not(:has(li)) {
+         display: none;
      }
      #target-word-list li {
+         padding: 3px 0;
+         border: none;
          text-transform: uppercase;
-         font-size: 80%;
+         font-size: 14px;
+         font-weight: 600;
+         letter-spacing: .04em;
+     }
+     #target-word-list li::marker {
+         color: var(--gu-gray-350);
+         font-weight: 400;
+         font-size: 12px;
      }
      #target-game-state {
-         width: 155px;
-         font-size: 75%;
-         border: 1px solid black;
-         border-radius: 12px;
-         padding: 6px;
-         margin: auto;
+         margin: 0 0 22px;
      }
-     .target-good {
-         color: blue;
+     .target-score-head {
+         display: flex;
+         flex-wrap: wrap;
+         justify-content: space-between;
+         align-items: baseline;
+         gap: 4px 10px;
+         margin-bottom: 8px;
+         font-size: 13px;
+         font-weight: 600;
+         color: var(--gu-gray-500);
      }
-     .target-very-good {
-         color: darkBlue;
+     .target-score {
+         font-size: 24px;
+         font-weight: 700;
+         color: var(--gu-ink);
      }
-     .target-excellent {
-         color: purple;
+     .target-tier {
+         padding: 3px 10px;
+         font-size: 11px;
+         font-weight: 700;
+         text-transform: uppercase;
+         letter-spacing: .05em;
+         color: var(--gu-white);
+         background: var(--game);
+     }
+     .target-bar {
+         position: relative;
+         height: 8px;
+         background: var(--gu-surface-2);
+     }
+     .target-bar-fill {
+         position: absolute;
+         inset: 0 auto 0 0;
+         background: var(--game);
+         transition: width .25s;
+     }
+     .target-tick {
+         position: absolute;
+         top: -3px;
+         bottom: -3px;
+         width: 2px;
+         margin-left: -1px;
+         background: var(--gu-ink);
+     }
+     .target-steps {
+         display: flex;
+         flex-wrap: wrap;
+         gap: 6px;
+         margin: 10px 0 0;
+     }
+     .target-steps li {
+         padding: 2px 9px;
+         font-size: 12px;
+         color: var(--gu-gray-500);
+         border: 1px solid var(--gu-border-strong);
+     }
+     .target-steps li.target-reached {
+         color: var(--game-deep);
+         background: var(--game-soft);
+         border-color: var(--game);
+     }
+     .target-steps li.target-reached::before {
+         content: "\2713\00a0";
+         font-weight: 700;
      }
 
      #target-form {
-         text-align: center;
+         display: flex;
+         flex-wrap: wrap;
+         justify-content: center;
+         gap: 8px;
+         margin-bottom: 22px;
      }
      #target-label {
-         margin-top: 14px;
-         display: block;
+         flex: 0 0 100%;
+         text-align: center;
+         font-size: 11px;
+         font-weight: 600;
+         text-transform: uppercase;
+         letter-spacing: .05em;
+         color: var(--gu-gray-350);
      }
      #target-input {
-         height: 34px;
-         margin-top: 12px;
-         margin-bottom: 12px;
-         border-radius: 10px;
-         font-size: 24px;
-         font-weight: bold;
-         width: 7em;
+         width: 8em;
+         height: 44px;
+         padding: 0 12px;
+         font: inherit;
+         font-size: 22px;
+         font-weight: 700;
+         letter-spacing: .08em;
          text-transform: uppercase;
+         color: var(--gu-ink);
+         background: var(--gu-white);
+         border: 1.5px solid var(--gu-ink);
+         border-radius: 0;
      }
-     #target-accept, #target-clear {
-         font-size: 24px;
-         height: 36px;
-         border-radius: 12px;
-         font-weight: bold;
-         text-transform: uppercase;
+     #target-input:focus {
+         outline: none;
+         border-color: var(--game);
+         box-shadow: 0 0 0 3px var(--game-soft);
+     }
+     #target-accept, #target-clear, #target-shuffle {
+         width: 44px;
+         height: 44px;
+         padding: 0;
+         font: inherit;
+         font-size: 22px;
+         font-weight: 700;
+         line-height: 1;
+         border-radius: 0;
+         cursor: pointer;
      }
      #target-clear {
-         color: red;
+         font-size: 30px;
+         color: var(--danger);
+         background: var(--gu-white);
+         border: 1.5px solid var(--gu-ink);
+     }
+     #target-shuffle {
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+         color: var(--gu-ink);
+         background: var(--gu-white);
+         border: 1.5px solid var(--gu-ink);
+     }
+     #target-clear:hover, #target-shuffle:hover {
+         background: var(--gu-surface-2);
      }
      #target-accept {
-         color: green;
+         color: var(--gu-white);
+         background: var(--game);
+         border: 1.5px solid var(--game);
+     }
+     #target-accept:hover {
+         background: var(--game-deep);
+         border-color: var(--game-deep);
      }
      #target-accept:disabled,
      #target-accept[disabled] {
-         background-color: gray;
-         color: lightgreen;
+         color: var(--gu-gray-350);
+         background: var(--gu-surface-2);
+         border-color: var(--gu-surface-3);
+         cursor: default;
      }
 
      #target-results {
-         margin-left: 30px;
+         display: flex;
+         flex-wrap: wrap;
+         align-items: center;
+         gap: 8px;
+         margin-bottom: 20px;
      }
-     #target-solution-toggle {
-         margin-top: 12px;
-         margin-left: 83px;
-         color: blue;
+     .target-btn {
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+         height: 36px;
+         padding: 0 14px;
+         font: inherit;
+         font-size: 12px;
+         font-weight: 700;
+         text-transform: uppercase;
+         letter-spacing: .05em;
+         text-decoration: none;
+         color: var(--gu-ink);
+         background: var(--gu-white);
+         border: 1.5px solid var(--gu-ink);
+         border-radius: 0;
          cursor: pointer;
      }
+     .target-btn:hover {
+         background: var(--gu-surface-2);
+         border-color: var(--gu-ink);
+     }
+     .target-btn:disabled {
+         opacity: .35;
+         cursor: default;
+     }
+     .target-btn:disabled:hover {
+         background: var(--gu-white);
+     }
+     #target-shares {
+         display: flex;
+         gap: 8px;
+         margin-left: auto;
+     }
+     #target-shares .target-btn {
+         width: 36px;
+         padding: 0;
+     }
+     #target-solution {
+         margin: 0 0 20px;
+         padding: 14px;
+         background: var(--gu-surface-2);
+     }
+     #target-solution-toggle {
+         margin: 0;
+         font-size: 13px;
+         font-weight: 700;
+         color: var(--gu-link);
+         cursor: pointer;
+     }
+     #target-solution-toggle:hover {
+         text-decoration: underline;
+     }
      #target-solution-words {
+         margin: 10px 0 0;
+         font-size: 14px;
+         line-height: 1.7;
+         letter-spacing: .03em;
+         word-spacing: .4em;
          text-transform: uppercase;
+         color: var(--gu-gray-600);
      }
      .target-9-letter-word {
-         font-weight: bold;
+         font-weight: 700;
+         color: var(--game-deep);
      }
      #target-navigator {
-         margin-top: 12px;
-         margin-left: 83px;
+         display: flex;
+         justify-content: space-between;
+         gap: 16px;
+         margin-top: 24px;
+         padding-top: 14px;
+         border-top: 1px solid var(--gu-border-strong);
+         font-size: 14px;
+         color: var(--gu-gray-350);
+     }
+     #target-navigator p {
+         margin: 0;
+     }
+     #target-navigator a {
+         font-weight: 600;
      }
      #target-rules {
-         border: 1px solid black;
-         border-radius: 10px;
-         padding: 6px;
-         margin: 6px;
+         margin-top: 24px;
+         padding: 18px 20px 8px;
+         border: 1px solid var(--gu-border-warm);
+         border-top: 3px solid var(--game);
+         scroll-margin-top: 16px;
+     }
+     #target-rules h2 {
+         margin: 0 0 12px;
+         font-size: 18px;
+         font-weight: 700;
+         letter-spacing: -.2px;
+     }
+     #target-rules p, #target-rules ul {
+         margin: 0 0 12px;
+         font-size: 15px;
+         line-height: 1.55;
+         color: var(--gu-gray-600);
+     }
+     #target-rules ul {
+         padding-left: 0;
+     }
+     #target-rules li {
+         position: relative;
+         padding: 2px 0 2px 18px;
+         border: none;
+     }
+     #target-rules li::before {
+         content: "";
+         position: absolute;
+         left: 2px;
+         top: .72em;
+         width: 6px;
+         height: 6px;
+         background: var(--game);
      }
      #target-image {
-         margin-top: 12px;
+         margin-top: 24px;
+     }
+     @media (max-width: 400px) {
+         #target-input {
+             width: 6.5em;
+         }
+     }
+     #target-image img {
+         display: block;
+         width: 150px;
+         height: 150px;
+         border: 1px solid var(--gu-border-strong);
      }
     </style>
+
+{% endblock %}
+
+{% block chrome %}
+    <header class="gu-playbar">
+        <div class="gu-playbar__inner">
+            <a class="gu-playbar__back" href="{% url 'home' %}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Games
+            </a>
+            <a href="https://groundup.org.za/"><img class="gu-playbar__logo" src="{% static 'gu/logo-white.svg' %}" alt="GroundUp"></a>
+            <div class="gu-playbar__status">
+                <span>Target # {{target.number}}</span>
+                <a class="gu-dark-btn" href="#target-rules" title="How to play" aria-label="How to play">
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.2a2.8 2.8 0 0 1 5.5.8c0 1.9-2.7 2.5-2.7 2.5"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </a>
+            </div>
+        </div>
+    </header>
+{% endblock %}
+
+{% block content %}
+
     <audio id="sound-button-press">
         <source src="{% static 'target/sounds/button-pressed.ogg' %}"></source>
         <source src="{% static 'target/sounds/button-pressed.mp3' %}"></source>
@@ -198,7 +456,7 @@
 
 
             {% include "target/target_grid.html" %}
-            <p id="target-game-state"></p>
+            <div id="target-game-state"></div>
 
             <div id="target-form">
                 <label id="target-label"
@@ -209,27 +467,31 @@
                        onDrop="return false" autocomplete=off>
                 <button id="target-accept">&#10004;</button>
                 <input type="button" id="target-clear" value="&#10799;">
+                <button type="button" id="target-shuffle" title="Shuffle letters"
+                        aria-label="Shuffle letters">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>
+                </button>
             </div>
             <div id="target-results">
-                <button id="target-restart" class="btn btn-info"
+                <button id="target-restart" class="target-btn"
                         disabled>Restart</button>
-                <button id="target-sort" class="btn btn-info"
+                <button id="target-sort" class="target-btn"
                         disabled>Sort</button>
 
                 <span id="target-shares">
-                    <a id="facebook-share" class="btn btn-info"
+                    <a id="facebook-share" class="target-btn"
                        href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}"
                        target="_blank"
                        title="Share on Facebook">
-                        <i class="fa fa-facebook" aria-hidden="true"></i>
+                        <svg width="16" height="16" viewBox="4 2 16 20" fill="currentColor" aria-hidden="true"><path d="M15 8h3V4h-3c-2.8 0-5 2.2-5 5v2H7v4h3v7h4v-7h3l1-4h-4V9c0-.6.4-1 1-1z"/></svg>
                     </a>
 
                     <a id="twitter-share"
-                       class="btn btn-info"
+                       class="target-btn"
                        href="#"
                        target="_blank"
                        title="Share on Twitter">
-                        <i class="fa fa-twitter" aria-hidden="true"></i>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.95 4.57a10 10 0 0 1-2.82.77 4.96 4.96 0 0 0 2.16-2.72c-.95.56-2 .96-3.13 1.18a4.92 4.92 0 0 0-8.39 4.49A13.94 13.94 0 0 1 1.64 3.16a4.82 4.82 0 0 0-.67 2.48c0 1.71.87 3.21 2.19 4.1a4.9 4.9 0 0 1-2.23-.62v.06a4.92 4.92 0 0 0 3.95 4.83 5 5 0 0 1-2.21.08 4.94 4.94 0 0 0 4.6 3.42A9.87 9.87 0 0 1 0 19.54a14 14 0 0 0 7.56 2.21c9.05 0 14-7.5 14-13.98 0-.21 0-.42-.02-.63A9.94 9.94 0 0 0 24 4.59z"/></svg>
                     </a>
                 </span>
 
@@ -251,7 +513,7 @@
 
             <div id="target-rules">
                 <h2>Rules</h2>
-                {{object.rules|safe|linebreaks}}
+                {{object.rules|target_rules}}
             </div>
 
             {% if previous_target or next_target %}
@@ -603,11 +865,11 @@
              var goodScore = Math.round(0.75 * words.length);
              var excellentScore = Math.round(0.9 * words.length);
              var perfectScore = words.length;
+             var score = usedWords.length;
+             var tier = "";
 
-             statusBoard.innerHTML = "";
-             if (usedWords.length == perfectScore) {
-                 statusBoard.innerHTML = "You've found all the words.<br/>";
-                 statusBoard.classList.add("target-excellent");
+             if (score == perfectScore) {
+                 tier = "You've found all the words!";
                  let audio = document.getElementById("sound-victory");
                  audio.play();
                  let grid = document.getElementById("target-grid");
@@ -615,18 +877,37 @@
                  for (var i = 0; i < 9; i++) {
                      cells[i].removeEventListener("click", cellHandler);
                  }
-             } else if (usedWords.length >= excellentScore) {
-                 statusBoard.innerHTML = "Excellent score!<br/>"
-                 statusBoard.classList.add("target-very-good");
-             } else if (usedWords.length >= goodScore) {
-                 statusBoard.innerHTML = "Good score!<br/>";
-                 statusBoard.classList.add("target-good");
+             } else if (score >= excellentScore) {
+                 tier = "Excellent score!";
+             } else if (score >= goodScore) {
+                 tier = "Good score!";
              }
-             statusBoard.innerHTML +=
-                 "Your score: " + usedWords.length + "<br />" +
-                 "Perfect score: " + perfectScore + "<br />" +
-                 "Excellent score: " + excellentScore + "<br />" +
-                 "\nGood score: " + goodScore;
+
+             // A tick on the bar for each milestone short of the end.
+             var tick = function(milestone) {
+                 if (milestone >= perfectScore) return "";
+                 return "<span class='target-tick' style='left:" +
+                        (100 * milestone / perfectScore) + "%'></span>";
+             }
+             var step = function(name, milestone) {
+                 return "<li" + (score >= milestone ? " class='target-reached'" : "") +
+                        ">" + name + " <b>" + milestone + "</b></li>";
+             }
+             statusBoard.innerHTML =
+                 "<div class='target-score-head'>" +
+                 "<span><b class='target-score'>" + score + "</b> of " +
+                 perfectScore + " words</span>" +
+                 (tier ? "<span class='target-tier'>" + tier + "</span>" : "") +
+                 "</div>" +
+                 "<div class='target-bar'>" +
+                 "<div class='target-bar-fill' style='width:" +
+                 (100 * score / perfectScore) + "%'></div>" +
+                 tick(goodScore) + tick(excellentScore) +
+                 "</div>" +
+                 "<ul class='target-steps'>" +
+                 step("Good", goodScore) + step("Excellent", excellentScore) +
+                 step("Perfect", perfectScore) +
+                 "</ul>";
          }
 
 
@@ -818,6 +1099,23 @@
                   addEventListener('click', function(e) {
                       usedWords.sort();
                       displayWords();
+                  });
+
+         document.getElementById("target-shuffle").
+                  addEventListener('click', function(e) {
+                      var grid = document.getElementById("target-grid");
+                      var outer = [];
+                      for (var i = 1; i < 9; i++)
+                          outer.push(document.getElementById("target-l" + i));
+                      for (var i = outer.length - 1; i > 0; i--) {
+                          var j = Math.floor(Math.random() * (i + 1));
+                          [outer[i], outer[j]] = [outer[j], outer[i]];
+                      }
+                      grid.replaceChildren(
+                          outer[0], outer[1], outer[2], document.createElement("br"),
+                          outer[3], document.getElementById("target-l0"), outer[4],
+                          document.createElement("br"),
+                          outer[5], outer[6], outer[7]);
                   });
 
          var solutionToggle = document.getElementById("target-solution-toggle");
