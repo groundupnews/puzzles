@@ -3,7 +3,7 @@
 
 {% block title %}{{ puzzle.name|default:"GroupUp" }}{% endblock %}
 {% block body_class %}game-groupup{% endblock %}
-{% block head %}<link rel="stylesheet" href="{% static 'groupup/groupup.css' %}?v=3">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'groupup/groupup.css' %}?v=4">{% endblock %}
 
 {% block chrome %}
 <header class="gu-playbar">
@@ -33,6 +33,7 @@
   <div class="tile-groupup gp-splash__icon" aria-hidden="true">{% for _ in "0123456789abcdef" %}<div></div>{% endfor %}</div>
   <h1 class="gp-splash__title">GroupUp</h1>
   <p class="gp-splash__tagline">Sixteen words. Four hidden groups. Can you find them?</p>
+  <p class="gp-splash__note">Inspired by Connections, but with our own twist: guess as often as you like, and race the clock for points.</p>
 
   <div class="gp-splash__rules">
     <h2>How to play</h2>

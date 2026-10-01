@@ -62,6 +62,13 @@
   font-size: 19px;
 }
 
+.gp-splash__note {
+  max-width: 30rem;
+  margin: -16px auto 28px;
+  font-size: 14px;
+  color: var(--gu-gray-500);
+}
+
 .gp-splash__rules {
   max-width: 30rem;
   margin: 0 auto 28px;
