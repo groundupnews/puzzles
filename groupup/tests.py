@@ -216,3 +216,13 @@ class GroupUpImportViewTest(TestCase):
         self.client.logout()
         self.assertEqual(self._import([{"groups": GROUPS}]).status_code, 302)
         self.assertFalse(GroupUp.objects.exists())
+
+
+class GroupUpAdminTest(TestCase):
+    def test_list_and_change_pages_load(self):
+        User.objects.create_superuser(username="admin", password="testpass")
+        self.client.login(username="admin", password="testpass")
+        puzzle = published_puzzle(name="In the admin")
+        self.assertContains(self.client.get(reverse("admin:groupup_groupup_changelist")), "In the admin")
+        response = self.client.get(reverse("admin:groupup_groupup_change", args=[puzzle.pk]))
+        self.assertContains(response, "Orange")
