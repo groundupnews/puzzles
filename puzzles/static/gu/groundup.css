@@ -44,10 +44,12 @@ body.game-crossword { --game: #00B1F0; --game-deep: #0091c6; --game-soft: #e2f5f
 body.game-quiz      { --game: #d4582f; --game-deep: #b8461f; --game-soft: #fbece4; }
 body.game-sudoku    { --game: #4d57c4; --game-deep: #3b44a8; --game-soft: #ececf8; }
 body.game-target    { --game: #1f8a5b; --game-deep: #19714a; --game-soft: #e7f3ec; }
+body.game-groupup   { --game: #9b3d8f; --game-deep: #7f2f75; --game-soft: #f5e8f3; }
 .theme-crossword    { --game: #00B1F0; --game-deep: #0091c6; --game-soft: #e2f5fd; }
 .theme-target       { --game: #1f8a5b; --game-deep: #1f8a5b; --game-soft: #e7f3ec; }
 .theme-sudoku       { --game: #4d57c4; --game-deep: #4d57c4; --game-soft: #ececf8; }
 .theme-quiz         { --game: #d4582f; --game-deep: #b8461f; --game-soft: #fbece4; }
+.theme-groupup      { --game: #9b3d8f; --game-deep: #7f2f75; --game-soft: #f5e8f3; }
 
 * { box-sizing: border-box; }
 
@@ -618,6 +620,23 @@ body {
 .tile-sudoku div:nth-child(n+73) { border-bottom: 0; }
 .tile-sudoku div:nth-child(n+19):nth-child(-n+27),
 .tile-sudoku div:nth-child(n+46):nth-child(-n+54) { border-bottom: 1px solid var(--game); }
+
+.tile-groupup {
+  display: grid;
+  grid-template-columns: repeat(4, 22px);
+  gap: 4px;
+}
+
+.tile-groupup div {
+  height: 22px;
+  background: var(--gu-white);
+  border: 1px solid var(--game);
+}
+
+.tile-groupup div:nth-child(2),
+.tile-groupup div:nth-child(7),
+.tile-groupup div:nth-child(9),
+.tile-groupup div:nth-child(16) { background: var(--game); }
 
 .mini-grid {
   display: grid;
