@@ -3,6 +3,7 @@ import random
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.db import transaction
 from django.db.models import F
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -74,6 +75,39 @@ def groupup_edit(request, pk):
 def groupup_delete(request, pk):
     get_object_or_404(GroupUp, pk=pk).delete()
     return redirect("groupup:list")
+
+
+@permission_required(PERM)
+@require_POST
+def groupup_import(request):
+    try:
+        data = json.loads(request.body)
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"errors": ["The file isn't valid JSON."]}, status=400)
+
+    puzzles = data if isinstance(data, list) else [data]
+    if not puzzles:
+        return JsonResponse({"errors": ["The file has no puzzles in it."]}, status=400)
+
+    forms, errors = [], []
+    for n, puzzle in enumerate(puzzles, start=1):
+        try:
+            form = GroupUpForm.from_json(puzzle)
+        except ValueError as error:
+            errors.append(f"Puzzle {n} {error}")
+            continue
+        if form.is_valid():
+            forms.append(form)
+        else:
+            errors += [f"Puzzle {n}: {message}" for message in form.error_list()]
+    if errors:
+        return JsonResponse({"errors": errors}, status=400)
+
+    with transaction.atomic():
+        for form in forms:
+            form.save()
+    messages.success(request, f"Imported {len(forms)} puzzle{'' if len(forms) == 1 else 's'}.")
+    return JsonResponse({"imported": len(forms)})
 
 
 def groupup_solve(request, pk):

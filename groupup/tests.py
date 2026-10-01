@@ -2,6 +2,7 @@ import json
 from datetime import timedelta
 
 from django.contrib.auth.models import Permission, User
+from django.contrib.staticfiles import finders
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -158,3 +159,60 @@ class GroupUpListViewTest(TestCase):
         make_user_with_perm(self.client)
         GroupUp.objects.create(name="Draft one")
         self.assertContains(self.client.get(reverse("groupup:list")), "Draft one")
+
+
+class GroupUpImportViewTest(TestCase):
+    def setUp(self):
+        make_user_with_perm(self.client)
+
+    def _import(self, data):
+        body = data if isinstance(data, str) else json.dumps(data)
+        return self.client.post(reverse("groupup:import"), data=body, content_type="application/json")
+
+    def test_imports_a_list_of_puzzles(self):
+        response = self._import([
+            {"name": "One", "published": "2026-01-01T06:00:00+02:00", "groups": GROUPS},
+            {"name": "Two", "groups": GROUPS},
+        ])
+        self.assertEqual(response.json(), {"imported": 2})
+        one, two = GroupUp.objects.order_by("name")
+        self.assertEqual(one.name, "One")
+        self.assertEqual(one.groups, GROUPS)
+        self.assertIsNotNone(one.published)
+        self.assertIsNone(two.published)
+
+    def test_a_single_puzzle_need_not_be_in_a_list(self):
+        self.assertEqual(self._import({"name": "One", "groups": GROUPS}).json(), {"imported": 1})
+
+    def test_a_missing_copyright_gets_the_usual_default(self):
+        self._import({"groups": GROUPS})
+        self.assertEqual(GroupUp.objects.get().copyright, GroupUp().copyright)
+
+    def test_one_bad_puzzle_stops_the_whole_import(self):
+        # All or nothing, so a corrected file can be re-imported without
+        # duplicating the puzzles that were fine the first time.
+        clash = [dict(g) for g in GROUPS]
+        clash[3] = {"label": "Clash", "words": ["Queue", "Why", "Pea", "Orange"]}
+        response = self._import([{"name": "Good", "groups": GROUPS}, {"name": "Bad", "groups": clash}])
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(response.json()["errors"][0].startswith("Puzzle 2: "))
+        self.assertFalse(GroupUp.objects.exists())
+
+    def test_groups_must_be_four_groups_of_four_words(self):
+        response = self._import({"groups": GROUPS[:3]})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Puzzle 1", response.json()["errors"][0])
+
+    def test_invalid_json_and_an_empty_list_are_rejected(self):
+        self.assertEqual(self._import("not json").status_code, 400)
+        self.assertEqual(self._import([]).status_code, 400)
+
+    def test_the_example_file_imports(self):
+        example = finders.find("groupup/example.json")
+        with open(example) as f:
+            self.assertEqual(self._import(f.read()).json(), {"imported": 2})
+
+    def test_requires_permission(self):
+        self.client.logout()
+        self.assertEqual(self._import([{"groups": GROUPS}]).status_code, 302)
+        self.assertFalse(GroupUp.objects.exists())

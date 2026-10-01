@@ -38,6 +38,38 @@ class GroupUpForm(forms.ModelForm):
                     ),
                 )
 
+    @classmethod
+    def from_json(cls, puzzle):
+        groups = puzzle.get("groups") if isinstance(puzzle, dict) else None
+        if not (
+            isinstance(groups, list)
+            and len(groups) == GROUPS
+            and all(
+                isinstance(group, dict)
+                and isinstance(group.get("words"), list)
+                and len(group["words"]) == WORDS
+                for group in groups
+            )
+        ):
+            raise ValueError(
+                f'needs "groups": a list of {GROUPS} groups, each with a "label" and {WORDS} "words".'
+            )
+        instance = GroupUp()
+        data = {"copyright": instance.copyright}
+        data.update({name: puzzle[name] or "" for name in cls._meta.fields if name in puzzle})
+        for g, group in enumerate(groups):
+            data[f"label_{g}"] = group.get("label") or ""
+            for w, word in enumerate(group["words"]):
+                data[f"word_{g}_{w}"] = word or ""
+        return cls(data, instance=instance)
+
+    def error_list(self):
+        return [
+            message if field == "__all__" else f"{self[field].label or field}: {message}"
+            for field, messages in self.errors.items()
+            for message in messages
+        ]
+
     def meta(self):
         return [self[name] for name in self._meta.fields]
 
