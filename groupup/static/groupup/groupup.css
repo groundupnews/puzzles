@@ -139,6 +139,13 @@
   font-size: 15px;
 }
 
+.gp-result .gp-share,
+.gp-result .gp-share:hover {
+  margin-top: 16px;
+  background: var(--gu-white);
+  color: var(--game-deep);
+}
+
 .gp-bonus {
   display: flex;
   align-items: center;
@@ -311,7 +318,7 @@
   color: var(--gu-gray-500);
 }
 
-.gp-page .gu-btn:not(.gu-btn--ghost):hover {
+.gp-page .gu-btn:not(.gu-btn--ghost):not(.gp-share):hover {
   background: var(--game);
 }
 

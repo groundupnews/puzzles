@@ -20,6 +20,7 @@ const SHAPES = [
 );
 const ORDINALS = ["1st", "2nd", "3rd", "4th"];
 const PRAISE = ["Nice one!", "Well spotted!", "Got it!", "Sharp!"];
+const KEYCAPS = ["1\uFE0F\u20E3", "2\uFE0F\u20E3", "3\uFE0F\u20E3", "4\uFE0F\u20E3"];
 const CONFETTI = ["#9b3d8f", "#00B1F0", "#F7C600", "#1f8a5b", "#d4582f", "#4d57c4"];
 
 const STORAGE_KEY = `groupup-${GP.pk}`;
@@ -30,6 +31,7 @@ const state = {
   selected: [],
   mistakes: 0,
   tried: [],
+  guesses: [],
   seconds: 0,
 };
 
@@ -308,6 +310,7 @@ async function submit() {
     return;
   }
   tiles.forEach((tile) => tile.classList.remove("is-hop"));
+  state.guesses.push(guess);
 
   if (result.correct) {
     SOUNDS.correct();
@@ -342,6 +345,35 @@ async function submit() {
     busy = false;
     renderButtons();
   }
+}
+
+function shareText() {
+  const found = {};
+  state.found.forEach((group, i) => group.words.forEach((word) => (found[word] = KEYCAPS[i])));
+  const n = state.mistakes;
+  return [
+    GP.name,
+    `${points() + bonus()} points in ${clock(state.seconds)}, ${n} mistake${n === 1 ? "" : "s"}`,
+    ...state.guesses.map((guess) => guess.map((word) => found[word]).join("")),
+    location.origin + location.pathname,
+  ].join("\n");
+}
+
+async function share() {
+  const button = $("gp-share");
+  const text = shareText();
+  try {
+    if (navigator.share && window.matchMedia("(pointer: coarse)").matches) {
+      await navigator.share({ text });
+      return;
+    }
+    await navigator.clipboard.writeText(text);
+    button.textContent = "Copied to clipboard";
+  } catch (error) {
+    if (error.name === "AbortError") return;
+    button.textContent = "Couldn't share. Try again.";
+  }
+  setTimeout(() => (button.textContent = "Share your results"), 2000);
 }
 
 function shuffle(array) {
@@ -384,6 +416,7 @@ $("gp-sound-btn").addEventListener("click", () => {
   SOUNDS.tap();
 });
 $("gp-submit").addEventListener("click", submit);
+$("gp-share").addEventListener("click", share);
 $("gp-deselect").addEventListener("click", () => {
   state.selected = [];
   document.querySelectorAll(".gp-tile").forEach((tile) => tile.setAttribute("aria-pressed", "false"));
