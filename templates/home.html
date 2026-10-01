@@ -12,7 +12,7 @@
     </div>
     <div class="hub-stats">
       <div class="hub-stat">
-        <div class="hub-stat__value hub-stat__value--accent">4</div>
+        <div class="hub-stat__value hub-stat__value--accent">5</div>
         <div class="hub-stat__label">Games</div>
       </div>
       <div class="hub-stat">
@@ -120,17 +120,19 @@
     </div>
   </a>
 
-  <div class="hub-tile hub-tile--soon">
-    <div class="hub-tile__art">+</div>
+  <a class="hub-tile theme-groupup" href="{% if groupup %}{% url 'groupup:solve' groupup.pk %}{% else %}{% url 'groupup:list' %}{% endif %}">
+    <div class="hub-tile__art">
+      <div class="tile-groupup">{% for _ in "0123456789abcdef" %}<div></div>{% endfor %}</div>
+    </div>
     <div class="hub-tile__body">
-      <h3>More to come</h3>
-      <p>New games on the way.</p>
+      <h3>GroupUp</h3>
+      <p>Sixteen words, four hidden groups.</p>
       <div class="hub-tile__foot">
-        <span class="hub-tile__badge">Soon</span>
-        <a href="{% url 'crossword_select' %}" style="font-size:14px;font-weight:700;color:var(--gu-link);text-decoration:none;">Archive &rsaquo;</a>
+        <span class="hub-tile__badge">New</span>
+        <span class="hub-tile__play">Play &rsaquo;</span>
       </div>
     </div>
-  </div>
+  </a>
 
 </div>
 {% endblock %}

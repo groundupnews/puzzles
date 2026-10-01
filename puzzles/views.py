@@ -6,6 +6,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from crossword.models import Crossword
+from groupup.models import GroupUp
 from puzzles.teasers import grid_preview, sudoku_tile, target_tile
 from quizzes.models import Quiz
 from sudoku.models import Sudoku
@@ -46,6 +47,7 @@ def games_hub(request):
     quizzes = Quiz.objects.published()
     sudokus = Sudoku.objects.published()
     targets = Target.objects.published()
+    groupups = GroupUp.objects.published()
 
     crossword = crosswords.order_by("-published").first()
     sudoku = sudokus.order_by("-published").first()
@@ -57,6 +59,7 @@ def games_hub(request):
         {
             "crossword": crossword,
             "quiz": quizzes.order_by("-published").first(),
+            "groupup": groupups.order_by("-published").first(),
             "sudoku": sudoku,
             "target": target,
             "target_tile": target_tile(target),
@@ -65,7 +68,11 @@ def games_hub(request):
             "greeting": _greeting(now),
             "today": now,
             "puzzle_count": (
-                crosswords.count() + quizzes.count() + sudokus.count() + targets.count()
+                crosswords.count()
+                + quizzes.count()
+                + sudokus.count()
+                + targets.count()
+                + groupups.count()
             ),
         },
     )
