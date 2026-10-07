@@ -2,8 +2,8 @@
 {% load static %}
 
 {% block title %}{{ puzzle.name|default:"GroupUp" }}{% endblock %}
-{% block body_class %}game-groupup{% endblock %}
-{% block head %}<link rel="stylesheet" href="{% static 'groupup/groupup.css' %}?v=6">{% endblock %}
+{% block body_class %}game-groupup{% if words %} is-splash{% endif %}{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'groupup/groupup.css' %}?v=7">{% endblock %}
 
 {% block chrome %}
 <header class="gu-playbar">
@@ -15,8 +15,8 @@
     <div class="gu-playbar__status">
       <span class="gp-points"><span id="gp-points"></span></span>
       <span id="gp-clock">0:00</span>
-      <button id="gp-rules-btn" class="gu-dark-btn gp-bar-btn" type="button" title="How to play" aria-label="How to play" hidden><i class="fa-solid fa-circle-question"></i></button>
-      <button id="gp-sound-btn" class="gu-dark-btn gp-bar-btn" type="button" title="Sound" aria-label="Sound" aria-pressed="true"><i class="fa-solid fa-volume-high"></i></button>
+      <button id="gu-rules-btn" class="gu-dark-btn" type="button" title="How to play" aria-label="How to play" hidden><i class="fa-solid fa-circle-question"></i></button>
+      <button class="gu-dark-btn gu-sound-btn" type="button" title="Sound" aria-label="Sound" aria-pressed="true"><i class="fa-solid fa-volume-high"></i></button>
       {% if perms.groupup.can_generate_groupups %}
       <a class="gu-dark-btn" href="{% url 'groupup:edit' puzzle.pk %}" title="Edit puzzle" aria-label="Edit puzzle"><i class="fa-solid fa-pen"></i></a>
       {% endif %}
@@ -29,13 +29,13 @@
 
 {% block content %}
 {% if words %}
-<section id="gp-splash" class="gp-splash">
-  <div class="tile-groupup gp-splash__icon" aria-hidden="true">{% for _ in "0123456789abcdef" %}<div></div>{% endfor %}</div>
-  <h1 class="gp-splash__title">GroupUp</h1>
-  <p class="gp-splash__tagline">Sixteen words. Four hidden groups. Can you find them?</p>
-  <p class="gp-splash__note">Inspired by Connections, but with our own twist: guess as often as you like, and race the clock for points.</p>
+<section class="gu-splash">
+  <div class="tile-groupup gu-splash__icon" aria-hidden="true">{% for _ in "0123456789abcdef" %}<div></div>{% endfor %}</div>
+  <h1 class="gu-splash__title">GroupUp</h1>
+  <p class="gu-splash__tagline">Sixteen words. Four hidden groups. Can you find them?</p>
+  <p class="gu-splash__note">Inspired by Connections, but with our own twist: guess as often as you like, and race the clock for points.</p>
 
-  <div class="gp-splash__rules">
+  <div class="gu-splash__rules">
     <h2>How to play</h2>
     <ul>
       <li>Pick four words that have something in common, then press <b>Submit</b>.</li>
@@ -45,15 +45,15 @@
     </ul>
   </div>
 
-  <button id="gp-start" class="gu-btn gp-splash__start" type="button">Start</button>
-  <p class="gp-splash__meta">{% spaceless %}
+  <button id="gu-start" class="gu-btn gu-splash__start" type="button">Start</button>
+  <p class="gu-splash__meta">{% spaceless %}
     {{ puzzle.name|default:"GroupUp" }}
     {% if puzzle.published %} &middot; {{ puzzle.published|date:"j F Y" }}{% endif %}
     {% if puzzle.authors %} &middot; by {{ puzzle.authors }}{% endif %}
   {% endspaceless %}</p>
 </section>
 
-<div id="gp-game" hidden>
+<div id="gp-game">
   <div class="gu-screen-head">
     <div>
       <h1>{{ puzzle.name|default:"GroupUp" }}</h1>
@@ -108,7 +108,8 @@
     csrfToken: "{{ csrf_token }}"
   };
 </script>
-<script src="{% static 'groupup/groupup.js' %}?v=4"></script>
+<script src="{% static 'gu/game.js' %}?v=1"></script>
+<script src="{% static 'groupup/groupup.js' %}?v=5"></script>
 {% else %}
 <h1>{{ puzzle.name|default:"GroupUp" }}</h1>
 <p>This puzzle has no words yet.</p>

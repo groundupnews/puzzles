@@ -6,7 +6,7 @@ const GROUP_SIZE = 4;
 const GROUP_COUNT = Math.floor(GP.words.length / GROUP_SIZE);
 const $ = (id) => document.getElementById(id);
 
-const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reducedMotion = GU.reducedMotion;
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, reducedMotion ? 0 : ms));
 
 const SHAPES = [
@@ -21,7 +21,6 @@ const SHAPES = [
 const ORDINALS = ["1st", "2nd", "3rd", "4th"];
 const PRAISE = ["Nice one!", "Well spotted!", "Got it!", "Sharp!"];
 const KEYCAPS = ["1\uFE0F\u20E3", "2\uFE0F\u20E3", "3\uFE0F\u20E3", "4\uFE0F\u20E3"];
-const CONFETTI = ["#9b3d8f", "#00B1F0", "#F7C600", "#1f8a5b", "#d4582f", "#4d57c4"];
 
 const STORAGE_KEY = `groupup-${GP.pk}`;
 
@@ -75,57 +74,13 @@ function say(text) {
   $("gp-message").textContent = text;
 }
 
-// --- Sound ---
-// Synthesised with the Web Audio API rather than played from files: none
-// of the other games has a "wrong answer" sound to borrow, and this keeps
-// the set matched. Browsers only allow audio after a click, so the
-// context is created on Start (or on the sound button).
-const SOUND_KEY = "groupup-sound";
-let soundOn = true;
-try {
-  soundOn = localStorage.getItem(SOUND_KEY) !== "off";
-} catch (_) {}
-let audio = null;
-
-function unlockAudio() {
-  const Context = window.AudioContext || window.webkitAudioContext;
-  if (!audio && Context) audio = new Context();
-  if (audio && audio.state === "suspended") audio.resume();
-}
-
-// notes: [[frequency in Hz, start in s, length in s], ...]
-function play(notes, wave = "triangle", volume = 0.15) {
-  if (!soundOn || !audio) return;
-  const now = audio.currentTime;
-  notes.forEach(([frequency, start, length]) => {
-    const osc = audio.createOscillator();
-    const gain = audio.createGain();
-    osc.type = wave;
-    osc.frequency.value = frequency;
-    gain.gain.setValueAtTime(volume, now + start);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + start + length);
-    osc.connect(gain).connect(audio.destination);
-    osc.start(now + start);
-    osc.stop(now + start + length);
-  });
-}
-
+// The sounds only GroupUp makes; the shared ones are in gu/game.js.
 const SOUNDS = {
-  tap: () => play([[880, 0, 0.05]], "sine", 0.08),
-  shuffle: () => play([[660, 0, 0.04], [740, 0.05, 0.04], [830, 0.1, 0.04]], "sine", 0.06),
-  start: () => play([[392, 0, 0.12], [523, 0.1, 0.12], [784, 0.2, 0.3]]),
-  correct: () => play([[523, 0, 0.14], [659, 0.09, 0.14], [784, 0.18, 0.14], [1047, 0.27, 0.4]]),
-  oneAway: () => play([[440, 0, 0.12], [415, 0.12, 0.3]], "square", 0.05),
-  wrong: () => play([[220, 0, 0.18], [165, 0.15, 0.35]], "sawtooth", 0.06),
-  win: () =>
-    play([[523, 0, 0.18], [659, 0.15, 0.18], [784, 0.3, 0.18], [1047, 0.45, 0.18], [784, 0.63, 0.14], [1047, 0.77, 0.8]]),
+  shuffle: () => GU.play([[660, 0, 0.04], [740, 0.05, 0.04], [830, 0.1, 0.04]], "sine", 0.06),
+  correct: () => GU.play([[523, 0, 0.14], [659, 0.09, 0.14], [784, 0.18, 0.14], [1047, 0.27, 0.4]]),
+  oneAway: () => GU.play([[440, 0, 0.12], [415, 0.12, 0.3]], "square", 0.05),
+  wrong: () => GU.play([[220, 0, 0.18], [165, 0.15, 0.35]], "sawtooth", 0.06),
 };
-
-function renderSoundButton() {
-  const button = $("gp-sound-btn");
-  button.setAttribute("aria-pressed", soundOn);
-  button.querySelector("i").className = `fa-solid ${soundOn ? "fa-volume-high" : "fa-volume-xmark"}`;
-}
 
 function startClock() {
   if (timer || isSolved()) return;
@@ -222,7 +177,7 @@ function render({ deal = false, newGroup = false, celebrate = false } = {}) {
   const solved = isSolved();
   $("gp-board").hidden = solved;
   $("gp-controls").hidden = solved;
-  $("gp-rules-btn").hidden = solved || $("gp-game").hidden;
+  $("gu-rules-btn").hidden = solved;
 }
 
 function countUp(node, target) {
@@ -234,23 +189,6 @@ function countUp(node, target) {
     if (t < 1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
-}
-
-function confetti() {
-  if (reducedMotion) return;
-  const layer = el("div", "gp-confetti");
-  for (let i = 0; i < 90; i++) {
-    const bit = el("span", "");
-    bit.style.left = `${Math.random() * 100}%`;
-    bit.style.background = CONFETTI[i % CONFETTI.length];
-    bit.style.animationDelay = `${Math.random() * 0.7}s`;
-    bit.style.animationDuration = `${2 + Math.random() * 1.5}s`;
-    bit.style.setProperty("--drift", `${Math.random() * 240 - 120}px`);
-    bit.style.setProperty("--spin", `${Math.random() * 1080 - 540}deg`);
-    layer.appendChild(bit);
-  }
-  document.body.appendChild(layer);
-  setTimeout(() => layer.remove(), 4500);
 }
 
 function floatPenalty() {
@@ -269,7 +207,7 @@ function toggle(word, tile) {
   } else {
     return;
   }
-  SOUNDS.tap();
+  GU.sounds.tap();
   tile.setAttribute("aria-pressed", state.selected.includes(word));
   say("");
   saveState();
@@ -324,8 +262,8 @@ async function submit() {
       stopClock();
       say("");
       render({ newGroup: true, celebrate: true });
-      setTimeout(SOUNDS.win, 450);
-      confetti();
+      setTimeout(GU.sounds.win, 450);
+      GU.confetti();
       window.scrollTo({ top: 0, behavior: reducedMotion ? "auto" : "smooth" });
     } else {
       say(PRAISE[(state.found.length - 1) % PRAISE.length]);
@@ -383,38 +321,18 @@ function shuffle(array) {
   }
 }
 
-function showSplash() {
-  stopClock();
-  const begun = state.seconds > 0 || state.found.length > 0 || state.mistakes > 0;
-  $("gp-start").textContent = begun ? "Continue" : "Start";
-  $("gp-splash").hidden = false;
-  $("gp-game").hidden = true;
-  render();
-}
-
-function showGame(options) {
-  $("gp-splash").hidden = true;
-  $("gp-game").hidden = false;
-  startClock();
-  render(options);
-}
-
-$("gp-start").addEventListener("click", () => {
-  unlockAudio();
-  SOUNDS.start();
-  showGame({ deal: true });
-  window.scrollTo({ top: 0 });
+const splash = GU.splash({
+  begun: () => state.seconds > 0 || state.found.length > 0 || state.mistakes > 0,
+  onStart: () => {
+    startClock();
+    render({ deal: true });
+  },
+  onPause: () => {
+    stopClock();
+    render();
+  },
 });
-$("gp-rules-btn").addEventListener("click", showSplash);
-$("gp-sound-btn").addEventListener("click", () => {
-  soundOn = !soundOn;
-  try {
-    localStorage.setItem(SOUND_KEY, soundOn ? "on" : "off");
-  } catch (_) {}
-  unlockAudio();
-  renderSoundButton();
-  SOUNDS.tap();
-});
+
 $("gp-submit").addEventListener("click", submit);
 $("gp-share").addEventListener("click", share);
 $("gp-deselect").addEventListener("click", () => {
@@ -432,6 +350,5 @@ $("gp-shuffle").addEventListener("click", () => {
 });
 
 loadState();
-renderSoundButton();
-if (isSolved()) showGame();
-else showSplash();
+if (isSolved()) splash.skip();
+else splash.show();
