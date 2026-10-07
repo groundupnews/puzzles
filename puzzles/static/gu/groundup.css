@@ -681,6 +681,45 @@ body {
 .tile-groupup div:nth-child(9),
 .tile-groupup div:nth-child(16) { background: var(--game); }
 
+/* A question and three answers, the middle one picked. */
+.tile-quiz {
+  width: 118px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 8px 0;
+}
+
+.tile-quiz div {
+  height: 18px;
+  background: #fff;
+  border: 1px solid #ecd3c8;
+  border-radius: 4px;
+}
+
+.tile-quiz div:first-child {
+  width: 90%;
+  height: 13px;
+  background: var(--gu-ink);
+  border: 0;
+  border-radius: 3px;
+}
+
+.tile-quiz div:nth-child(3) {
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  border: 1.5px solid var(--game);
+}
+
+.tile-quiz div:nth-child(3)::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--game);
+}
+
 .mini-grid {
   display: grid;
   grid-template-columns: repeat(var(--cols, 5), 1fr);
