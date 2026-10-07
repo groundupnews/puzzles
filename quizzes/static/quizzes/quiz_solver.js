@@ -201,6 +201,8 @@ async function submit() {
   saveState();
   render();
   window.scrollTo({ top: 0 });
+  // Only a clean sweep counts as a win.
+  if (state.results.score === state.results.total) GU.win();
 }
 
 document.getElementById("next-btn").addEventListener("click", () => {
@@ -230,3 +232,7 @@ document.getElementById("retake-btn").addEventListener("click", () => {
 
 loadState();
 render();
+
+const splash = GU.splash({ begun: () => Object.keys(state.selected).length > 0 });
+if (state.results) splash.skip();
+else splash.show();

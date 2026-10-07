@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}{{ quiz.name|default:"Quiz" }}{% endblock %}
-{% block body_class %}game-quiz{% endblock %}
+{% block body_class %}game-quiz{% if questions %} is-splash{% endif %}{% endblock %}
 
 {% block chrome %}
 <header class="gu-playbar">
@@ -13,6 +13,9 @@
     <a href="https://groundup.org.za/"><img class="gu-playbar__logo" src="{% static 'gu/logo-white.svg' %}" alt="GroundUp"></a>
     <div class="gu-playbar__status">
       <span id="quiz-status"></span>
+      {% if questions %}
+      <button class="gu-dark-btn gu-sound-btn" type="button" title="Sound" aria-label="Sound" aria-pressed="true"><i class="fa-solid fa-volume-high"></i></button>
+      {% endif %}
       {% if perms.quizzes.can_generate_quizzes %}
       <a class="gu-dark-btn" href="{% url 'quiz_edit' quiz.pk %}" title="Edit quiz" aria-label="Edit quiz"><i class="fa-solid fa-pen"></i></a>
       {% endif %}
@@ -24,6 +27,30 @@
 {% block main_class %}gu-page qz-page{% endblock %}
 
 {% block content %}
+{% if questions %}
+<section class="gu-splash">
+  <div class="tile-quiz gu-splash__icon" aria-hidden="true"><div></div><div></div><div></div><div></div></div>
+  <h1 class="gu-splash__title">{{ quiz.name|default:"News Quiz" }}</h1>
+  <p class="gu-splash__tagline">{{ questions|length }} question{{ questions|length|pluralize }} on the news. How closely have you been following?</p>
+
+  <div class="gu-splash__rules">
+    <h2>How to play</h2>
+    <ul>
+      <li>Pick an answer, then move on to the next question. You can go back and change your mind until you finish.</li>
+      <li>When you finish, you'll see your score and the right answers.</li>
+      <li>There's no clock. Take your time.</li>
+    </ul>
+  </div>
+
+  <button id="gu-start" class="gu-btn gu-splash__start" type="button">Start</button>
+  <p class="gu-splash__meta">{% spaceless %}
+    {{ quiz.name|default:"News Quiz" }}
+    {% if quiz.published %} &middot; {{ quiz.published|date:"j F Y" }}{% endif %}
+    {% if quiz.authors %} &middot; by {{ quiz.authors }}{% endif %}
+  {% endspaceless %}</p>
+</section>
+{% endif %}
+
 <div class="gu-screen-head">
   <div>
     <h1>{{ quiz.name|default:"Untitled quiz" }}</h1>
@@ -73,6 +100,7 @@
     csrfToken: "{{ csrf_token }}"
   };
 </script>
-<script src="{% static 'quizzes/quiz_solver.js' %}?v=4"></script>
+<script src="{% static 'gu/game.js' %}?v=1"></script>
+<script src="{% static 'quizzes/quiz_solver.js' %}?v=5"></script>
 {% endif %}
 {% endblock %}
