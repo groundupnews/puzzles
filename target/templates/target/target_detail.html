@@ -5,7 +5,7 @@
     Target puzzle number {{target.number}} {{block.super}}
 {% endblock %}
 
-{% block body_class %}game-target{% endblock %}
+{% block body_class %}game-target is-splash{% endblock %}
 
 {% block head %}
 
@@ -346,42 +346,6 @@
      #target-navigator a {
          font-weight: 600;
      }
-     #target-rules {
-         margin-top: 24px;
-         padding: 18px 20px 8px;
-         border: 1px solid var(--gu-border-warm);
-         border-top: 3px solid var(--game);
-         scroll-margin-top: 16px;
-     }
-     #target-rules h2 {
-         margin: 0 0 12px;
-         font-size: 18px;
-         font-weight: 700;
-         letter-spacing: -.2px;
-     }
-     #target-rules p, #target-rules ul {
-         margin: 0 0 12px;
-         font-size: 15px;
-         line-height: 1.55;
-         color: var(--gu-gray-600);
-     }
-     #target-rules ul {
-         padding-left: 0;
-     }
-     #target-rules li {
-         position: relative;
-         padding: 2px 0 2px 18px;
-         border: none;
-     }
-     #target-rules li::before {
-         content: "";
-         position: absolute;
-         left: 2px;
-         top: .72em;
-         width: 6px;
-         height: 6px;
-         background: var(--game);
-     }
      #target-image {
          margin-top: 24px;
      }
@@ -409,15 +373,28 @@
             <a href="https://groundup.org.za/"><img class="gu-playbar__logo" src="{% static 'gu/logo-white.svg' %}" alt="GroundUp"></a>
             <div class="gu-playbar__status">
                 <span>Target # {{target.number}}</span>
-                <a class="gu-dark-btn" href="#target-rules" title="How to play" aria-label="How to play">
-                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.2a2.8 2.8 0 0 1 5.5.8c0 1.9-2.7 2.5-2.7 2.5"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                </a>
+                <button id="gu-rules-btn" class="gu-dark-btn" type="button" title="How to play" aria-label="How to play"><i class="fa-solid fa-circle-question"></i></button>
+                <button class="gu-dark-btn gu-sound-btn" type="button" title="Sound" aria-label="Sound" aria-pressed="true"><i class="fa-solid fa-volume-high"></i></button>
             </div>
         </div>
     </header>
 {% endblock %}
 
 {% block content %}
+
+    <section class="gu-splash">
+        <div class="tile-letters gu-splash__icon" aria-hidden="true">{% for _ in "012345678" %}<div{% if forloop.counter == 5 %} class="is-centre"{% endif %}></div>{% endfor %}</div>
+        <h1 class="gu-splash__title">Target</h1>
+        <p class="gu-splash__tagline">Nine letters. How many words can you make?</p>
+
+        <div class="gu-splash__rules">
+            <h2>How to play</h2>
+            {{ target.rules|target_rules }}
+        </div>
+
+        <button id="gu-start" class="gu-btn gu-splash__start" type="button">Start</button>
+        <p class="gu-splash__meta">Target # {{ target.number }} &middot; {{ target.published|date:"j F Y" }}</p>
+    </section>
 
     <audio id="sound-button-press">
         <source src="{% static 'target/sounds/button-pressed.ogg' %}"></source>
@@ -426,9 +403,6 @@
     <audio id="sound-9-letter">
         <source src="{% static 'target/sounds/glass.mp3' %}"></source>
         <source src="{% static 'target/sounds/glass.ogg' %}"></source>
-    </audio>
-    <audio id="sound-victory">
-        <source src="{% static 'target/sounds/applause.wav' %}"></source>
     </audio>
 
     <div id="content-area">
@@ -511,11 +485,6 @@
                 </div>
             {% endif %}
 
-            <div id="target-rules">
-                <h2>Rules</h2>
-                {{object.rules|target_rules}}
-            </div>
-
             {% if previous_target or next_target %}
                 <div id="target-navigator">
                     {% if previous_target %}
@@ -545,6 +514,7 @@
         </div>
     </div>
 
+    <script src="{% static 'gu/game.js' %}?v=1"></script>
     <script>
      "use strict";
 
@@ -788,7 +758,7 @@
              inputElem.classList.add("target-hit");
              accept.disabled = false;
              var audio = document.getElementById("sound-9-letter");
-             audio.play();
+             if (GU.soundOn()) audio.play();
          } else if (checkIfWord(value) == true) {
              inputElem.classList.add("target-word-hit");
              accept.disabled = false;
@@ -870,8 +840,6 @@
 
              if (score == perfectScore) {
                  tier = "You've found all the words!";
-                 let audio = document.getElementById("sound-victory");
-                 audio.play();
                  let grid = document.getElementById("target-grid");
                  grid.disabled = true;
                  for (var i = 0; i < 9; i++) {
@@ -978,7 +946,7 @@
              var word = input.value;
              if (checkIfWord(word) == true) {
                  let audio = document.getElementById("sound-button-press");
-                 audio.play();
+                 if (GU.soundOn()) audio.play();
 
                  usedWords.push(word);
                  document.getElementById("target-restart").disabled = false;
@@ -996,6 +964,7 @@
                  ol.insertBefore(li, ol.childNodes[0]);
                  localStorage.setItem(storage, usedWords);
                  updateGameState();
+                 if (usedWords.length == words.length) GU.win();
              }
              clearGrid();
          }
@@ -1133,6 +1102,12 @@
          }
 
          loadSavedState();
+
+         var splash = GU.splash({
+             begun: function() { return usedWords.length > 0; }
+         });
+         if (usedWords.length == words.length) splash.skip();
+         else splash.show();
      });
 
      // Sharing code
