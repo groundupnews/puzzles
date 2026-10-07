@@ -22,7 +22,10 @@ def target_teaser(pk=None):
 @register.filter
 def target_rules(text):
     """Like |safe|linebreaks, except that a run of lines starting with
-    "- " becomes a bulleted list."""
+    "- " becomes a bulleted list, and the other lines of a paragraph run
+    together. The rules on older targets are hard-wrapped mid-sentence,
+    so a single newline can't be trusted to mean a line break; a blank
+    line still starts a new paragraph."""
     html = []
     for para in re.split(r"\n\s*\n", text.replace("\r\n", "\n").strip()):
         lines = para.split("\n")
@@ -34,12 +37,12 @@ def target_rules(text):
                 continue
             if bullets:
                 if text_lines:
-                    html.append("<p>" + "<br>".join(text_lines) + "</p>")
+                    html.append("<p>" + " ".join(text_lines) + "</p>")
                     text_lines = []
                 html.append("<ul>" + "".join(bullets) + "</ul>")
                 bullets = []
             if line:
                 text_lines.append(line)
         if text_lines:
-            html.append("<p>" + "<br>".join(text_lines) + "</p>")
+            html.append("<p>" + " ".join(text_lines) + "</p>")
     return mark_safe("\n".join(html))
