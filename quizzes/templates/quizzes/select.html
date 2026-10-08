@@ -1,9 +1,16 @@
 {% extends "quizzes/base.html" %}
 
 {% block title %}Quizzes{% endblock %}
+{% block body_class %}game-quiz{% endblock %}
 
 {% block content %}
-<h1>Quizzes</h1>
+<div class="gu-screen-head">
+  <div>
+    <h1>News Quiz</h1>
+    <div class="gu-dateline">Every published quiz, newest first.</div>
+  </div>
+  {% if latest %}<a class="gu-badge gu-badge--link" href="{% url 'quiz_solve' latest.pk %}">Play the latest &rsaquo;</a>{% endif %}
+</div>
 {% if perms.quizzes.can_generate_quizzes %}
 <div class="buttons">
   <form method="post" action="{% url 'quiz_add' %}">
@@ -38,7 +45,7 @@
 {% endif %}
 {% if quizzes %}
 <div class="table-wrap">
-<table class="quiz-table">
+<table class="crossword-table">
   <thead>
     <tr>
       {% if perms.quizzes.can_generate_quizzes %}<th>ID</th>{% endif %}
@@ -59,7 +66,7 @@
       <td class="cw-name">
         <a href="{% url 'quiz_solve' quiz.pk %}">{{ quiz.name|default:"Untitled" }}</a>
       </td>
-      {% if not perms.quizzes.can_generate_quizzes %}<td>{{ quiz.published|date:"Y-m-d" }}</td>{% endif %}
+      {% if not perms.quizzes.can_generate_quizzes %}<td><span class="status-published">{{ quiz.published|date:"Y-m-d" }}</span></td>{% endif %}
       {% if perms.quizzes.can_generate_quizzes %}
       <td><a href="{% url 'quiz_export' quiz.pk %}"><i class="fa-solid fa-download"></i> Export</a></td>
       <td><a href="{% url 'quiz_edit' quiz.pk %}">Edit</a></td>

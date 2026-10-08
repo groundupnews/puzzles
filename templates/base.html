@@ -10,8 +10,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
     {% block css %}
-    <link rel="stylesheet" href="{% static 'gu/groundup.css' %}?v=8">
-    <link rel="stylesheet" href="{% static 'crossword/style.css' %}?v=95">
+    <link rel="stylesheet" href="{% static 'gu/groundup.css' %}?v=12">
+    <link rel="stylesheet" href="{% static 'crossword/style.css' %}?v=96">
     <link rel="stylesheet" href="{% static 'crossword/vendor/fontawesome/css/fontawesome.min.css' %}">
     <link rel="stylesheet" href="{% static 'crossword/vendor/fontawesome/css/solid.min.css' %}">
     {% endblock %}
@@ -66,11 +66,10 @@
             <span>&copy; 2012 to {% now "Y" %} GroundUp &middot; Puzzles</span>
             <span class="gu-footer__links">
                 <a href="{% url 'crossword_select' %}">Crosswords</a>
-                <a href="https://groundup.org.za/target">Target</a>
+                <a href="{% url 'target:list' %}">Target</a>
                 <a href="{% url 'sudoku:list' %}">Sudoku</a>
-                {% comment %}Quizzes aren't launched yet.
                 <a href="{% url 'quiz_select' %}">Quizzes</a>
-                {% endcomment %}
+                <a href="{% url 'groupup:list' %}">GroupUp</a>
                 <a href="https://groundup.org.za/">GroundUp news</a>
             </span>
             <span class="gu-footer__account">

@@ -625,41 +625,22 @@ function clearMessage() {
   msgEl.hidden = true;
 }
 
-let soundEnabled = true;
-
-const soundIcon = document.getElementById("sound-icon");
-document.getElementById("sound-btn").addEventListener("click", () => {
-  soundEnabled = !soundEnabled;
-  soundIcon.classList.toggle("fa-volume-high", soundEnabled);
-  soundIcon.classList.toggle("fa-volume-xmark", !soundEnabled);
-});
-
 const click_sound = document.getElementById('click-sound');
-const tada_sound = document.getElementById('tada-sound');
 
 // Plays the keyboard-click sound effect on each letter typed or backspaced,
 // unless the user has muted sound. Resets currentTime first so rapid
 // keystrokes retrigger the (very short) clip instead of playing into an
 // already-finished element, which is a silent no-op.
 function playClick() {
-  if (soundEnabled) {
+  if (GU.soundOn()) {
     click_sound.currentTime = 0;
     click_sound.play();
   }
 }
 
-// Plays the completion fanfare when the whole crossword is finished
-// correctly.
-function playTada() {
-  if (soundEnabled) {
-    tada_sound.currentTime = 0;
-    tada_sound.play();
-  }
-}
-
 // Once every cell is filled, silently checks the whole grid. If it's all
 // correct, locks the puzzle (state.completed), stops the timer, plays the
-// fanfare, hides the now-pointless check/reveal/sound controls, and shows a
+// fanfare with confetti, hides the now-pointless check/reveal/sound controls, and shows a
 // score based on the fraction of cells that were never marked wrong along
 // the way. Otherwise just tells the solver something's wrong, without
 // saying what -- they can keep editing.
@@ -669,8 +650,8 @@ async function autoCheckIfComplete() {
   if (!results) return;
   if (results.every((r) => r.correct)) {
     state.completed = true;
-    clearInterval(timerInterval);
-    playTada();
+    stopTimer();
+    GU.win();
     document.getElementById("check-btn").closest(".check-dropdown").style.display = "none";
     document.getElementById("reveal-btn").closest(".check-dropdown").style.display = "none";
     document.getElementById("sound-btn").style.display = "none";
@@ -793,14 +774,24 @@ function formatElapsed(totalSeconds) {
   );
 }
 
-// Ticks once a second. Stopped by autoCheckIfComplete() once the puzzle is
-// solved. Saves state each tick too, so the elapsed time stays accurate on
-// restore even if the solver hasn't typed anything for a while.
-const timerInterval = setInterval(() => {
-  timerSeconds++;
-  timerValueEl.textContent = formatElapsed(timerSeconds);
-  saveState();
-}, 1000);
+// Ticks once a second from Start. Stopped by autoCheckIfComplete() once the
+// puzzle is solved. Saves state each tick too, so the elapsed time stays
+// accurate on restore even if the solver hasn't typed anything for a while.
+let timerInterval = null;
+
+function startTimer() {
+  if (timerInterval) return;
+  timerInterval = setInterval(() => {
+    timerSeconds++;
+    timerValueEl.textContent = formatElapsed(timerSeconds);
+    saveState();
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+}
 
 // Prev/next-slot buttons: on-screen equivalents of Shift+Tab / Tab, for
 // mouse/touch users navigating between slots.
@@ -841,7 +832,6 @@ try {
 if (loadState()) {
   timerValueEl.textContent = formatElapsed(timerSeconds);
   if (state.completed) {
-    clearInterval(timerInterval);
     document.getElementById("check-btn").closest(".check-dropdown").style.display = "none";
     document.getElementById("reveal-btn").closest(".check-dropdown").style.display = "none";
     document.getElementById("sound-btn").style.display = "none";
@@ -855,4 +845,13 @@ if (loadState()) {
   }
 }
 render();
-svg.focus();
+
+const splash = GU.splash({
+  begun: () => timerSeconds > 0 || state.cells.some(Boolean),
+  onStart: () => {
+    if (!state.completed) startTimer();
+    svg.focus();
+  },
+});
+if (state.completed) splash.skip();
+else splash.show();

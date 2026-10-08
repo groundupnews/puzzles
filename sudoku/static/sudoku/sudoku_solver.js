@@ -220,7 +220,7 @@ function paint() {
     message.textContent = "Solved. Nicely done.";
   }
 
-  if (state.completed) stopTimer();
+  if (state.completed || !playing) stopTimer();
   else startTimer();
 }
 
@@ -346,8 +346,10 @@ function discardTrial() {
 // puzzle are plainly worth keeping, and leaving a "Discard" sitting under
 // a solved board only invites throwing the solution away.
 function refreshCompleted() {
+  const was = state.completed;
   state.completed = isSolved();
   if (state.completed) state.trial = null;
+  if (state.completed && !was) GU.win();
 }
 
 function toggleNotes() {
@@ -380,6 +382,7 @@ const ARROWS = {
 };
 
 document.addEventListener("keydown", (e) => {
+  if (!playing) return;
   if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
     undo();
@@ -417,6 +420,9 @@ if (hintBtn) hintBtn.addEventListener("click", hint);
 // --- Timer ---
 let timerSeconds = 0;
 let timerInterval = null;
+// False while the splash is up: the clock stands still and the keyboard
+// is left alone.
+let playing = false;
 const timerEl = document.getElementById("timer");
 const timerValueEl = document.getElementById("timer-value");
 document.getElementById("timer-toggle").addEventListener("click", () => {
@@ -437,11 +443,12 @@ function formatElapsed(totalSeconds) {
   );
 }
 
-// Ticks once a second while the puzzle is unsolved. Kept in sync with
-// state.completed by paint(), so it doesn't matter which action finishes
-// the puzzle or reopens it (undo, discarding a trial, restart). Saves
-// state each tick too, so the elapsed time stays accurate on restore even
-// if the solver hasn't touched a cell for a while.
+// Ticks once a second while the puzzle is unsolved and the splash is
+// away. Kept in sync with state.completed and playing by paint(), so it
+// doesn't matter which action finishes the puzzle or reopens it (undo,
+// discarding a trial, restart). Saves state each tick too, so the elapsed
+// time stays accurate on restore even if the solver hasn't touched a cell
+// for a while.
 function startTimer() {
   if (timerInterval) return;
   timerInterval = setInterval(() => {
@@ -460,3 +467,17 @@ loadState();
 timerValueEl.textContent = formatElapsed(timerSeconds);
 buildBoard();
 paint();
+
+const splash = GU.splash({
+  begun: () => timerSeconds > 0 || state.cells.some((v, i) => v && !given[i]),
+  onStart: () => {
+    playing = true;
+    paint();
+  },
+  onPause: () => {
+    playing = false;
+    paint();
+  },
+});
+if (state.completed) splash.skip();
+else splash.show();
