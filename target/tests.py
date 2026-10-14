@@ -3,6 +3,7 @@ from django.test import TestCase
 from django.test import Client
 from django.urls import reverse
 from target import models
+from target.templatetags.target_extras import target_rules
 from django.utils import timezone
 
 # Create your tests here.
@@ -43,3 +44,13 @@ class URLSWork(TestCase):
         url = reverse("target:delete", args=(target.pk,))
         response = c.get(url)
         self.assertEqual(response.status_code, 200)
+
+
+class TargetRules(TestCase):
+
+    def test_wrapped_lines_join_into_a_paragraph(self):
+        html = target_rules("Our dictionary has\r\nabout 100k words.\n\n"
+                            "No plurals:\n- geese\n- mice")
+        self.assertEqual(html, "<p>Our dictionary has about 100k words.</p>\n"
+                               "<p>No plurals:</p>\n"
+                               "<ul><li>geese</li><li>mice</li></ul>")

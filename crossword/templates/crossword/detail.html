@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}{{ crossword.name|default:"Crossword" }}{% endblock %}
-{% block body_class %}game-crossword cw-solve{% endblock %}
+{% block body_class %}game-crossword cw-solve is-splash{% endblock %}
 
 {% block chrome %}
 <header class="gu-playbar">
@@ -28,6 +28,29 @@
 {% block main_class %}gu-page cw-page{% endblock %}
 
 {% block content %}
+<section class="gu-splash">
+  <div class="mini-grid gu-splash__icon" style="--cols:5" aria-hidden="true">{% for c in "0000001010000000101000000" %}<div{% if c == "1" %} class="block"{% endif %}></div>{% endfor %}</div>
+  <h1 class="gu-splash__title">{{ crossword.name|default:"Crossword" }}</h1>
+  <p class="gu-splash__tagline">{{ crossword.short_description|default:"A quick daily solve with a local twist." }}</p>
+
+  <div class="gu-splash__rules">
+    <h2>How to play</h2>
+    <ul>
+      <li>Pick a square or a clue and type your answer. Pick the same square again to switch between across and down.</li>
+      <li>Stuck? <b>Check</b> a letter, a word or the whole grid, or <b>Reveal</b> one. Squares that turn out wrong, and squares you reveal, come off your score.</li>
+      <li>Fill in the last square and we check the grid for you.</li>
+      <li>The clock starts when you press Start.</li>
+    </ul>
+  </div>
+
+  <button id="gu-start" class="gu-btn gu-splash__start" type="button">Start</button>
+  <p class="gu-splash__meta">{% spaceless %}
+    {{ crossword.num_cols }} &times; {{ crossword.num_rows }}
+    {% if crossword.published %} &middot; {{ crossword.published|date:"j F Y" }}{% endif %}
+    {% if crossword.authors %} &middot; by {{ crossword.authors }}{% endif %}
+  {% endspaceless %}</p>
+</section>
+
 <div class="gu-screen-head cw-head">
   <div>
     <h1>{{ crossword.name|default:"Untitled crossword" }}</h1>
@@ -42,7 +65,6 @@
 {% if crossword.description %}<div class="cw-description cw-head">{{ crossword.description|linebreaks }}</div>{% endif %}
 
 <audio id="click-sound" src="{% static 'crossword/click_001.ogg' %}" preload="auto"></audio>
-<audio id="tada-sound" src="{% static 'crossword/tada-fanfare-g-sound.flac' %}" preload="auto"></audio>
 
 <div class="editor editor--solve" id="editor" style="--cw-cols:{{ crossword.num_cols }}">
   <div class="grid-pane">
@@ -63,7 +85,7 @@
           <li data-mode="crossword">Crossword</li>
         </ul>
       </div>
-      <button id="sound-btn" type="button" title="Toggle sound"><i id="sound-icon" class="fa-solid fa-volume-high"></i></button>
+      <button id="sound-btn" class="gu-sound-btn" type="button" title="Toggle sound"><i class="fa-solid fa-volume-high"></i></button>
       {% comment %}Collapses the side clue lists, leaving a wide screen laid
       out the way the phone one is: the grid, with only the current clue
       above it.{% endcomment %}
@@ -231,5 +253,6 @@ room for on a phone, plus the shortcut legend.{% endcomment %}
     csrfToken: "{{ csrf_token }}",
   };
 </script>
-<script src="{% static 'crossword/solver.js' %}?v=48"></script>
+<script src="{% static 'gu/game.js' %}?v=1"></script>
+<script src="{% static 'crossword/solver.js' %}?v=49"></script>
 {% endblock %}

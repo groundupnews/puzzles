@@ -12,7 +12,7 @@
     </div>
     <div class="hub-stats">
       <div class="hub-stat">
-        <div class="hub-stat__value hub-stat__value--accent">3</div>
+        <div class="hub-stat__value hub-stat__value--accent">5</div>
         <div class="hub-stat__label">Games</div>
       </div>
       <div class="hub-stat">
@@ -26,6 +26,7 @@
 
 {% block content %}
 
+<div class="hub-heroes{% if crossword %} hub-heroes--split{% endif %}">
 {% if crossword %}
 <a class="hub-hero theme-crossword" href="{% url 'crossword_solve' crossword.pk %}">
   <div class="hub-hero__body">
@@ -50,6 +51,25 @@
 </a>
 {% endif %}
 
+<a class="hub-hero theme-groupup" href="{% if groupup %}{% url 'groupup:solve' groupup.pk %}{% else %}{% url 'groupup:list' %}{% endif %}">
+  <div class="hub-hero__body">
+    <div class="hub-hero__tags">
+      <span class="gu-badge gu-badge--solid">New game</span>
+      <span class="gu-badge">4 groups of 4</span>
+    </div>
+    <div class="hub-hero__title-row">
+      <div class="tile-groupup hub-hero__icon" aria-hidden="true">{% for _ in "0123456789abcdef" %}<div></div>{% endfor %}</div>
+      <h2>{{ groupup.name|default:"GroupUp" }}</h2>
+    </div>
+    <p>{% if not groupup %}New puzzles coming soon.{% elif groupup.description %}{{ groupup.description|truncatewords:34 }}{% else %}Sixteen words, four hidden groups. Find them fast for a time bonus.{% endif %}</p>
+    <span class="gu-btn">{% if groupup %}Play GroupUp{% else %}Browse GroupUp{% endif %}</span>
+  </div>
+  <div class="hub-hero__art">
+    <div class="tile-groupup">{% for _ in "0123456789abcdef" %}<div></div>{% endfor %}</div>
+  </div>
+</a>
+</div>
+
 <div class="gu-section-head">
   <h2>All Games</h2>
   <div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;">
@@ -63,7 +83,7 @@
 
 <div class="hub-grid">
 
-  <a class="hub-tile theme-target" href="https://groundup.org.za/target">
+  <a class="hub-tile theme-target" href="{% if target %}{% url 'target:latest' %}{% else %}{% url 'target:list' %}{% endif %}">
     <div class="hub-tile__art">
       <div class="tile-letters">
         {% for letter in target_tile %}
@@ -97,41 +117,16 @@
     </div>
   </a>
 
-  {% comment %}quiz disabled!{% endcomment %}
-  <div class="hub-tile hub-tile--soon theme-quiz">
-    <div class="hub-tile__art">
-      <div style="width:118px;display:flex;flex-direction:column;gap:7px;padding:8px 0;">
-        <div style="height:13px;background:#d2d6db;border-radius:3px;width:90%;"></div>
-        <div style="height:18px;background:#fff;border:1px solid #e3e5e8;border-radius:4px;"></div>
-        <div style="height:18px;border:1.5px solid #d2d6db;background:#fff;border-radius:4px;display:flex;align-items:center;padding:0 6px;"><div style="width:9px;height:9px;border-radius:50%;background:#d2d6db;"></div></div>
-        <div style="height:18px;background:#fff;border:1px solid #e3e5e8;border-radius:4px;"></div>
-      </div>
-    </div>
-    <div class="hub-tile__body">
-      <h3>News Quiz</h3>
-      <p>Questions on the week's news.</p>
-      <div class="hub-tile__foot">
-        <span class="hub-tile__badge">Soon</span>
-      </div>
-    </div>
-  </div>
-
-  {% comment %}
   {% if quiz %}
   <a class="hub-tile theme-quiz" href="{% url 'quiz_solve' quiz.pk %}">
   {% else %}
   <a class="hub-tile theme-quiz" href="{% url 'quiz_select' %}">
   {% endif %}
     <div class="hub-tile__art">
-      <div style="width:118px;display:flex;flex-direction:column;gap:7px;padding:8px 0;">
-        <div style="height:13px;background:var(--gu-ink);border-radius:3px;width:90%;"></div>
-        <div style="height:18px;background:#fff;border:1px solid #ecd3c8;border-radius:4px;"></div>
-        <div style="height:18px;border:1.5px solid var(--game);background:#fff;border-radius:4px;display:flex;align-items:center;padding:0 6px;"><div style="width:9px;height:9px;border-radius:50%;background:var(--game);"></div></div>
-        <div style="height:18px;background:#fff;border:1px solid #ecd3c8;border-radius:4px;"></div>
-      </div>
+      <div class="tile-quiz"><div></div><div></div><div></div><div></div></div>
     </div>
     <div class="hub-tile__body">
-      <h3>{{ quiz.name|default:"News Quiz" }}</h3>
+      <h3>News Quiz</h3>
       <p>Questions on the week's news.</p>
       <div class="hub-tile__foot">
         <span class="hub-tile__badge">Weekly</span>
@@ -139,7 +134,6 @@
       </div>
     </div>
   </a>
-  {% endcomment %}
 
   <div class="hub-tile hub-tile--soon">
     <div class="hub-tile__art">+</div>

@@ -7,7 +7,12 @@ import sys
 
 import hashlib
 
-from django.conf import settings
+# Carried over unchanged from the main GroundUp site, except for this
+# path: there the word lists were read out of STATIC_ROOT, which only
+# exists once collectstatic has run. Reading them from the app's own
+# static directory works in development as well as in production.
+WORDS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         "static", "target", "words")
 
 def hashCode(str):
     m = hashlib.sha256()
@@ -29,7 +34,7 @@ def hashCode2(str):
 
 def makeTarget(wordFile="words.txt", user_letters=None):
 
-    STATIC_ROOT = os.path.join(settings.STATIC_ROOT, "target", "words")
+    STATIC_ROOT = WORDS_DIR
 
     offensive1 = open(os.path.join(STATIC_ROOT, "offensive.1")).readlines()
     offensive2 = open(os.path.join(STATIC_ROOT, "offensive.2")).readlines()

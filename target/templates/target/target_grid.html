@@ -1,27 +1,44 @@
 <style>
  #target-grid {
      text-align: center;
-     margin-top: 14px;
-     margin-bottom: 14px;
+     line-height: 0;
+     margin-top: 8px;
+     margin-bottom: 20px;
      margin-left: auto;
      margin-right: auto;
  }
  .target-letter {
-     font-size: 38px;
-     font-weight: bold;
-     display: inline-block;
-     width: 60px;
-     height: 60px;
-     border: 1px solid black;
-     padding-top: 2px;
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     vertical-align: top;
+     width: 72px;
+     height: 72px;
+     margin: 4px;
+     font-size: 34px;
+     font-weight: 700;
+     line-height: 1;
      text-transform: uppercase;
+     color: var(--gu-ink);
+     background-color: var(--gu-white);
+     border: 2px solid var(--gu-ink);
+     cursor: pointer;
+     user-select: none;
  }
  #target-l0 {
-     color: white;
-     background-color: black;
+     color: var(--gu-white);
+     background-color: var(--game);
+     border-color: var(--game);
  }
  .target-teaser-description {
      text-align: center;
+ }
+ @media (max-width: 640px) {
+     .target-letter {
+         width: 64px;
+         height: 64px;
+         font-size: 30px;
+     }
  }
 </style>
 

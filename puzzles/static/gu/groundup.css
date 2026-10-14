@@ -44,10 +44,12 @@ body.game-crossword { --game: #00B1F0; --game-deep: #0091c6; --game-soft: #e2f5f
 body.game-quiz      { --game: #d4582f; --game-deep: #b8461f; --game-soft: #fbece4; }
 body.game-sudoku    { --game: #4d57c4; --game-deep: #3b44a8; --game-soft: #ececf8; }
 body.game-target    { --game: #1f8a5b; --game-deep: #19714a; --game-soft: #e7f3ec; }
+body.game-groupup   { --game: #9b3d8f; --game-deep: #7f2f75; --game-soft: #f5e8f3; }
 .theme-crossword    { --game: #00B1F0; --game-deep: #0091c6; --game-soft: #e2f5fd; }
 .theme-target       { --game: #1f8a5b; --game-deep: #1f8a5b; --game-soft: #e7f3ec; }
 .theme-sudoku       { --game: #4d57c4; --game-deep: #4d57c4; --game-soft: #ececf8; }
 .theme-quiz         { --game: #d4582f; --game-deep: #b8461f; --game-soft: #fbece4; }
+.theme-groupup      { --game: #9b3d8f; --game-deep: #7f2f75; --game-soft: #f5e8f3; }
 
 * { box-sizing: border-box; }
 
@@ -468,6 +470,49 @@ body {
   border-left: 1px solid var(--gu-border-warm);
 }
 
+.hub-heroes--split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 36px;
+}
+
+.hub-heroes--split .hub-hero {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr;
+  margin-bottom: 0;
+}
+
+.hub-heroes--split .hub-hero__art {
+  order: -1;
+  height: 290px;
+  border-left: none;
+  border-bottom: 1px solid var(--gu-border-warm);
+}
+
+.hub-heroes--split .hub-hero__body {
+  justify-content: flex-start;
+  padding: 28px 32px 32px;
+}
+
+.hub-heroes--split .hub-hero h2 { font-size: 34px; }
+.hub-heroes--split .hub-hero p { font-size: 17px; }
+.hub-heroes--split .mini-grid { width: min(100%, 222px); }
+
+.hub-hero .tile-groupup {
+  grid-template-columns: repeat(4, 44px);
+  gap: 8px;
+}
+
+.hub-hero .tile-groupup div { height: 44px; }
+
+.hub-hero .tile-groupup.hub-hero__icon {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+}
+
+.hub-hero .tile-groupup.hub-hero__icon div { height: auto; aspect-ratio: 1; }
+
 /* One tile per game. */
 .hub-grid {
   display: grid;
@@ -619,6 +664,62 @@ body {
 .tile-sudoku div:nth-child(n+19):nth-child(-n+27),
 .tile-sudoku div:nth-child(n+46):nth-child(-n+54) { border-bottom: 1px solid var(--game); }
 
+.tile-groupup {
+  display: grid;
+  grid-template-columns: repeat(4, 22px);
+  gap: 4px;
+}
+
+.tile-groupup div {
+  height: 22px;
+  background: var(--gu-white);
+  border: 1px solid var(--game);
+}
+
+.tile-groupup div:nth-child(2),
+.tile-groupup div:nth-child(7),
+.tile-groupup div:nth-child(9),
+.tile-groupup div:nth-child(16) { background: var(--game); }
+
+/* A question and three answers, the middle one picked. */
+.tile-quiz {
+  width: 118px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 8px 0;
+}
+
+.tile-quiz div {
+  height: 18px;
+  background: #fff;
+  border: 1px solid #ecd3c8;
+  border-radius: 4px;
+}
+
+.tile-quiz div:first-child {
+  width: 90%;
+  height: 13px;
+  background: var(--gu-ink);
+  border: 0;
+  border-radius: 3px;
+}
+
+.tile-quiz div:nth-child(3) {
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  border: 1.5px solid var(--game);
+}
+
+.tile-quiz div:nth-child(3)::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--game);
+}
+
 .mini-grid {
   display: grid;
   grid-template-columns: repeat(var(--cols, 5), 1fr);
@@ -654,6 +755,7 @@ body {
 @media (max-width: 900px) {
   .hub-grid { grid-template-columns: repeat(2, 1fr); }
   .hub-hero { grid-template-columns: 1fr; }
+  .hub-heroes--split { grid-template-columns: 1fr; }
   .hub-hero__art { border-left: none; border-top: 1px solid var(--gu-border-warm); }
 }
 
@@ -697,4 +799,146 @@ body {
 .gu-badge--link:hover {
   background: var(--game);
   color: var(--gu-white);
+}
+
+/* The bar's own buttons, as against its links, would otherwise pick up
+   the site's button hover. */
+button.gu-dark-btn:hover { background: none; }
+
+/* ---------------- Splash ---------------- */
+
+/* What each game opens on: what it is, how to play, and a Start button.
+   The page is served with body.is-splash; game.js takes it off on Start. */
+.gu-splash { display: none; }
+body.is-splash .gu-splash { display: block; }
+body.is-splash main > :not(.gu-splash, .messages) { display: none; }
+body.is-splash #gu-rules-btn { display: none; }
+/* The crossword and sudoku phone screens are exactly one viewport tall and
+   never scroll; the splash may need to. */
+body.is-splash main { overflow-y: auto; }
+
+.gu-splash {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 44px 24px 36px;
+  text-align: center;
+  background: var(--game-soft);
+  border-top: 4px solid var(--game);
+}
+
+.gu-splash__icon {
+  width: max-content;
+  margin: 0 auto 18px;
+  animation: gu-pop-in 0.5s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+@keyframes gu-pop-in {
+  from { transform: scale(0.85); opacity: 0; }
+}
+
+.gu-splash__title {
+  margin: 0 0 6px;
+  font-size: 44px;
+  letter-spacing: -1px;
+}
+
+.gu-splash__tagline {
+  margin: 0 0 28px;
+  font-size: 19px;
+}
+
+.gu-splash__note {
+  max-width: 30rem;
+  margin: -16px auto 28px;
+  font-size: 14px;
+  color: var(--gu-gray-500);
+}
+
+.gu-splash__rules {
+  max-width: 30rem;
+  margin: 0 auto 28px;
+  padding: 18px 22px;
+  text-align: left;
+  background: var(--gu-white);
+  border: 1px solid var(--gu-border-warm);
+}
+
+.gu-splash__rules h2 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--game-deep);
+}
+
+.gu-splash__rules ul {
+  margin: 0;
+}
+
+/* Target's rules are the setter's own text: paragraphs as well as a list. */
+.gu-splash__rules p {
+  margin: 8px 0 10px;
+}
+
+.gu-splash__rules p,
+.gu-splash__rules li {
+  font-size: 15px;
+}
+
+.gu-splash__rules > :last-child {
+  margin-bottom: 0;
+}
+
+.gu-splash__rules li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.gu-splash__start {
+  min-width: 12rem;
+  padding: 15px 40px;
+  font-size: 18px;
+}
+
+.gu-splash__meta {
+  margin: 18px 0 0;
+  font-size: 14px;
+  color: var(--gu-gray-500);
+}
+
+/* Icons that set their own width, which max-content above would undo. */
+.gu-splash__icon.mini-grid { width: 100px; }
+.gu-splash__icon.tile-sudoku { width: 108px; }
+.gu-splash__icon.tile-quiz { width: 118px; }
+
+@media (max-width: 640px) {
+  .gu-splash { padding: 32px 16px 28px; }
+  .gu-splash__title { font-size: 36px; }
+}
+
+/* ---------------- Confetti ---------------- */
+
+.gu-confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.gu-confetti span {
+  position: absolute;
+  top: -16px;
+  width: 8px;
+  height: 14px;
+  animation: gu-fall linear forwards;
+}
+
+@keyframes gu-fall {
+  to { transform: translate(var(--drift), 105vh) rotate(var(--spin)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gu-splash__icon,
+  .gu-splash__icon * { animation: none !important; }
 }

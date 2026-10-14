@@ -1,0 +1,26 @@
+[
+  {
+    "name": "GroupUp 1",
+    "description": "",
+    "authors": "GroundUp Puzzles",
+    "editors": "",
+    "copyright": "(C) 2026 GroundUp News",
+    "published": "2026-10-02T06:00:00+02:00",
+    "groups": [
+      {"label": "South African rivers", "words": ["Orange", "Vaal", "Breede", "Tugela"]},
+      {"label": "Kinds of South African court", "words": ["High", "Labour", "Equality", "Constitutional"]},
+      {"label": "Spell another word backwards", "words": ["Straw", "Drawer", "Lived", "Diaper"]},
+      {"label": "Sound like a letter", "words": ["Queue", "Why", "Pea", "Ewe"]}
+    ]
+  },
+  {
+    "name": "GroupUp 2",
+    "published": null,
+    "groups": [
+      {"label": "Cape Town suburbs", "words": ["Observatory", "Woodstock", "Claremont", "Kenilworth"]},
+      {"label": "Basic municipal services", "words": ["Water", "Electricity", "Refuse", "Sanitation"]},
+      {"label": "Official languages", "words": ["Zulu", "Xhosa", "Venda", "Tsonga"]},
+      {"label": "___ Bay", "words": ["Mossel", "Hout", "Plettenberg", "Richards"]}
+    ]
+  }
+]

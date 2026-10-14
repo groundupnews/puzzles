@@ -5,8 +5,9 @@ from django.urls import reverse
 from django.utils import timezone
 
 from crossword.models import Crossword
-from puzzles.teasers import grid_preview, sudoku_tile
+from puzzles.teasers import grid_preview, sudoku_tile, target_tile
 from sudoku.models import Sudoku
+from target.models import Target
 
 
 def _crossword(request):
@@ -58,9 +59,35 @@ def _sudoku(request):
     }
 
 
+def _target(request):
+    """The newest published Target: its nine letters.
+
+    `words` holds the answers and is deliberately not served.
+    """
+    target = Target.objects.published().order_by("-published").first()
+    archive = request.build_absolute_uri(reverse("target:list"))
+    if target is None:
+        return {"available": False, "archive_url": archive}
+    return {
+        "available": True,
+        "url": request.build_absolute_uri(
+            reverse("target:detail", args=[target.pk])
+        ),
+        "archive_url": archive,
+        "title": f"Target #{target.number}",
+        "number": target.number,
+        "clue": target.clue,
+        "published": target.published.isoformat(),
+        # 9 entries in row-major order, the centre letter (the one every
+        # word must use) fifth: {"char": str, "centre": bool}.
+        "cells": target_tile(target),
+    }
+
+
 PUZZLES = {
     "crossword": _crossword,
     "sudoku": _sudoku,
+    "target": _target,
 }
 
 

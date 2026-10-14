@@ -3,14 +3,77 @@
 {% block title %}
     Target puzzles {{block.super}}
 {% endblock %}
-{% block content %}
+
+{% block body_class %}game-target{% endblock %}
+
+{% block head %}
     <style>
      #target-list {
          margin-left: auto;
          margin-right: auto;
          max-width: 600px;
      }
+     #target-list > p {
+         display: flex;
+         flex-wrap: wrap;
+         align-items: center;
+         gap: 10px;
+         margin: 0 0 20px;
+         padding: 12px 14px;
+         background: var(--gu-surface-2);
+     }
+     #make-target {
+         display: inline-flex;
+         align-items: center;
+         height: 36px;
+         padding: 0 16px;
+         font-size: 14px;
+         font-weight: 700;
+         color: var(--gu-white);
+         background: var(--game);
+         text-decoration: none;
+     }
+     #make-target:hover {
+         background: var(--game-deep);
+     }
+     #letters {
+         width: 12rem;
+         height: 36px;
+         padding: 0 12px;
+         font-size: 14px;
+         letter-spacing: .08em;
+         border: 1.5px solid var(--gu-ink);
+         border-radius: 0;
+     }
+     #letters:focus {
+         border-color: var(--game);
+         box-shadow: 0 0 0 3px var(--game-soft);
+     }
+     #target-list td a {
+         color: var(--gu-link);
+         font-weight: 600;
+         text-decoration: none;
+     }
+     #target-list td a:hover {
+         text-decoration: underline;
+     }
+     .target-pager {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         gap: 16px;
+         margin-top: 20px;
+         font-size: 14px;
+     }
+     .target-pager a {
+         font-weight: 600;
+         color: var(--gu-link);
+         text-decoration: none;
+     }
     </style>
+{% endblock %}
+
+{% block content %}
     <div id="content-area">
         <div id="target-list">
             <h1>Target puzzles</h1>
@@ -35,7 +98,8 @@
                     </script>
                 </p>
             {% endif %}
-            <table class="table">
+            <div class="table-wrap">
+            <table class="crossword-table">
                 <tr>
                     <th>
                         #
@@ -87,7 +151,14 @@
 
                 {% endfor %}
             </table>
-	    {% include 'paginator.html' %}
+            </div>
+            {% if is_paginated %}
+                <nav class="target-pager">
+                    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">&lsaquo; Newer</a>{% else %}<span></span>{% endif %}
+                    <span class="gu-dateline">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Older &rsaquo;</a>{% else %}<span></span>{% endif %}
+                </nav>
+            {% endif %}
 
         </div>
     </div>

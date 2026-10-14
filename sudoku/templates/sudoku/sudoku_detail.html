@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}Sudoku {{ sudoku.number|default:sudoku.pk }}{% endblock %}
-{% block body_class %}game-sudoku sd-solve{% endblock %}
+{% block body_class %}game-sudoku sd-solve is-splash{% endblock %}
 {% block head %}<link rel="stylesheet" href="{% static 'sudoku/sudoku.css' %}?v=16">{% endblock %}
 {% block main_class %}gu-page sd-page{% endblock %}
 
@@ -15,12 +15,37 @@
     <a href="https://groundup.org.za/"><img class="gu-playbar__logo" src="{% static 'gu/logo-white.svg' %}" alt="GroundUp"></a>
     <div class="gu-playbar__status">
       <span class="sd-playbar-level">{% if sudoku.number %}No. {{ sudoku.number }} &middot; {% endif %}{{ sudoku.get_difficulty_display }}</span>
+      <button id="gu-rules-btn" class="gu-dark-btn" type="button" title="How to play" aria-label="How to play"><i class="fa-solid fa-circle-question"></i></button>
+      <button class="gu-dark-btn gu-sound-btn" type="button" title="Sound" aria-label="Sound" aria-pressed="true"><i class="fa-solid fa-volume-high"></i></button>
     </div>
   </div>
 </header>
 {% endblock %}
 
 {% block content %}
+<section class="gu-splash">
+  <div class="tile-sudoku gu-splash__icon" aria-hidden="true">{% for digit in sudoku.puzzle %}<div>{% if digit != "0" %}{{ digit }}{% endif %}</div>{% endfor %}</div>
+  <h1 class="gu-splash__title">Sudoku</h1>
+  <p class="gu-splash__tagline">Nine rows, nine columns, nine boxes. Can you fill them?</p>
+
+  <div class="gu-splash__rules">
+    <h2>How to play</h2>
+    <ul>
+      <li>Fill the grid so that every row, every column and every 3&times;3 box holds the digits 1 to 9 once each.</li>
+      <li>Pick a square, then a digit. Turn on <b>Notes</b> to pencil in the digits a square might hold.</li>
+      <li>Not sure? Press <b>Try</b> to test a hunch, then keep it or throw it away.</li>
+      {% if sudoku.solution %}<li>Stuck? <b>Hint</b> fills in a square for you.</li>{% endif %}
+      <li>The clock starts when you press Start.</li>
+    </ul>
+  </div>
+
+  <button id="gu-start" class="gu-btn gu-splash__start" type="button">Start</button>
+  <p class="gu-splash__meta">{% spaceless %}
+    {% if sudoku.number %}No. {{ sudoku.number }} &middot; {% endif %}{{ sudoku.get_difficulty_display }}
+    {% if sudoku.published %} &middot; {{ sudoku.published|date:"j F Y" }}{% endif %}
+  {% endspaceless %}</p>
+</section>
+
 <div class="gu-screen-head">
   <div>
     <h1>Sudoku</h1>
@@ -124,5 +149,6 @@ with.{% endcomment %}
     JSON.parse(document.getElementById("sd-data").textContent)
   );
 </script>
-<script src="{% static 'sudoku/sudoku_solver.js' %}?v=5"></script>
+<script src="{% static 'gu/game.js' %}?v=1"></script>
+<script src="{% static 'sudoku/sudoku_solver.js' %}?v=6"></script>
 {% endblock %}

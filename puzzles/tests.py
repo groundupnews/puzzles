@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from crossword.models import Crossword
 from sudoku.models import Sudoku
+from target.models import Target
 
 # Every cell holds a letter, so a leak would be obvious.
 FILLED = ["C", "A", "T", "A", "B", "C", "T", "C", "D"]
@@ -55,6 +56,16 @@ def make_sudoku(days=-1, **kwargs):
     return Sudoku.objects.create(**defaults)
 
 
+def make_target(days=-1, **kwargs):
+    defaults = dict(
+        letters="lpractica",
+        words="practical",
+        published=timezone.now() + timezone.timedelta(days=days),
+    )
+    defaults.update(kwargs)
+    return Target.objects.create(**defaults)
+
+
 class PuzzlesApiTest(TestCase):
 
     def puzzles(self):
@@ -77,6 +88,7 @@ class PuzzlesApiTest(TestCase):
     def test_urls_are_absolute_so_the_news_site_can_link_out(self):
         make_crossword()
         make_sudoku()
+        make_target()
         puzzles = self.puzzles()
         for puzzle in puzzles.values():
             self.assertTrue(puzzle["url"].startswith("http"), puzzle["url"])
@@ -84,15 +96,18 @@ class PuzzlesApiTest(TestCase):
     def test_unpublished_puzzles_are_not_announced(self):
         make_crossword(days=7)
         make_sudoku(days=7)
+        make_target(days=7)
         puzzles = self.puzzles()
         self.assertFalse(puzzles["crossword"]["available"])
         self.assertFalse(puzzles["sudoku"]["available"])
+        self.assertFalse(puzzles["target"]["available"])
         self.assertIn("archive_url", puzzles["crossword"])
 
     def test_no_puzzles_at_all_is_not_an_error(self):
         puzzles = self.puzzles()
         self.assertFalse(puzzles["crossword"]["available"])
         self.assertFalse(puzzles["sudoku"]["available"])
+        self.assertFalse(puzzles["target"]["available"])
 
     def test_crossword_teaser_carries_shape_and_numbers_but_no_letters(self):
         make_crossword(blocked_out_squares=[4])
@@ -125,6 +140,15 @@ class PuzzlesApiTest(TestCase):
         self.assertNotIn("solution", sudoku)
         self.assertNotIn(SOLUTION, self.client.get(reverse("api_puzzles")).content.decode())
 
+    def test_target_teaser_carries_letters_but_not_the_words(self):
+        make_target()
+        target = self.puzzles()["target"]
+        self.assertEqual(target["title"], "Target #1")
+        self.assertEqual("".join(c["char"] for c in target["cells"]), "pracltica")
+        self.assertTrue(target["cells"][4]["centre"])
+        self.assertNotIn("words", target)
+        self.assertNotIn("practical", self.client.get(reverse("api_puzzles")).content.decode())
+
     def test_one_puzzle_can_be_fetched_on_its_own(self):
         make_sudoku()
         response = self.client.get(reverse("api_puzzle", args=["sudoku"]))
@@ -132,7 +156,7 @@ class PuzzlesApiTest(TestCase):
         self.assertEqual(response.json()["title"], "Sudoku #1234")
 
     def test_a_puzzle_we_do_not_serve_is_a_404(self):
-        # Target moves here later; until then the news site plays its own.
+        # Quizzes aren't launched yet.
         self.assertEqual(
-            self.client.get(reverse("api_puzzle", args=["target"])).status_code, 404
+            self.client.get(reverse("api_puzzle", args=["quiz"])).status_code, 404
         )

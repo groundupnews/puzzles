@@ -4,6 +4,38 @@
     Delete a Target puzzle {{block.super}}
 {% endblock %}
 
+{% block body_class %}game-target{% endblock %}
+
+{% block head %}
+    <style>
+     #content-area {
+         max-width: 600px;
+         margin-left: auto;
+         margin-right: auto;
+     }
+     #content-area a {
+         color: var(--gu-link);
+         font-weight: 600;
+         text-decoration: none;
+     }
+     #content-area input[type="submit"] {
+         height: 40px;
+         padding: 0 18px;
+         font: inherit;
+         font-size: 14px;
+         font-weight: 700;
+         color: var(--gu-white);
+         background: var(--danger);
+         border: 1.5px solid var(--danger);
+         border-radius: 0;
+         cursor: pointer;
+     }
+     #content-area input[type="submit"]:hover {
+         filter: brightness(.92);
+     }
+    </style>
+{% endblock %}
+
 {% block content %}
 
     <div id="content-area">

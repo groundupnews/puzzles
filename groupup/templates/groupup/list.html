@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}GroupUp{% endblock %}
+{% block body_class %}game-groupup{% endblock %}
+
+{% block content %}
+<div class="gu-screen-head">
+  <div>
+    <h1>GroupUp</h1>
+    <div class="gu-dateline">Every published puzzle, newest first.</div>
+  </div>
+  {% if latest %}<a class="gu-badge gu-badge--link" href="{% url 'groupup:solve' latest.pk %}">Play the latest &rsaquo;</a>{% endif %}
+</div>
+{% if perms.groupup.can_generate_groupups %}
+<form class="buttons" method="post" action="{% url 'groupup:add' %}">
+  {% csrf_token %}
+  <button type="submit">New GroupUp</button>
+  <button id="import-btn" type="button"><i class="fa-solid fa-upload"></i> Import</button>
+  <a href="{% static 'groupup/example.json' %}" download>Example import file</a>
+  <input type="file" id="import-file" accept=".json,application/json" hidden>
+</form>
+<script>
+  document.getElementById("import-btn").addEventListener("click", () => {
+    document.getElementById("import-file").click();
+  });
+  document.getElementById("import-file").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const resp = await fetch("{% url 'groupup:import' %}", {
+      method: "POST",
+      headers: {"Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}"},
+      body: await file.text(),
+    });
+    const data = await resp.json();
+    e.target.value = "";
+    if (resp.ok) window.location.reload();
+    else alert("Nothing was imported:\n\n" + data.errors.join("\n"));
+  });
+</script>
+{% endif %}
+{% if puzzles %}
+<div class="table-wrap">
+<table class="crossword-table">
+  <thead>
+    <tr>
+      {% if perms.groupup.can_generate_groupups %}<th>ID</th>{% endif %}
+      <th>Name</th>
+      <th>Published</th>
+      {% if perms.groupup.can_generate_groupups %}<th></th><th></th>{% endif %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for puzzle in puzzles %}
+    <tr>
+      {% if perms.groupup.can_generate_groupups %}<td class="cw-id">{{ puzzle.pk }}</td>{% endif %}
+      <td class="cw-name"><a href="{% url 'groupup:solve' puzzle.pk %}">{{ puzzle.name|default:"Untitled" }}</a></td>
+      <td>
+        {% if puzzle.published %}
+        <span class="{% if puzzle.is_published %}status-published{% else %}status-unpublished{% endif %}">{{ puzzle.published|date:"Y-m-d" }}</span>
+        {% else %}
+        <span class="status-unpublished">Unpublished</span>
+        {% endif %}
+      </td>
+      {% if perms.groupup.can_generate_groupups %}
+      <td><a href="{% url 'groupup:edit' puzzle.pk %}">Edit</a></td>
+      <td>
+        <form method="post" action="{% url 'groupup:delete' puzzle.pk %}">
+          {% csrf_token %}
+          <button class="btn-delete" type="submit"
+                  onclick="return confirm('Delete this GroupUp? This cannot be undone.')"><i class="fa-solid fa-trash"></i></button>
+        </form>
+      </td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>No puzzles yet.</p>
+{% endif %}
+{% endblock %}

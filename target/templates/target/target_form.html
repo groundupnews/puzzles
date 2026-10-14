@@ -4,9 +4,9 @@
     Make a Target puzzle {{block.super}}
 {% endblock %}
 
-{% block additional_head %}
+{% block body_class %}game-target{% endblock %}
 
-    {{block.super}}
+{% block head %}
 
     <style>
      {% include "target/flatpickr.min.css" %}
@@ -17,18 +17,11 @@
 
     <style>
      .helptext {
-         font-size: 80%;
+         display: block;
+         margin-top: 4px;
+         font-size: 12px;
+         color: var(--gu-gray-350);
      }
-     #id_clue {
-         height: 50%;
-     }
-    </style>
-
-{% endblock %}
-
-{% block content %}
-
-    <style>
      #target-form-area h1 {
          text-align: left;
      }
@@ -37,39 +30,126 @@
          margin-right: auto;
          max-width: 600px;
      }
-     #target-form label {
-         width: 120px;
+     #target-form p {
+         margin: 0 0 16px;
      }
-     label[for=id_words], label[for=id_rules] {
-         vertical-align: top;
+     #target-form label {
+         display: block;
+         margin-bottom: 4px;
+         font-size: 12px;
+         font-weight: 700;
+         text-transform: uppercase;
+         letter-spacing: .04em;
+         color: var(--gu-gray-500);
+     }
+     #target-form input[type="text"],
+     #target-form input[type="number"],
+     #target-form textarea {
+         width: 100%;
+         padding: 9px 12px;
+         font: inherit;
+         font-size: 15px;
+         color: var(--gu-ink);
+         background: var(--gu-white);
+         border: 1.5px solid var(--gu-ink);
+         border-radius: 0;
+     }
+     #target-form input:focus,
+     #target-form textarea:focus {
+         outline: none;
+         border-color: var(--game);
+         box-shadow: 0 0 0 3px var(--game-soft);
+     }
+     #target-form textarea {
+         line-height: 1.5;
+         resize: vertical;
      }
      #id_letters {
-         width: 7em;
+         max-width: 12rem;
+         letter-spacing: .14em;
      }
      #id_words {
-         width: 100px;
+         max-width: 16rem;
+         min-height: 20rem;
      }
      #id_published {
-         width: 125px;
+         max-width: 16rem;
+     }
+     #id_publish_solution_after {
+         max-width: 8rem;
      }
      #id_number {
          width: 125px;
      }
      #target-word-count {
-         padding-left: 122px;
+         margin: 6px 0 0;
+         font-size: 13px;
+         font-weight: 600;
+         color: var(--gu-gray-500);
      }
-     input[name="delete"]  {
-         margin-top: 12px;
-         color: red;
+     #target-form input[type="submit"] {
+         height: 40px;
+         margin: 8px 6px 0 0;
+         padding: 0 18px;
+         font: inherit;
+         font-size: 14px;
+         font-weight: 700;
+         color: var(--gu-ink);
+         background: var(--gu-white);
+         border: 1.5px solid var(--gu-ink);
+         border-radius: 0;
+         cursor: pointer;
+     }
+     #target-form input[type="submit"]:hover {
+         background: var(--gu-surface-2);
+     }
+     #target-form input[name="save"] {
+         color: var(--gu-white);
+         background: var(--game);
+         border-color: var(--game);
+     }
+     #target-form input[name="save"]:hover {
+         background: var(--game-deep);
+         border-color: var(--game-deep);
+     }
+     #target-form input[name="delete"] {
+         color: var(--danger);
+         border-color: var(--danger);
+     }
+     #target-form input[name="delete"]:hover {
+         background: #fbeaea;
      }
      .errorlist {
-         color: red;
-         padding-left: 0;
+         margin: 0 0 6px;
+         padding: 8px 12px;
+         list-style: none;
+         font-size: 13px;
+         font-weight: 600;
+         color: var(--danger);
+         background: #fbeaea;
+         border-left: 3px solid var(--danger);
      }
      .errorlist li {
+         padding: 0;
+         border: none;
          list-style-type: none;
      }
+     #target-form-area > p {
+         font-size: 14px;
+         color: var(--gu-gray-350);
+     }
+     .flatpickr-day.selected,
+     .flatpickr-day.selected:hover,
+     .flatpickr-day.selected:focus {
+         background: var(--game);
+         border-color: var(--game);
+     }
     </style>
+
+{% endblock %}
+
+{% block content %}
+
     <div id="content-area">
         <div id="target-form-area">
             {% if object %}

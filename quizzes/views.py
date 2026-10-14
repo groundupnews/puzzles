@@ -4,6 +4,7 @@ from datetime import datetime
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.db import IntegrityError, transaction
+from django.db.models import F
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -38,13 +39,20 @@ class QuizSelectView(ListView):
     model = Quiz
     template_name = "quizzes/select.html"
     context_object_name = "quizzes"
-    ordering = ["-date_modified"]
+    # Newest edition first, as in the other archives. Drafts have no
+    # publication date, so put them on top, where a generator wants them.
+    ordering = [F("published").desc(nulls_first=True), "-date_modified"]
 
     def get_queryset(self):
         qs = super().get_queryset()
         if not self.request.user.has_perm(PERM):
             qs = qs.published()
         return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["latest"] = Quiz.objects.published().order_by("-published").first()
+        return context
 
 
 @permission_required(PERM)
