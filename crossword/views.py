@@ -56,6 +56,15 @@ class CrosswordCreateView(PermissionRequiredMixin, CreateView):
         return redirect("crossword_edit", pk=self.object.pk)
 
 
+def crossword_latest(request):
+    """The newest published crossword: what /crossword/ opens on. The
+    archive instead, while there isn't one yet."""
+    crossword = Crossword.objects.published().order_by("-published").first()
+    if crossword is None:
+        return redirect("crossword_select")
+    return redirect("crossword_solve", pk=crossword.pk)
+
+
 class CrosswordSelectView(ListView):
     """List crosswords.
 

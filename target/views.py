@@ -199,5 +199,7 @@ class TargetDelete(PermissionRequiredMixin, generic.edit.DeleteView):
 
 class TargetLatest(generic.RedirectView):
     def get_redirect_url(self, *args, **kwargs):
-        target = models.Target.objects.published().latest('published')
+        target = models.Target.objects.published().order_by('-published').first()
+        if target is None:
+            return reverse('target:list')
         return reverse('target:detail', args=[target.pk])

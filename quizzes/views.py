@@ -27,6 +27,15 @@ def quiz_add(request):
     return redirect("quiz_edit", pk=quiz.pk)
 
 
+def quiz_latest(request):
+    """The newest published quiz: what /quizzes/ opens on. The archive
+    instead, while there isn't one yet."""
+    quiz = Quiz.objects.published().order_by("-published").first()
+    if quiz is None:
+        return redirect("quiz_select")
+    return redirect("quiz_solve", pk=quiz.pk)
+
+
 class QuizSelectView(ListView):
     """List quizzes.
 

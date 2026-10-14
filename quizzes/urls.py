@@ -5,7 +5,8 @@ from . import views
 urlpatterns = [
     path("new/", views.quiz_add, name="quiz_add"),
     path("import/", views.quiz_import, name="quiz_import"),
-    path("", views.QuizSelectView.as_view(), name="quiz_select"),
+    path("", views.quiz_latest, name="quiz_latest"),
+    path("archive/", views.QuizSelectView.as_view(), name="quiz_select"),
     path("<int:pk>/solve/", views.quiz_solve, name="quiz_solve"),
     path("<int:pk>/check/", views.quiz_check, name="quiz_check"),
     path("<int:pk>/edit/", views.quiz_edit, name="quiz_edit"),

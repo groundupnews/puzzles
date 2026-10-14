@@ -34,6 +34,15 @@ def _visible(request, pk):
     return puzzle
 
 
+def groupup_latest(request):
+    """The newest published GroupUp: what /groupup/ opens on. The archive
+    instead, while there isn't one yet."""
+    puzzle = GroupUp.objects.published().order_by("-published").first()
+    if puzzle is None:
+        return redirect("groupup:list")
+    return redirect("groupup:solve", pk=puzzle.pk)
+
+
 class GroupUpListView(ListView):
     model = GroupUp
     template_name = "groupup/list.html"
