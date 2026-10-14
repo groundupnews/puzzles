@@ -7,9 +7,12 @@ DEFAULT_RULES = """
 Make words of at least four letters using the grid letters at most once. The centre letter must be in every word. There's one nine-letter word.
 
 Except possibly for the nine-letter target:
-- There are no plurals ending in s. (But geese would be allowed.)
-- There are no third-person singular verbs ending in s (e.g. cooks in ‘he cooks bobotie’).
-- There are no proper nouns.
+
+    - There are no plurals ending in s. (But geese would be allowed.)
+
+    - There are no third-person singular verbs ending in s (e.g. cooks in ‘he cooks bobotie’).
+
+    - There are no proper nouns.
 
 The nine-letter target can break any of the above rules however. It often has a South African flavour. It is often two words and could even be three or more.
 
