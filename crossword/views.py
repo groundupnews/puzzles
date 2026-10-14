@@ -5,7 +5,7 @@ from datetime import datetime
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import F, Q
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -56,6 +56,15 @@ class CrosswordCreateView(PermissionRequiredMixin, CreateView):
         return redirect("crossword_edit", pk=self.object.pk)
 
 
+def crossword_latest(request):
+    """The newest published crossword: what /crossword/ opens on. The
+    archive instead, while there isn't one yet."""
+    crossword = Crossword.objects.published().order_by("-published").first()
+    if crossword is None:
+        return redirect("crossword_select")
+    return redirect("crossword_solve", pk=crossword.pk)
+
+
 class CrosswordSelectView(ListView):
     """List crosswords.
 
@@ -66,7 +75,10 @@ class CrosswordSelectView(ListView):
     model = Crossword
     template_name = "crossword/select.html"
     context_object_name = "crosswords"
-    ordering = ["-date_modified"]
+    # Newest edition first, as in the other archives. Drafts have no
+    # publication date, so put them on top, where a generator wants them.
+    ordering = [F("published").desc(nulls_first=True), "-date_modified"]
+    paginate_by = 20
 
     def get_queryset(self):
         # Restricts the list to published crosswords for anyone without the
@@ -473,8 +485,10 @@ def crossword_delete(request, pk):
     return redirect("crossword_select")
 
 
+@permission_required(PERM)
 def crossword_xd(request, pk):
-    """Return the crossword as a downloadable .xd file."""
+    """Return the crossword as a downloadable .xd file. For setters only:
+    the file holds every answer, and the puzzles are ours to publish."""
     crossword = get_object_or_404(Crossword, pk=pk)
     filename = (crossword.name or "crossword").replace('"', "")
     response = HttpResponse(render_xd(crossword), content_type="text/plain; charset=utf-8")

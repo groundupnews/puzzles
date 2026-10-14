@@ -34,22 +34,27 @@ def _visible(request, pk):
     return puzzle
 
 
+def groupup_latest(request):
+    """The newest published GroupUp: what /groupup/ opens on. The archive
+    instead, while there isn't one yet."""
+    puzzle = GroupUp.objects.published().order_by("-published").first()
+    if puzzle is None:
+        return redirect("groupup:list")
+    return redirect("groupup:solve", pk=puzzle.pk)
+
+
 class GroupUpListView(ListView):
     model = GroupUp
     template_name = "groupup/list.html"
     context_object_name = "puzzles"
     ordering = [F("published").desc(nulls_first=True), "-date_modified"]
+    paginate_by = 20
 
     def get_queryset(self):
         qs = super().get_queryset()
         if not self.request.user.has_perm(PERM):
             qs = qs.published()
         return qs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["latest"] = GroupUp.objects.published().order_by("-published").first()
-        return context
 
 
 @permission_required(PERM)

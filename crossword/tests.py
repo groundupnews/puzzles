@@ -1099,12 +1099,13 @@ class SaveCrosswordFromXdTest(TestCase):
 
 
 class CrosswordXdExportViewTest(TestCase):
-    """Tests for crossword_xd(): the .xd download endpoint, which is
-    intentionally open to everyone regardless of login or permission."""
+    """Tests for crossword_xd(): the .xd download endpoint, which only
+    setters may use."""
 
     fixtures = ["users.json"]
 
     def setUp(self):
+        make_user_with_perm(self.client)
         self.cw = make_crossword(name="My Puzzle", cells=["C", "A", "T"])
         word, _ = Word.objects.get_or_create(text="CAT")
         clue = Clue.objects.create(text=word, clue="A feline")
@@ -1126,18 +1127,17 @@ class CrosswordXdExportViewTest(TestCase):
         self.assertIn("attachment", cd)
         self.assertIn("My Puzzle.xd", cd)
 
-    def test_anonymous_user_can_export(self):
-        # Export requires no login.
+    def test_anonymous_user_cannot_export(self):
+        self.client.logout()
         response = self.client.get(reverse("crossword_xd", args=[self.cw.pk]))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
 
-    def test_user_without_permission_can_export(self):
-        # Mirrors test_anonymous_user_can_export: even a logged-in user
-        # without can_generate_crosswords can still export.
+    def test_user_without_permission_cannot_export(self):
+        self.client.logout()
         User.objects.create_user(username="noperm", password="testpass")
         self.client.login(username="noperm", password="testpass")
         response = self.client.get(reverse("crossword_xd", args=[self.cw.pk]))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
 
     def test_response_contains_title_header(self):
         # Sanity check that the response body is genuinely render_xd()'s
@@ -1224,8 +1224,7 @@ class CrosswordXdImportViewTest(TestCase):
         self.assertFalse(Crossword.objects.exists())
 
     def test_user_without_permission_cannot_import(self):
-        # Unlike export, import is a write action and requires the
-        # generate permission even when logged in.
+        # Import requires the generate permission even when logged in.
         self.client.logout()
         User.objects.create_user(username="noperm", password="testpass")
         self.client.login(username="noperm", password="testpass")

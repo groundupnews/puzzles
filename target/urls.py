@@ -10,8 +10,10 @@ app_name = "target"
 # here the whole app is mounted under /target/, so the "target/" prefix
 # each pattern carried on the news site would double up.
 urlpatterns = [
-    path('', views.TargetList.as_view(), name='list'),
-    path('latest/', views.TargetLatest.as_view(), name='latest'),
+    path('', views.TargetLatest.as_view(), name='latest'),
+    # The old address for the newest Target, which the news site links to.
+    path('latest/', views.TargetLatest.as_view()),
+    path('archive/', views.TargetList.as_view(), name='list'),
     path('<int:pk>', views.TargetDetail.as_view(), name='detail'),
     path('create/', views.TargetCreate.as_view(), name='create'),
     path('create/<str:letters>',

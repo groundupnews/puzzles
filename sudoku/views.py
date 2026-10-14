@@ -57,6 +57,11 @@ class SudokuDetailView(DetailView):
 
 class SudokuLatest(SudokuDetailView):
 
+    def get(self, request, *args, **kwargs):
+        if not Sudoku.objects.published().exists():
+            return HttpResponseRedirect(reverse('sudoku:list'))
+        return super().get(request, *args, **kwargs)
+
     def get_object(self, queryset=None):
         sudoku = Sudoku.objects.published().latest('published')
         return sudoku

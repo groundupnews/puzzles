@@ -238,6 +238,41 @@ body {
   color: var(--gu-gray-350);
 }
 
+/* Archives: a month's heading over its puzzles, and the pager under
+   them all. */
+.crossword-table .archive-month th {
+  padding-top: 24px;
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--gu-ink);
+}
+
+.gu-pager {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.gu-pager a {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gu-link);
+  text-decoration: none;
+}
+
+.gu-splash__archive {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gu-link);
+  text-decoration: none;
+}
+
 /* Difficulty, cadence, grid size. */
 .gu-badge {
   display: inline-block;

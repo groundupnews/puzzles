@@ -5,7 +5,8 @@ from . import views
 app_name = "groupup"
 
 urlpatterns = [
-    path("", views.GroupUpListView.as_view(), name="list"),
+    path("", views.groupup_latest, name="latest"),
+    path("archive/", views.GroupUpListView.as_view(), name="list"),
     path("new/", views.groupup_add, name="add"),
     path("import/", views.groupup_import, name="import"),
     path("<int:pk>/", views.groupup_solve, name="solve"),
