@@ -66,7 +66,6 @@ def games_hub(request):
             "sudoku_tile": sudoku_tile(sudoku),
             "preview": grid_preview(crossword) if crossword else None,
             "greeting": _greeting(now),
-            "today": now,
             "puzzle_count": (
                 crosswords.count()
                 + quizzes.count()
