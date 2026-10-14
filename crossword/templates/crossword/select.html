@@ -1,9 +1,15 @@
 {% extends "crossword/base.html" %}
 
-{% block title %}Crosswords{% endblock %}
+{% block title %}Crossword archive{% endblock %}
 
 {% block content %}
-<h1>Crosswords</h1>
+<div class="gu-screen-head">
+  <div>
+    <h1>Crossword archive</h1>
+    <div class="gu-dateline">A new Cryptic(ish) every Thursday.</div>
+  </div>
+  <a class="gu-badge gu-badge--link" href="{% url 'crossword_latest' %}">Play the latest &rsaquo;</a>
+</div>
 {% if perms.crossword.can_generate_crosswords %}
 <div class="buttons">
   <a href="{% url 'crossword_add' %}" class="btn-icon">New crossword</a>
@@ -29,14 +35,17 @@
     </tr>
   </thead>
   <tbody>
-    {% for crossword in crosswords %}
+    {% regroup crosswords by published|date:"F Y" as months %}
+    {% for month in months %}
+    <tr class="archive-month"><th colspan="{% if perms.crossword.can_generate_crosswords %}7{% else %}2{% endif %}">{{ month.grouper|default:"Unpublished" }}</th></tr>
+    {% for crossword in month.list %}
     <tr>
       {% if perms.crossword.can_generate_crosswords %}<td class="cw-id">{{ crossword.pk }}</td>{% endif %}
       <td class="cw-name">
         <a href="{% url 'crossword_solve' crossword.pk %}">{{ crossword.name|default:"Untitled" }}</a>
       </td>
       {% if perms.crossword.can_generate_crosswords %}<td class="cw-owner">{{ crossword.owner.username }}</td>{% endif %}
-      {% if not perms.crossword.can_generate_crosswords %}<td>{{ crossword.published|date:"Y-m-d" }}</td>{% endif %}
+      {% if not perms.crossword.can_generate_crosswords %}<td>{{ crossword.published|date:"D j M" }}</td>{% endif %}
       {% if perms.crossword.can_generate_crosswords %}
       <td><a href="{% url 'crossword_xd' crossword.pk %}"><i class="fa-solid fa-download"></i> Export</a></td>
       <td>
@@ -63,9 +72,11 @@
       {% endif %}
     </tr>
     {% endfor %}
+    {% endfor %}
   </tbody>
 </table>
 </div>
+{% include "pager.html" %}
 {% else %}
 <p>No crosswords yet.{% if perms.crossword.can_generate_crosswords %} <a href="{% url 'crossword_add' %}">Create one.</a>{% endif %}</p>
 {% endif %}

@@ -51,17 +51,13 @@ class QuizSelectView(ListView):
     # Newest edition first, as in the other archives. Drafts have no
     # publication date, so put them on top, where a generator wants them.
     ordering = [F("published").desc(nulls_first=True), "-date_modified"]
+    paginate_by = 20
 
     def get_queryset(self):
         qs = super().get_queryset()
         if not self.request.user.has_perm(PERM):
             qs = qs.published()
         return qs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["latest"] = Quiz.objects.published().order_by("-published").first()
-        return context
 
 
 @permission_required(PERM)

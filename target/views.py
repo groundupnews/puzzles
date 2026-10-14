@@ -10,17 +10,20 @@ from django import forms
 from django.http import HttpResponseRedirect, Http404
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.db.models import F
 
 
 class TargetList(generic.ListView):
     model = models.Target
-    paginate_by = 10
+    paginate_by = 20
 
     def get_queryset(self):
         if self.request.user.has_perm("target.change_target"):
-            return models.Target.objects.all()
+            targets = models.Target.objects.all()
         else:
-            return models.Target.objects.published()
+            targets = models.Target.objects.published()
+        # Newest first, by month, as in the other archives; drafts on top.
+        return targets.order_by(F('published').desc(nulls_first=True), '-number')
 
 
 class TargetDetail(generic.DetailView):

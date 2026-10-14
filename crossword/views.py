@@ -5,7 +5,7 @@ from datetime import datetime
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import F, Q
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -75,7 +75,10 @@ class CrosswordSelectView(ListView):
     model = Crossword
     template_name = "crossword/select.html"
     context_object_name = "crosswords"
-    ordering = ["-date_modified"]
+    # Newest edition first, as in the other archives. Drafts have no
+    # publication date, so put them on top, where a generator wants them.
+    ordering = [F("published").desc(nulls_first=True), "-date_modified"]
+    paginate_by = 20
 
     def get_queryset(self):
         # Restricts the list to published crosswords for anyone without the

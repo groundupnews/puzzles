@@ -49,6 +49,7 @@
     {% if crossword.published %} &middot; {{ crossword.published|date:"j F Y" }}{% endif %}
     {% if crossword.authors %} &middot; by {{ crossword.authors }}{% endif %}
   {% endspaceless %}</p>
+  <a class="gu-splash__archive" href="{% url 'crossword_select' %}">Past crosswords &rsaquo;</a>
 </section>
 
 <div class="gu-screen-head cw-head">
