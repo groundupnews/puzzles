@@ -482,8 +482,10 @@ def crossword_delete(request, pk):
     return redirect("crossword_select")
 
 
+@permission_required(PERM)
 def crossword_xd(request, pk):
-    """Return the crossword as a downloadable .xd file."""
+    """Return the crossword as a downloadable .xd file. For setters only:
+    the file holds every answer, and the puzzles are ours to publish."""
     crossword = get_object_or_404(Crossword, pk=pk)
     filename = (crossword.name or "crossword").replace('"', "")
     response = HttpResponse(render_xd(crossword), content_type="text/plain; charset=utf-8")

@@ -256,11 +256,10 @@ def quiz_import(request):
 def quiz_export(request, pk):
     """Return the quiz as a downloadable JSON file, in exactly the shape
     quiz_import/import_quiz_from_json expect -- so an exported file can be
-    re-imported unchanged. Unlike crossword_xd's export (deliberately open
-    to everyone), this is gated behind the generate permission: the export
-    format includes which answer is correct for every question, the one
-    thing quiz_solve/quiz_check are careful never to hand a solver up
-    front.
+    re-imported unchanged. Like crossword_xd's export, this is gated
+    behind the generate permission: the export format includes which
+    answer is correct for every question, the one thing
+    quiz_solve/quiz_check are careful never to hand a solver up front.
     """
     quiz = get_object_or_404(Quiz, pk=pk)
     data = {

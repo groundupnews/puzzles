@@ -20,8 +20,8 @@
       <th>Name</th>
       {% if perms.crossword.can_generate_crosswords %}<th>Owner</th>{% endif %}
       {% if not perms.crossword.can_generate_crosswords %}<th>Published</th>{% endif %}
-      <th></th>
       {% if perms.crossword.can_generate_crosswords %}
+      <th></th>
       <th></th>
       <th>Published</th>
       <th></th>
@@ -37,8 +37,8 @@
       </td>
       {% if perms.crossword.can_generate_crosswords %}<td class="cw-owner">{{ crossword.owner.username }}</td>{% endif %}
       {% if not perms.crossword.can_generate_crosswords %}<td>{{ crossword.published|date:"Y-m-d" }}</td>{% endif %}
-      <td><a href="{% url 'crossword_xd' crossword.pk %}"><i class="fa-solid fa-download"></i> Export</a></td>
       {% if perms.crossword.can_generate_crosswords %}
+      <td><a href="{% url 'crossword_xd' crossword.pk %}"><i class="fa-solid fa-download"></i> Export</a></td>
       <td>
         {% if not crossword.private or crossword.owner_id == request.user.id %}
           <a href="{% url 'crossword_edit' crossword.pk %}">Edit</a>
