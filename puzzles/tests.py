@@ -15,6 +15,7 @@ from crossword.models import Crossword
 from groupup.models import GroupUp
 from groupup.tests import published_puzzle as make_groupup
 from quizzes.models import Question, Quiz
+from streetwise.tests import make_puzzle as make_streetwise
 from sudoku.models import Sudoku
 from target.models import Target
 
@@ -108,6 +109,7 @@ class PuzzlesApiTest(TestCase):
         make_target()
         make_quiz()
         make_groupup()
+        make_streetwise()
         puzzles = self.puzzles()
         for puzzle in puzzles.values():
             self.assertTrue(puzzle["url"].startswith("http"), puzzle["url"])
@@ -167,6 +169,14 @@ class PuzzlesApiTest(TestCase):
         self.assertTrue(target["cells"][4]["centre"])
         self.assertNotIn("words", target)
         self.assertNotIn("practical", self.client.get(reverse("api_puzzles")).content.decode())
+
+    def test_streetwise_teaser_carries_no_place_and_no_result(self):
+        make_streetwise()
+        streetwise = self.puzzles()["streetwise"]
+        self.assertEqual(streetwise["title"], "Streetwise #1")
+        body = self.client.get(reverse("api_puzzles")).content.decode()
+        for spoiler in ["Rosmead", "Cape Town", "Western Cape", "97090421", "AbC-dEf", "-33.99", "\"DA\"", "60.0"]:
+            self.assertNotIn(spoiler, body)
 
     def test_quiz_teaser_carries_no_questions(self):
         quiz = make_quiz(description="This week's news.")

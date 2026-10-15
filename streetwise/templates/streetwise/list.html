@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Streetwise{% endblock %}
+{% block body_class %}game-streetwise{% endblock %}
+
+{% block content %}
+<div class="gu-screen-head">
+  <div>
+    <h1>Streetwise</h1>
+    <div class="gu-dateline">Every published puzzle, newest first.</div>
+  </div>
+  {% if request.user.is_staff %}<a class="gu-badge gu-badge--link" href="{% url 'admin:streetwise_streetwise_changelist' %}">Edit in the admin &rsaquo;</a>{% endif %}
+</div>
+{% if puzzles %}
+<div class="table-wrap">
+<table class="crossword-table">
+  <thead>
+    <tr>
+      <th>Puzzle</th>
+      <th>Published</th>
+      {% if request.user.is_staff %}<th>Voting district</th>{% endif %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for puzzle in puzzles %}
+    <tr>
+      <td class="cw-name"><a href="{{ puzzle.get_absolute_url }}">{% if puzzle.num %}Streetwise #{{ puzzle.num }}{% else %}Streetwise ({{ puzzle.pk }}){% endif %}</a></td>
+      <td>
+        {% if puzzle.rejected %}
+        <span class="status-unpublished">Rejected</span>
+        {% elif puzzle.published %}
+        <span class="{% if puzzle.is_published %}status-published{% else %}status-unpublished{% endif %}">{{ puzzle.published|date:"Y-m-d" }}</span>
+        {% else %}
+        <span class="status-unpublished">Unpublished</span>
+        {% endif %}
+      </td>
+      {% if request.user.is_staff %}<td>{{ puzzle.district }}</td>{% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>No puzzles yet.</p>
+{% endif %}
+{% endblock %}

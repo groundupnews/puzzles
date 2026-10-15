@@ -1,0 +1,43 @@
+{% with results=district.results council=district.council %}
+<h3 class="sw-heading">How this area voted</h3>
+<div class="sw-votes">
+  {% with winner=results.0 %}
+  <div class="sw-vote">
+    <p class="sw-vote__label">2024 National Election</p>
+    <p class="sw-vote__result"><span class="sw-chip sw-p-{{ winner.0|slugify }}">{{ winner.0 }}</span> {{ winner.1|floatformat:1 }}%</p>
+    <p class="sw-vote__note">Votes in this voting district</p>
+  </div>
+  {% endwith %}
+  {% if council %}
+  {% with largest=council.largest %}
+  <div class="sw-vote">
+    <p class="sw-vote__label">{{ council.year }} Municipal Election</p>
+    <p class="sw-vote__result">{% for party in largest %}<span class="sw-chip sw-p-{{ party|slugify }}">{{ party }}</span> {% endfor %}{{ council.most_seats }} of {{ council.total }} seats{% if largest|length > 1 %} each{% endif %}</p>
+    <p class="sw-vote__note">{% if largest|length > 1 %}Tied for the most seats on the municipal council{% else %}Largest party on the municipal council, {% if council.has_majority %}with{% else %}without{% endif %} a majority{% endif %}</p>
+  </div>
+  {% endwith %}
+  {% endif %}
+</div>
+<dl class="sw-facts">
+  <div><dt>Voting station</dt><dd>{{ district.station|title }}</dd></div>
+  <div><dt>Municipality</dt><dd>{{ district.place }}</dd></div>
+  <div><dt>Province</dt><dd>{{ district.province }}</dd></div>
+  <div><dt>Voting district</dt><dd>{{ district.number }}</dd></div>
+  <div><dt>Turnout</dt><dd>{{ district.turnout|floatformat:1 }}%</dd></div>
+</dl>
+<h4 class="sw-subhead">Votes in this voting district, 2024</h4>
+<ol class="sw-bars" aria-label="Share of the vote, biggest first">
+  {% for party, percent in results|slice:":6" %}
+  <li class="sw-p-{{ party|slugify }}"><span class="sw-bars__party">{{ party }}</span><span class="sw-bars__track"><span class="sw-bars__fill" style="width: {{ percent|stringformat:'.1f' }}%"></span></span><span class="sw-bars__value">{{ percent|floatformat:1 }}%</span></li>
+  {% endfor %}
+</ol>
+{% if council %}
+<h4 class="sw-subhead">Seats on the {{ council.name }} council, {{ council.year }}</h4>
+<ol class="sw-bars" aria-label="Seats on the council, most first">
+  {% for party, seats in council.ranked|slice:":6" %}
+  <li class="sw-p-{{ party|slugify }}"><span class="sw-bars__party">{{ party }}</span><span class="sw-bars__track"><span class="sw-bars__fill" style="width: {% widthratio seats council.total 100 %}%"></span></span><span class="sw-bars__value">{{ seats }}</span></li>
+  {% endfor %}
+</ol>
+{% endif %}
+<p class="sw-source">Votes: national ballot, 2024 general election.{% if council %} Seats: {{ council.year }} local government elections.{% endif %} Source: IEC.{% if puzzle %} <a href="{{ puzzle.maps_url }}" target="_blank" rel="noopener">See the spot on Google Maps</a>{% endif %}</p>
+{% endwith %}

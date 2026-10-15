@@ -8,6 +8,7 @@ from crossword.models import Crossword
 from groupup.models import GroupUp
 from puzzles.teasers import grid_preview, sudoku_tile, target_tile
 from quizzes.models import Quiz
+from streetwise.models import Streetwise
 from sudoku.models import Sudoku
 from target.models import Target
 
@@ -86,6 +87,26 @@ def _target(request):
     }
 
 
+def _streetwise(request):
+    """The newest published Streetwise: its number and date, nothing more.
+
+    The panorama is left out along with the result: where the street is
+    goes most of the way to how it voted.
+    """
+    puzzle = Streetwise.objects.published().order_by("-published").first()
+    archive = request.build_absolute_uri(reverse("streetwise:list"))
+    if puzzle is None:
+        return {"available": False, "archive_url": archive}
+    return {
+        "available": True,
+        "url": request.build_absolute_uri(puzzle.get_absolute_url()),
+        "archive_url": archive,
+        "title": f"Streetwise #{puzzle.number()}",
+        "number": puzzle.number(),
+        "published": puzzle.published.isoformat(),
+    }
+
+
 def _quiz(request):
     """The newest published news quiz: its name and blurb.
 
@@ -133,6 +154,7 @@ PUZZLES = {
     "quiz": _quiz,
     "sudoku": _sudoku,
     "target": _target,
+    "streetwise": _streetwise,
 }
 
 

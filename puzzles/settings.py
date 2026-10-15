@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "sudoku",
     "target",
     "groupup",
+    "streetwise",
 ]
 
 MIDDLEWARE = [
@@ -187,5 +188,9 @@ STATIC_ROOT = BASE_DIR / "static"
 # way the news site does; it is written here.
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Streetwise's panoramas, through the Maps Embed API. Set the real key in
+# local_settings.py.
+GOOGLE_MAPS_EMBED_KEY = ""
 
 from .local_settings import *

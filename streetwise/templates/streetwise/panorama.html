@@ -1,0 +1,9 @@
+{% comment %}The panorama, cropped at the top: the embed pins an address
+card there that would give the game away. Google's logo, copyright and
+terms sit along the bottom, and stay in view. No allowfullscreen, since
+full screen would bring the card back. Not lazy-loaded: on the game page it
+loads while the player reads the rules. Until it has, streetwise.css covers
+the box with a loading screen.{% endcomment %}
+<div class="sw-pano">
+  <iframe src="{{ puzzle.embed_url }}" title="Street View. Drag to look around." referrerpolicy="no-referrer-when-downgrade" onload="this.parentNode.classList.add('is-loaded')"></iframe>
+</div>
