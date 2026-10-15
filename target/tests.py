@@ -1,5 +1,9 @@
+import os
+import tempfile
+
+from django.conf import settings
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.test import Client
 from django.urls import reverse
 from target import models
@@ -9,6 +13,9 @@ from django.utils import timezone
 # Create your tests here.
 
 
+# Saving a Target draws its image into MEDIA_ROOT; keep the tests' out of
+# the real one.
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
 class URLSWork(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -44,6 +51,12 @@ class URLSWork(TestCase):
         url = reverse("target:delete", args=(target.pk,))
         response = c.get(url)
         self.assertEqual(response.status_code, 200)
+
+    def test_saving_a_target_draws_its_image(self):
+        target = models.Target.objects.get()
+        path = os.path.join(settings.MEDIA_ROOT, "targets",
+                            "target_" + str(target.pk) + ".png")
+        self.assertTrue(os.path.exists(path))
 
 
 class TargetRules(TestCase):

@@ -5,7 +5,6 @@ from django.shortcuts import render
 from django.views import generic
 from . import models
 from target.target import makeTarget
-from target.utils import saveTargetImage
 from django import forms
 from django.http import HttpResponseRedirect, Http404
 from django.urls import reverse, reverse_lazy
@@ -142,7 +141,6 @@ class TargetUpdate(PermissionRequiredMixin, generic.edit.UpdateView):
 
         if self.request.method == 'POST':
             fv = super().form_valid(form)
-            saveTargetImage(list(self.object.letters.upper()), self.object.pk)
             messages.add_message(self.request, messages.INFO, "Target saved")
             if self.request.POST.get("save_continue"):
                 return HttpResponseRedirect(reverse_lazy("target:update",

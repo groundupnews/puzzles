@@ -4,8 +4,10 @@ Worth pinning down: a teaser never carries the answer, and an
 unpublished puzzle is never announced.
 """
 
+import tempfile
+
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -78,6 +80,9 @@ def make_quiz(days=-1, **kwargs):
     return Quiz.objects.create(**defaults)
 
 
+# Saving a Target draws its image into MEDIA_ROOT; keep the tests' out of
+# the real one.
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
 class PuzzlesApiTest(TestCase):
 
     def puzzles(self):
