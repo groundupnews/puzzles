@@ -10,6 +10,9 @@ from django.urls import reverse
 from django.utils import timezone
 
 from crossword.models import Crossword
+from groupup.models import GroupUp
+from groupup.tests import published_puzzle as make_groupup
+from quizzes.models import Question, Quiz
 from sudoku.models import Sudoku
 from target.models import Target
 
@@ -66,6 +69,15 @@ def make_target(days=-1, **kwargs):
     return Target.objects.create(**defaults)
 
 
+def make_quiz(days=-1, **kwargs):
+    defaults = dict(
+        name="Test quiz",
+        published=timezone.now() + timezone.timedelta(days=days),
+    )
+    defaults.update(kwargs)
+    return Quiz.objects.create(**defaults)
+
+
 class PuzzlesApiTest(TestCase):
 
     def puzzles(self):
@@ -89,6 +101,8 @@ class PuzzlesApiTest(TestCase):
         make_crossword()
         make_sudoku()
         make_target()
+        make_quiz()
+        make_groupup()
         puzzles = self.puzzles()
         for puzzle in puzzles.values():
             self.assertTrue(puzzle["url"].startswith("http"), puzzle["url"])
@@ -149,6 +163,32 @@ class PuzzlesApiTest(TestCase):
         self.assertNotIn("words", target)
         self.assertNotIn("practical", self.client.get(reverse("api_puzzles")).content.decode())
 
+    def test_quiz_teaser_carries_no_questions(self):
+        quiz = make_quiz(description="This week's news.")
+        Question.objects.create(quiz=quiz, question="Who won?", order=1)
+        teaser = self.puzzles()["quiz"]
+        self.assertEqual(teaser["title"], "Test quiz")
+        self.assertEqual(teaser["description"], "This week's news.")
+        self.assertIn(reverse("quiz_solve", args=[quiz.pk]), teaser["url"])
+        self.assertNotIn("Who won?", self.client.get(reverse("api_puzzles")).content.decode())
+
+    def test_groupup_teaser_carries_no_words_and_no_groups(self):
+        groupup = make_groupup(name="Week one")
+        teaser = self.puzzles()["groupup"]
+        self.assertEqual(teaser["title"], "Week one")
+        self.assertIn(reverse("groupup:solve", args=[groupup.pk]), teaser["url"])
+        self.assertNotIn("groups", teaser)
+        body = self.client.get(reverse("api_puzzles")).content.decode()
+        for spoiler in ["Rivers", "Tugela", "Constitutional", "Diaper"]:
+            self.assertNotIn(spoiler, body)
+
+    def test_unpublished_quizzes_and_groupups_are_not_announced(self):
+        make_quiz(days=7)
+        GroupUp.objects.create(published=timezone.now() + timezone.timedelta(days=7))
+        puzzles = self.puzzles()
+        self.assertFalse(puzzles["quiz"]["available"])
+        self.assertFalse(puzzles["groupup"]["available"])
+
     def test_one_puzzle_can_be_fetched_on_its_own(self):
         make_sudoku()
         response = self.client.get(reverse("api_puzzle", args=["sudoku"]))
@@ -156,7 +196,6 @@ class PuzzlesApiTest(TestCase):
         self.assertEqual(response.json()["title"], "Sudoku #1234")
 
     def test_a_puzzle_we_do_not_serve_is_a_404(self):
-        # Quizzes aren't launched yet.
         self.assertEqual(
-            self.client.get(reverse("api_puzzle", args=["quiz"])).status_code, 404
+            self.client.get(reverse("api_puzzle", args=["chess"])).status_code, 404
         )

@@ -5,7 +5,9 @@ from django.urls import reverse
 from django.utils import timezone
 
 from crossword.models import Crossword
+from groupup.models import GroupUp
 from puzzles.teasers import grid_preview, sudoku_tile, target_tile
+from quizzes.models import Quiz
 from sudoku.models import Sudoku
 from target.models import Target
 
@@ -84,8 +86,51 @@ def _target(request):
     }
 
 
+def _quiz(request):
+    """The newest published news quiz: its name and blurb.
+
+    The questions and answers are deliberately not served.
+    """
+    quiz = Quiz.objects.published().order_by("-published").first()
+    archive = request.build_absolute_uri(reverse("quiz_select"))
+    if quiz is None:
+        return {"available": False, "archive_url": archive}
+    return {
+        "available": True,
+        "url": request.build_absolute_uri(reverse("quiz_solve", args=[quiz.pk])),
+        "archive_url": archive,
+        "title": quiz.name or "News Quiz",
+        "description": quiz.description,
+        "published": quiz.published.isoformat(),
+    }
+
+
+def _groupup(request):
+    """The newest published GroupUp: its name and blurb.
+
+    `groups` holds the words and their groupings -- the whole answer --
+    and is deliberately not served.
+    """
+    groupup = GroupUp.objects.published().order_by("-published").first()
+    archive = request.build_absolute_uri(reverse("groupup:list"))
+    if groupup is None:
+        return {"available": False, "archive_url": archive}
+    return {
+        "available": True,
+        "url": request.build_absolute_uri(
+            reverse("groupup:solve", args=[groupup.pk])
+        ),
+        "archive_url": archive,
+        "title": groupup.name or "GroupUp",
+        "description": groupup.description,
+        "published": groupup.published.isoformat(),
+    }
+
+
 PUZZLES = {
     "crossword": _crossword,
+    "groupup": _groupup,
+    "quiz": _quiz,
     "sudoku": _sudoku,
     "target": _target,
 }
