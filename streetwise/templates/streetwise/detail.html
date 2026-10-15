@@ -48,6 +48,7 @@
     {% if puzzle.published %} &middot; {{ puzzle.published|date:"j F Y" }}{% endif %}
     &middot; IEC national-ballot results
   {% endspaceless %}</p>
+  <a class="gu-splash__archive" href="{% url 'streetwise:list' %}">Past Streetwise puzzles &rsaquo;</a>
 </section>
 
 <div class="sw-game" inert>

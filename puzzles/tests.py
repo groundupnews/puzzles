@@ -15,7 +15,7 @@ from crossword.models import Crossword
 from groupup.models import GroupUp
 from groupup.tests import published_puzzle as make_groupup
 from quizzes.models import Question, Quiz
-from streetwise.tests import make_puzzle as make_streetwise
+from streetwise.tests import make_district, make_puzzle as make_streetwise
 from sudoku.models import Sudoku
 from target.models import Target
 
@@ -229,6 +229,7 @@ class GameRootTest(TestCase):
             make(days=1)
             return puzzle
 
+        district = make_district()  # Streetwise's puzzles share one
         for root, puzzle, detail in [
             ("crossword_latest", newest(make_crossword), "crossword_solve"),
             ("quiz_latest", newest(lambda days: Quiz.objects.create(
@@ -237,6 +238,8 @@ class GameRootTest(TestCase):
                 published=timezone.now() + timezone.timedelta(days=days))), "groupup:solve"),
             ("target:latest", newest(lambda days: make_target(
                 days, letters=f"target{days + 5:03}")), "target:detail"),
+            ("streetwise:latest", newest(lambda days: make_streetwise(
+                days, district=district)), "streetwise:detail"),
         ]:
             with self.subTest(root):
                 self.assertRedirects(
@@ -259,6 +262,7 @@ class GameRootTest(TestCase):
             ("groupup:latest", "groupup:list"),
             ("target:latest", "target:list"),
             ("sudoku:latest", "sudoku:list"),
+            ("streetwise:latest", "streetwise:list"),
         ]:
             with self.subTest(root):
                 self.assertRedirects(self.client.get(reverse(root)), reverse(archive))

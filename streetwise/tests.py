@@ -145,7 +145,7 @@ class PublicationTest(TestCase):
         self.assertEqual(self.client.get(url).status_code, 200)
 
     def test_latest_goes_to_the_newest_published_puzzle(self):
-        self.assertEqual(self.client.get(reverse("streetwise:latest")).status_code, 404)
+        self.assertRedirects(self.client.get(reverse("streetwise:latest")), reverse("streetwise:list"))
         district = make_district()
         make_puzzle(days=-2, district=district)
         newest = make_puzzle(days=-1, district=district)

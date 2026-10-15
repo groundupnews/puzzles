@@ -88,6 +88,7 @@ def state(puzzle, guesses):
 class StreetwiseListView(ListView):
     template_name = "streetwise/list.html"
     context_object_name = "puzzles"
+    paginate_by = 20
 
     def get_queryset(self):
         if self.request.user.is_staff:
@@ -103,9 +104,11 @@ class StreetwiseListView(ListView):
 
 
 def latest(request):
+    """The newest published Streetwise: what /streetwise/ opens on. The
+    archive instead, while there isn't one yet."""
     puzzle = Streetwise.objects.published().order_by("-published").first()
     if puzzle is None:
-        raise Http404
+        return redirect("streetwise:list")
     return redirect("streetwise:detail", pk=puzzle.pk)
 
 
