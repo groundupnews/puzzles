@@ -70,7 +70,6 @@ def games_hub(request):
             "sudoku_tile": sudoku_tile(sudoku),
             "preview": grid_preview(crossword) if crossword else None,
             "greeting": _greeting(now),
-            "today": now,
             "game_count": len(games),
             "puzzle_count": sum(puzzles.count() for puzzles in games),
         },

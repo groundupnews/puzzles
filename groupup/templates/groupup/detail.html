@@ -51,6 +51,7 @@
     {% if puzzle.published %} &middot; {{ puzzle.published|date:"j F Y" }}{% endif %}
     {% if puzzle.authors %} &middot; by {{ puzzle.authors }}{% endif %}
   {% endspaceless %}</p>
+  <a class="gu-splash__archive" href="{% url 'groupup:list' %}">Past GroupUps &rsaquo;</a>
 </section>
 
 <div id="gp-game">

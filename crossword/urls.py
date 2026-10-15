@@ -4,7 +4,8 @@ from . import views
 
 urlpatterns = [
     path("new/", views.CrosswordCreateView.as_view(), name="crossword_add"),
-    path("", views.CrosswordSelectView.as_view(), name="crossword_select"),
+    path("", views.crossword_latest, name="crossword_latest"),
+    path("archive/", views.CrosswordSelectView.as_view(), name="crossword_select"),
     path("<int:pk>/solve/", views.crossword_solve, name="crossword_solve"),
     path("private/<str:private_link>/", views.crossword_private_solve, name="crossword_private_solve"),
     path("private/<str:private_link>/check/", views.crossword_private_check, name="crossword_private_check"),

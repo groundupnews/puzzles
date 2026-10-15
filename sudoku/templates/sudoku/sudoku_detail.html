@@ -3,7 +3,7 @@
 
 {% block title %}Sudoku {{ sudoku.number|default:sudoku.pk }}{% endblock %}
 {% block body_class %}game-sudoku sd-solve is-splash{% endblock %}
-{% block head %}<link rel="stylesheet" href="{% static 'sudoku/sudoku.css' %}?v=16">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'sudoku/sudoku.css' %}?v=17">{% endblock %}
 {% block main_class %}gu-page sd-page{% endblock %}
 
 {% block chrome %}
@@ -44,6 +44,7 @@
     {% if sudoku.number %}No. {{ sudoku.number }} &middot; {% endif %}{{ sudoku.get_difficulty_display }}
     {% if sudoku.published %} &middot; {{ sudoku.published|date:"j F Y" }}{% endif %}
   {% endspaceless %}</p>
+  <a class="gu-splash__archive" href="{% url 'sudoku:list' %}">Past sudokus &rsaquo;</a>
 </section>
 
 <div class="gu-screen-head">

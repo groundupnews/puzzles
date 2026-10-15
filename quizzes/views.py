@@ -27,6 +27,15 @@ def quiz_add(request):
     return redirect("quiz_edit", pk=quiz.pk)
 
 
+def quiz_latest(request):
+    """The newest published quiz: what /quizzes/ opens on. The archive
+    instead, while there isn't one yet."""
+    quiz = Quiz.objects.published().order_by("-published").first()
+    if quiz is None:
+        return redirect("quiz_select")
+    return redirect("quiz_solve", pk=quiz.pk)
+
+
 class QuizSelectView(ListView):
     """List quizzes.
 
@@ -42,17 +51,13 @@ class QuizSelectView(ListView):
     # Newest edition first, as in the other archives. Drafts have no
     # publication date, so put them on top, where a generator wants them.
     ordering = [F("published").desc(nulls_first=True), "-date_modified"]
+    paginate_by = 20
 
     def get_queryset(self):
         qs = super().get_queryset()
         if not self.request.user.has_perm(PERM):
             qs = qs.published()
         return qs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["latest"] = Quiz.objects.published().order_by("-published").first()
-        return context
 
 
 @permission_required(PERM)
@@ -247,11 +252,10 @@ def quiz_import(request):
 def quiz_export(request, pk):
     """Return the quiz as a downloadable JSON file, in exactly the shape
     quiz_import/import_quiz_from_json expect -- so an exported file can be
-    re-imported unchanged. Unlike crossword_xd's export (deliberately open
-    to everyone), this is gated behind the generate permission: the export
-    format includes which answer is correct for every question, the one
-    thing quiz_solve/quiz_check are careful never to hand a solver up
-    front.
+    re-imported unchanged. Like crossword_xd's export, this is gated
+    behind the generate permission: the export format includes which
+    answer is correct for every question, the one thing
+    quiz_solve/quiz_check are careful never to hand a solver up front.
     """
     quiz = get_object_or_404(Quiz, pk=pk)
     data = {

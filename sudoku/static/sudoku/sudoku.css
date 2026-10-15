@@ -567,21 +567,6 @@ body.game-sudoku {
   cursor: pointer;
 }
 
-.sd-pager {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-top: 20px;
-}
-
-.sd-pager a {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--gu-link);
-  text-decoration: none;
-}
-
 /* --- Teaser, for embedding the puzzle in another page --- */
 
 .sd-teaser {

@@ -48,6 +48,7 @@
     {% if quiz.published %} &middot; {{ quiz.published|date:"j F Y" }}{% endif %}
     {% if quiz.authors %} &middot; by {{ quiz.authors }}{% endif %}
   {% endspaceless %}</p>
+  <a class="gu-splash__archive" href="{% url 'quiz_select' %}">Past quizzes &rsaquo;</a>
 </section>
 {% endif %}
 

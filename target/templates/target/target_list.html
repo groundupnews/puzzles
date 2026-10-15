@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-    Target puzzles {{block.super}}
+    Target archive {{block.super}}
 {% endblock %}
 
 {% block body_class %}game-target{% endblock %}
@@ -57,26 +57,19 @@
      #target-list td a:hover {
          text-decoration: underline;
      }
-     .target-pager {
-         display: flex;
-         justify-content: space-between;
-         align-items: center;
-         gap: 16px;
-         margin-top: 20px;
-         font-size: 14px;
-     }
-     .target-pager a {
-         font-weight: 600;
-         color: var(--gu-link);
-         text-decoration: none;
-     }
     </style>
 {% endblock %}
 
 {% block content %}
     <div id="content-area">
         <div id="target-list">
-            <h1>Target puzzles</h1>
+            <div class="gu-screen-head">
+                <div>
+                    <h1>Target archive</h1>
+                    <div class="gu-dateline">A new Target every Monday and Friday.</div>
+                </div>
+                <a class="gu-badge gu-badge--link" href="{% url 'target:latest' %}">Play the latest &rsaquo;</a>
+            </div>
 
             {% if  perms.target.add_target %}
                 <p>
@@ -119,7 +112,14 @@
                         </th>
                     {% endif %}
                 </tr>
-                {% for target in object_list %}
+                {% regroup object_list by published|date:"F Y" as months %}
+                {% for month in months %}
+                    <tr class="archive-month">
+                        <th colspan="{% if perms.target.change_target %}5{% else %}4{% endif %}">
+                            {{ month.grouper|default:"Unpublished" }}
+                        </th>
+                    </tr>
+                {% for target in month.list %}
 
                     <tr>
                         <td>
@@ -128,7 +128,7 @@
                             </a>
                         </td>
                         <td>
-                            {{ target.published|date:"Y-m-d" }}
+                            {{ target.published|date:"D j M" }}
                         </td>
                         <td>
                             {% if  perms.target.change_target %}
@@ -150,15 +150,10 @@
                     </tr>
 
                 {% endfor %}
+                {% endfor %}
             </table>
             </div>
-            {% if is_paginated %}
-                <nav class="target-pager">
-                    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">&lsaquo; Newer</a>{% else %}<span></span>{% endif %}
-                    <span class="gu-dateline">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-                    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Older &rsaquo;</a>{% else %}<span></span>{% endif %}
-                </nav>
-            {% endif %}
+            {% include "pager.html" %}
 
         </div>
     </div>

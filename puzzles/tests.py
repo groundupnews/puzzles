@@ -214,3 +214,51 @@ class PuzzlesApiTest(TestCase):
         self.assertEqual(
             self.client.get(reverse("api_puzzle", args=["chess"])).status_code, 404
         )
+
+
+# As above: GameRootTest saves Targets too.
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+class GameRootTest(TestCase):
+    """/crossword/, /target/ and the rest open on the newest published
+    puzzle; each game's list of past puzzles is under archive/."""
+
+    def test_each_game_opens_on_its_newest_published_puzzle(self):
+        def newest(make):
+            make(days=-2)
+            puzzle = make(days=-1)
+            make(days=1)
+            return puzzle
+
+        for root, puzzle, detail in [
+            ("crossword_latest", newest(make_crossword), "crossword_solve"),
+            ("quiz_latest", newest(lambda days: Quiz.objects.create(
+                published=timezone.now() + timezone.timedelta(days=days))), "quiz_solve"),
+            ("groupup:latest", newest(lambda days: GroupUp.objects.create(
+                published=timezone.now() + timezone.timedelta(days=days))), "groupup:solve"),
+            ("target:latest", newest(lambda days: make_target(
+                days, letters=f"target{days + 5:03}")), "target:detail"),
+        ]:
+            with self.subTest(root):
+                self.assertRedirects(
+                    self.client.get(reverse(root)),
+                    reverse(detail, args=[puzzle.pk]),
+                    fetch_redirect_response=False,
+                )
+
+    def test_sudoku_opens_on_its_newest_published_puzzle(self):
+        # A sudoku's givens are unique, so vary the last one.
+        make_sudoku(days=-2, puzzle=PUZZLE[:-1] + "1")
+        sudoku = make_sudoku(days=-1)
+        make_sudoku(days=1, puzzle=PUZZLE[:-1] + "2")
+        self.assertEqual(self.client.get(reverse("sudoku:latest")).context["sudoku"], sudoku)
+
+    def test_a_game_with_nothing_published_opens_its_archive(self):
+        for root, archive in [
+            ("crossword_latest", "crossword_select"),
+            ("quiz_latest", "quiz_select"),
+            ("groupup:latest", "groupup:list"),
+            ("target:latest", "target:list"),
+            ("sudoku:latest", "sudoku:list"),
+        ]:
+            with self.subTest(root):
+                self.assertRedirects(self.client.get(reverse(root)), reverse(archive))

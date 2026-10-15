@@ -394,6 +394,7 @@
 
         <button id="gu-start" class="gu-btn gu-splash__start" type="button">Start</button>
         <p class="gu-splash__meta">Target # {{ target.number }} &middot; {{ target.published|date:"j F Y" }}</p>
+        <a class="gu-splash__archive" href="{% url 'target:list' %}">Past Targets &rsaquo;</a>
     </section>
 
     <audio id="sound-button-press">
