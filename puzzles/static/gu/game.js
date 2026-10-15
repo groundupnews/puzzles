@@ -124,6 +124,25 @@ window.GU = (() => {
     return { show, skip };
   }
 
+  // --- Sharing ---
+  // The phone's share sheet where there is one, otherwise the clipboard,
+  // with the button saying which happened.
+  async function share(button, text) {
+    const label = button.textContent;
+    try {
+      if (navigator.share && window.matchMedia("(pointer: coarse)").matches) {
+        await navigator.share({ text });
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      button.textContent = "Copied to clipboard";
+    } catch (error) {
+      if (error.name === "AbortError") return;
+      button.textContent = "Couldn't share. Try again.";
+    }
+    setTimeout(() => (button.textContent = label), 2000);
+  }
+
   return {
     reducedMotion,
     soundOn: () => soundOn,
@@ -132,5 +151,6 @@ window.GU = (() => {
     confetti,
     win,
     splash,
+    share,
   };
 })();

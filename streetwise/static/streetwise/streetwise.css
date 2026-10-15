@@ -1,0 +1,424 @@
+.sw-page {
+  max-width: 84rem;
+}
+
+.sw-game {
+  display: grid;
+  gap: 24px;
+}
+
+/* While the splash is up, the game stays laid out, just out of sight, so
+   the panorama loads behind it. Street View only fetches its imagery once
+   it's drawn at a size, which groundup.css's display: none (or visibility:
+   hidden) would stop. The page also makes the game inert until Start. */
+body.is-splash main > div.sw-game {
+  display: grid;
+  position: fixed;
+  inset: 0 0 auto;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The panorama box. The iframe is taller than the box and pulled up, so
+   the box's top edge cuts off the address card the embed pins to its
+   top-left corner. Nothing is laid over the iframe, and the bottom edge,
+   where Google's logo, copyright and terms sit, is left alone. Also used
+   by the admin's preview, hence the fallbacks for the game colours. */
+.sw-pano {
+  --sw-crop: 76px;
+  position: relative;
+  overflow: hidden;
+  height: min(72vh, 640px);
+  background: #1b2226;
+  border-top: 4px solid var(--game, #475569);
+}
+
+/* The admin's preview sits in a flex row that would leave it no width. */
+.field-preview .sw-pano {
+  width: 720px;
+  max-width: 100%;
+  height: 420px;
+}
+
+/* A loading screen over the box until Google's page has loaded, when the
+   iframe's onload marks the box is-loaded (panorama.html) and it goes. */
+.sw-pano::before {
+  content: "Loading Streetwise...";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 60px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #cfd6d8;
+  background: #1b2226;
+}
+
+.sw-pano::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  width: 34px;
+  height: 34px;
+  margin: -30px 0 0 -17px;
+  border: 3px solid rgb(255 255 255 / 0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: sw-spin 0.9s linear infinite;
+}
+
+.sw-pano.is-loaded::before,
+.sw-pano.is-loaded::after {
+  content: none;
+}
+
+@keyframes sw-spin {
+  to { transform: rotate(1turn); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sw-pano::after { animation: none; }
+}
+
+.sw-pano iframe {
+  position: absolute;
+  top: calc(-1 * var(--sw-crop));
+  left: 0;
+  width: 100%;
+  height: calc(100% + var(--sw-crop));
+  border: 0;
+}
+
+/* Each party's colour, and the colour of text on it, set on whatever shows
+   the party: a button, a chip, a bar. ANC, MK, the PA and ActionSA all
+   campaign in green, so they're told apart by shade, with MK in black,
+   another of its colours. Any other party is grey. */
+.sw-p-anc      { --party: #006b3f; --party-ink: #fff; }
+.sw-p-da       { --party: #005ba6; --party-ink: #fff; }
+.sw-p-mk       { --party: #1c1c1c; --party-ink: #fff; }
+.sw-p-eff      { --party: #b5121b; --party-ink: #fff; }
+.sw-p-ifp      { --party: #c2410c; --party-ink: #fff; }
+.sw-p-pa       { --party: #6cb33f; --party-ink: #111; }
+.sw-p-actionsa { --party: #00796b; --party-ink: #fff; }
+.sw-p-vf-plus  { --party: #f7941d; --party-ink: #111; }
+
+.sw-chip {
+  display: inline-block;
+  padding: 1px 7px;
+  font-weight: 700;
+  color: var(--party-ink, #fff);
+  background: var(--party, #6b7280);
+  border-radius: 3px;
+}
+
+.sw-question {
+  margin: 0 0 16px;
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+.sw-parties {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+}
+
+.sw-party {
+  position: relative;
+}
+
+/* The radio stays in place, invisible, so the group keeps its keyboard
+   handling: Tab in, arrows to move. */
+.sw-party input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.sw-party span {
+  display: block;
+  padding: 11px 4px;
+  text-align: center;
+  font-weight: 700;
+  background: var(--gu-white);
+  border: 1.5px solid var(--gu-border-strong);
+  border-left: 6px solid var(--party, #6b7280);
+  border-radius: 4px;
+}
+
+.sw-party:hover span {
+  border-color: var(--party, #6b7280);
+}
+
+.sw-party input:checked + span {
+  color: var(--party-ink, #fff);
+  background: var(--party, #6b7280);
+  border-color: var(--party, #6b7280);
+}
+
+.sw-party input:focus-visible + span {
+  outline: 2px solid var(--game-deep);
+  outline-offset: 2px;
+}
+
+.sw-percent {
+  margin: 0 0 18px;
+}
+
+.sw-percent__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.sw-percent output {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--game-deep);
+  font-variant-numeric: tabular-nums;
+}
+
+.sw-percent input {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--game);
+}
+
+.sw-submit {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sw-submit .gu-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.sw-left {
+  font-size: 14px;
+  color: var(--gu-gray-500);
+}
+
+.sw-message {
+  min-height: 1.4em;
+  margin: 10px 0 0;
+  font-weight: 600;
+}
+
+.sw-guesses {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sw-guess {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 0;
+}
+
+.sw-guess__pick {
+  min-width: 8.5em;
+  font-weight: 700;
+}
+
+.sw-guess__verdict {
+  font-size: 14px;
+  color: var(--gu-gray-500);
+}
+
+.sw-hints {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  background: var(--game-soft);
+}
+
+.sw-hints:empty {
+  display: none;
+}
+
+.sw-hints dt {
+  align-self: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--game-deep);
+}
+
+.sw-hints dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.sw-result {
+  padding: 18px 18px 20px;
+  border: 1px solid var(--gu-border-warm);
+  border-top: 4px solid var(--game);
+}
+
+.sw-result__title {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.sw-heading {
+  margin: 0 0 10px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--game-deep, #334155);
+}
+
+.sw-votes {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.sw-vote {
+  padding: 10px 12px;
+  background: var(--game-soft, #eef1f5);
+}
+
+.sw-vote__label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sw-vote__result {
+  margin: 4px 0;
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sw-vote__note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--gu-gray-500, #6b7280);
+}
+
+.sw-subhead {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+.sw-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 14px;
+  margin: 0 0 16px;
+  font-size: 14px;
+}
+
+.sw-facts div {
+  display: contents;
+}
+
+.sw-facts dt {
+  color: var(--gu-gray-500, #6b7280);
+}
+
+.sw-facts dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.sw-bars {
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.sw-bars li {
+  display: grid;
+  grid-template-columns: 7.5em minmax(0, 1fr) 3.5em;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border: 0;
+  font-size: 14px;
+}
+
+.sw-bars__party {
+  overflow: hidden;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sw-bars__track {
+  height: 14px;
+  background: var(--game-soft, #eef1f5);
+}
+
+.sw-bars__fill {
+  display: block;
+  height: 100%;
+  background: var(--party, #9ca3af);
+}
+
+.sw-bars__value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sw-source {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--gu-gray-500, #6b7280);
+}
+
+.sw-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Wide screens: the panorama, with the guessing beside it. */
+@media (min-width: 900px) {
+  .sw-game {
+    grid-template-columns: minmax(0, 1fr) 22rem;
+    align-items: start;
+  }
+}
+
+/* Phones: the panorama runs edge to edge and takes a little under half the
+   screen, leaving the party buttons in reach below it. */
+@media (max-width: 640px) {
+  .sw-page {
+    padding-top: 0;
+  }
+
+  .sw-pano {
+    height: 46vh;
+    height: 46dvh;
+    margin: 0 -16px;
+  }
+
+  .sw-question {
+    font-size: 18px;
+  }
+}

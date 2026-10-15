@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Streetwise archive{% endblock %}
+{% block body_class %}game-streetwise{% endblock %}
+
+{% block content %}
+<div class="gu-screen-head">
+  <div>
+    <h1>Streetwise archive</h1>
+    <div class="gu-dateline">Every Streetwise so far, newest first.</div>
+  </div>
+  {% if request.user.is_staff %}<a class="gu-badge gu-badge--link" href="{% url 'admin:streetwise_streetwise_changelist' %}">Edit in the admin &rsaquo;</a>
+  {% else %}<a class="gu-badge gu-badge--link" href="{% url 'streetwise:latest' %}">Play the latest &rsaquo;</a>{% endif %}
+</div>
+{% if puzzles %}
+<div class="table-wrap">
+<table class="crossword-table">
+  <thead>
+    <tr>
+      <th>Puzzle</th>
+      <th>Published</th>
+      {% if request.user.is_staff %}<th>Voting district</th>{% endif %}
+    </tr>
+  </thead>
+  <tbody>
+    {% regroup puzzles by published|date:"F Y" as months %}
+    {% for month in months %}
+    <tr class="archive-month"><th colspan="{% if request.user.is_staff %}3{% else %}2{% endif %}">{{ month.grouper|default:"Unpublished" }}</th></tr>
+    {% for puzzle in month.list %}
+    <tr>
+      <td class="cw-name"><a href="{{ puzzle.get_absolute_url }}">{% if puzzle.num %}Streetwise #{{ puzzle.num }}{% else %}Streetwise ({{ puzzle.pk }}){% endif %}</a></td>
+      <td>
+        {% if puzzle.rejected %}
+        <span class="status-unpublished">Rejected</span>
+        {% elif puzzle.published %}
+        <span class="{% if puzzle.is_published %}status-published{% else %}status-unpublished{% endif %}">{{ puzzle.published|date:"D j M" }}</span>
+        {% else %}
+        <span class="status-unpublished">Unpublished</span>
+        {% endif %}
+      </td>
+      {% if request.user.is_staff %}<td>{{ puzzle.district }}</td>{% endif %}
+    </tr>
+    {% endfor %}
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% include "pager.html" %}
+{% else %}
+<p>No puzzles yet.</p>
+{% endif %}
+{% endblock %}

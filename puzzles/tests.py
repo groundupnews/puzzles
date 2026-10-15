@@ -4,14 +4,18 @@ Worth pinning down: a teaser never carries the answer, and an
 unpublished puzzle is never announced.
 """
 
+import tempfile
+
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from crossword.models import Crossword
 from groupup.models import GroupUp
-from quizzes.models import Quiz
+from groupup.tests import published_puzzle as make_groupup
+from quizzes.models import Question, Quiz
+from streetwise.tests import make_district, make_puzzle as make_streetwise
 from sudoku.models import Sudoku
 from target.models import Target
 
@@ -68,6 +72,18 @@ def make_target(days=-1, **kwargs):
     return Target.objects.create(**defaults)
 
 
+def make_quiz(days=-1, **kwargs):
+    defaults = dict(
+        name="Test quiz",
+        published=timezone.now() + timezone.timedelta(days=days),
+    )
+    defaults.update(kwargs)
+    return Quiz.objects.create(**defaults)
+
+
+# Saving a Target draws its image into MEDIA_ROOT; keep the tests' out of
+# the real one.
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
 class PuzzlesApiTest(TestCase):
 
     def puzzles(self):
@@ -91,6 +107,9 @@ class PuzzlesApiTest(TestCase):
         make_crossword()
         make_sudoku()
         make_target()
+        make_quiz()
+        make_groupup()
+        make_streetwise()
         puzzles = self.puzzles()
         for puzzle in puzzles.values():
             self.assertTrue(puzzle["url"].startswith("http"), puzzle["url"])
@@ -151,6 +170,40 @@ class PuzzlesApiTest(TestCase):
         self.assertNotIn("words", target)
         self.assertNotIn("practical", self.client.get(reverse("api_puzzles")).content.decode())
 
+    def test_streetwise_teaser_carries_no_place_and_no_result(self):
+        make_streetwise()
+        streetwise = self.puzzles()["streetwise"]
+        self.assertEqual(streetwise["title"], "Streetwise #1")
+        body = self.client.get(reverse("api_puzzles")).content.decode()
+        for spoiler in ["Rosmead", "Cape Town", "Western Cape", "97090421", "AbC-dEf", "-33.99", "\"DA\"", "60.0"]:
+            self.assertNotIn(spoiler, body)
+
+    def test_quiz_teaser_carries_no_questions(self):
+        quiz = make_quiz(description="This week's news.")
+        Question.objects.create(quiz=quiz, question="Who won?", order=1)
+        teaser = self.puzzles()["quiz"]
+        self.assertEqual(teaser["title"], "Test quiz")
+        self.assertEqual(teaser["description"], "This week's news.")
+        self.assertIn(reverse("quiz_solve", args=[quiz.pk]), teaser["url"])
+        self.assertNotIn("Who won?", self.client.get(reverse("api_puzzles")).content.decode())
+
+    def test_groupup_teaser_carries_no_words_and_no_groups(self):
+        groupup = make_groupup(name="Week one")
+        teaser = self.puzzles()["groupup"]
+        self.assertEqual(teaser["title"], "Week one")
+        self.assertIn(reverse("groupup:solve", args=[groupup.pk]), teaser["url"])
+        self.assertNotIn("groups", teaser)
+        body = self.client.get(reverse("api_puzzles")).content.decode()
+        for spoiler in ["Rivers", "Tugela", "Constitutional", "Diaper"]:
+            self.assertNotIn(spoiler, body)
+
+    def test_unpublished_quizzes_and_groupups_are_not_announced(self):
+        make_quiz(days=7)
+        GroupUp.objects.create(published=timezone.now() + timezone.timedelta(days=7))
+        puzzles = self.puzzles()
+        self.assertFalse(puzzles["quiz"]["available"])
+        self.assertFalse(puzzles["groupup"]["available"])
+
     def test_one_puzzle_can_be_fetched_on_its_own(self):
         make_sudoku()
         response = self.client.get(reverse("api_puzzle", args=["sudoku"]))
@@ -158,12 +211,13 @@ class PuzzlesApiTest(TestCase):
         self.assertEqual(response.json()["title"], "Sudoku #1234")
 
     def test_a_puzzle_we_do_not_serve_is_a_404(self):
-        # Quizzes aren't launched yet.
         self.assertEqual(
-            self.client.get(reverse("api_puzzle", args=["quiz"])).status_code, 404
+            self.client.get(reverse("api_puzzle", args=["chess"])).status_code, 404
         )
 
 
+# As above: GameRootTest saves Targets too.
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
 class GameRootTest(TestCase):
     """/crossword/, /target/ and the rest open on the newest published
     puzzle; each game's list of past puzzles is under archive/."""
@@ -175,6 +229,7 @@ class GameRootTest(TestCase):
             make(days=1)
             return puzzle
 
+        district = make_district()  # Streetwise's puzzles share one
         for root, puzzle, detail in [
             ("crossword_latest", newest(make_crossword), "crossword_solve"),
             ("quiz_latest", newest(lambda days: Quiz.objects.create(
@@ -183,6 +238,8 @@ class GameRootTest(TestCase):
                 published=timezone.now() + timezone.timedelta(days=days))), "groupup:solve"),
             ("target:latest", newest(lambda days: make_target(
                 days, letters=f"target{days + 5:03}")), "target:detail"),
+            ("streetwise:latest", newest(lambda days: make_streetwise(
+                days, district=district)), "streetwise:detail"),
         ]:
             with self.subTest(root):
                 self.assertRedirects(
@@ -205,6 +262,7 @@ class GameRootTest(TestCase):
             ("groupup:latest", "groupup:list"),
             ("target:latest", "target:list"),
             ("sudoku:latest", "sudoku:list"),
+            ("streetwise:latest", "streetwise:list"),
         ]:
             with self.subTest(root):
                 self.assertRedirects(self.client.get(reverse(root)), reverse(archive))

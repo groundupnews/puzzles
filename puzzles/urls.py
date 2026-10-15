@@ -47,6 +47,7 @@ urlpatterns = [
     path('sudoku/', include('sudoku.urls')),
     path('target/', include('target.urls')),
     path('groupup/', include('groupup.urls')),
+    path('streetwise/', include('streetwise.urls')),
     path('players/', include('players.urls')),
     path('', games_hub, name='home'), ]
 

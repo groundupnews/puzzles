@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from target import target
+from target.utils import saveTargetImage
 from django.utils import timezone
 
 DEFAULT_RULES = """
@@ -103,6 +104,9 @@ class Target(models.Model):
                 number = 1
             self.number = number
         super(Target, self).save(*args, **kwargs)
+        # The picture shown when the puzzle is shared. Made here, not in the
+        # editors' form, so a puzzle saved any way at all has one.
+        saveTargetImage(list(self.letters.upper()), self.pk)
 
     def get_absolute_url(self):
         return reverse('target:detail', args=[self.pk, ])

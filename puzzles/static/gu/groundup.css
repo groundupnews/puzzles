@@ -45,11 +45,14 @@ body.game-quiz      { --game: #d4582f; --game-deep: #b8461f; --game-soft: #fbece
 body.game-sudoku    { --game: #4d57c4; --game-deep: #3b44a8; --game-soft: #ececf8; }
 body.game-target    { --game: #1f8a5b; --game-deep: #19714a; --game-soft: #e7f3ec; }
 body.game-groupup   { --game: #9b3d8f; --game-deep: #7f2f75; --game-soft: #f5e8f3; }
+/* Slate: no party's colour. */
+body.game-streetwise { --game: #475569; --game-deep: #334155; --game-soft: #eef1f5; }
 .theme-crossword    { --game: #00B1F0; --game-deep: #0091c6; --game-soft: #e2f5fd; }
 .theme-target       { --game: #1f8a5b; --game-deep: #1f8a5b; --game-soft: #e7f3ec; }
 .theme-sudoku       { --game: #4d57c4; --game-deep: #4d57c4; --game-soft: #ececf8; }
 .theme-quiz         { --game: #d4582f; --game-deep: #b8461f; --game-soft: #fbece4; }
 .theme-groupup      { --game: #9b3d8f; --game-deep: #7f2f75; --game-soft: #f5e8f3; }
+.theme-streetwise   { --game: #475569; --game-deep: #334155; --game-soft: #eef1f5; }
 
 * { box-sizing: border-box; }
 
@@ -755,6 +758,25 @@ body {
   background: var(--game);
 }
 
+/* A results chart, winner first. */
+.tile-streetwise {
+  width: 118px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tile-streetwise div {
+  height: 14px;
+  background: #fff;
+  border: 1px solid var(--game);
+}
+
+.tile-streetwise div:nth-child(1) { width: 100%; background: var(--game); }
+.tile-streetwise div:nth-child(2) { width: 68%; }
+.tile-streetwise div:nth-child(3) { width: 40%; }
+.tile-streetwise div:nth-child(4) { width: 18%; }
+
 .mini-grid {
   display: grid;
   grid-template-columns: repeat(var(--cols, 5), 1fr);
@@ -944,7 +966,8 @@ body.is-splash main { overflow-y: auto; }
 /* Icons that set their own width, which max-content above would undo. */
 .gu-splash__icon.mini-grid { width: 100px; }
 .gu-splash__icon.tile-sudoku { width: 108px; }
-.gu-splash__icon.tile-quiz { width: 118px; }
+.gu-splash__icon.tile-quiz,
+.gu-splash__icon.tile-streetwise { width: 118px; }
 
 @media (max-width: 640px) {
   .gu-splash { padding: 32px 16px 28px; }

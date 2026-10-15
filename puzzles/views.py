@@ -9,6 +9,7 @@ from crossword.models import Crossword
 from groupup.models import GroupUp
 from puzzles.teasers import grid_preview, sudoku_tile, target_tile
 from quizzes.models import Quiz
+from streetwise.models import Streetwise
 from sudoku.models import Sudoku
 from target.models import Target
 
@@ -48,6 +49,8 @@ def games_hub(request):
     sudokus = Sudoku.objects.published()
     targets = Target.objects.published()
     groupups = GroupUp.objects.published()
+    streetwises = Streetwise.objects.published()
+    games = [crosswords, quizzes, sudokus, targets, groupups, streetwises]
 
     crossword = crosswords.order_by("-published").first()
     sudoku = sudokus.order_by("-published").first()
@@ -60,18 +63,14 @@ def games_hub(request):
             "crossword": crossword,
             "quiz": quizzes.order_by("-published").first(),
             "groupup": groupups.order_by("-published").first(),
+            "streetwise": streetwises.order_by("-published").first(),
             "sudoku": sudoku,
             "target": target,
             "target_tile": target_tile(target),
             "sudoku_tile": sudoku_tile(sudoku),
             "preview": grid_preview(crossword) if crossword else None,
             "greeting": _greeting(now),
-            "puzzle_count": (
-                crosswords.count()
-                + quizzes.count()
-                + sudokus.count()
-                + targets.count()
-                + groupups.count()
-            ),
+            "game_count": len(games),
+            "puzzle_count": sum(puzzles.count() for puzzles in games),
         },
     )

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Streetwise{% if number %} #{{ number }}{% endif %}{% endblock %}
+{% block body_class %}game-streetwise is-splash{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'streetwise/streetwise.css' %}?v=4">{% endblock %}
+
+{% block chrome %}
+<header class="gu-playbar">
+  <div class="gu-playbar__inner">
+    <a class="gu-playbar__back" href="{% url 'home' %}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>Games
+    </a>
+    <a href="https://groundup.org.za/"><img class="gu-playbar__logo" src="{% static 'gu/logo-white.svg' %}" alt="GroundUp"></a>
+    <div class="gu-playbar__status">
+      <span>Streetwise{% if number %} #{{ number }}{% endif %}</span>
+      <button id="gu-rules-btn" class="gu-dark-btn" type="button" title="How to play" aria-label="How to play"><i class="fa-solid fa-circle-question"></i></button>
+      <button class="gu-dark-btn gu-sound-btn" type="button" title="Sound" aria-label="Sound" aria-pressed="true"><i class="fa-solid fa-volume-high"></i></button>
+      {% if request.user.is_staff %}
+      <a class="gu-dark-btn" href="{% url 'admin:streetwise_streetwise_change' puzzle.pk %}" title="Edit puzzle" aria-label="Edit puzzle"><i class="fa-solid fa-pen"></i></a>
+      {% endif %}
+    </div>
+  </div>
+</header>
+{% endblock %}
+
+{% block main_class %}gu-page sw-page{% endblock %}
+
+{% block content %}
+<section class="gu-splash">
+  <div class="tile-streetwise gu-splash__icon" aria-hidden="true"><div></div><div></div><div></div><div></div></div>
+  <h1 class="gu-splash__title">Streetwise</h1>
+  <p class="gu-splash__tagline">Look around. Which party won here?</p>
+
+  <div class="gu-splash__rules">
+    <h2>How to play</h2>
+    <ul>
+      <li>Look around the street: drag the picture, and use the arrows to move along the road.</li>
+      <li>Then pick the party you think won the most votes in this voting district in the 2024 election, and guess its share of the vote.</li>
+      <li>You need the right party, and its share to within {{ tolerance }} percentage points either way. You have {{ attempts }} guesses.</li>
+      <li>Each miss earns a clue: the province, then the municipality, then the voting station, then the party that came second.</li>
+    </ul>
+  </div>
+
+  <button id="gu-start" class="gu-btn gu-splash__start" type="button">Start</button>
+  <p class="gu-splash__meta">{% spaceless %}
+    Streetwise{% if number %} #{{ number }}{% endif %}
+    {% if puzzle.published %} &middot; {{ puzzle.published|date:"j F Y" }}{% endif %}
+    &middot; IEC national-ballot results
+  {% endspaceless %}</p>
+  <a class="gu-splash__archive" href="{% url 'streetwise:list' %}">Past Streetwise puzzles &rsaquo;</a>
+</section>
+
+<div class="sw-game" inert>
+  {% include "streetwise/panorama.html" %}
+
+  <div class="sw-board">
+    <h1 class="sw-question">Which party won this voting district in 2024, and with what share of the vote?</h1>
+
+    <form id="sw-form" class="sw-form">
+      <fieldset class="sw-parties">
+        <legend class="sw-hidden">Party</legend>
+        {% for choice in choices %}
+        <label class="sw-party sw-p-{{ choice|slugify }}"><input type="radio" name="party" value="{{ choice }}"><span>{{ choice }}</span></label>
+        {% endfor %}
+      </fieldset>
+
+      <div class="sw-percent">
+        <div class="sw-percent__head">
+          <label for="sw-percent">Its share of the vote</label>
+          <output id="sw-percent-out" for="sw-percent">50%</output>
+        </div>
+        <input type="range" id="sw-percent" min="0" max="100" step="1" value="50">
+      </div>
+
+      <div class="sw-submit">
+        <button id="sw-submit" class="gu-btn" type="submit">Submit guess</button>
+        <span id="sw-left" class="sw-left"></span>
+      </div>
+      <p id="sw-message" class="sw-message" role="status" aria-live="polite"></p>
+    </form>
+
+    <section id="sw-result" class="sw-result" hidden>
+      <h2 id="sw-result-title" class="sw-result__title"></h2>
+      <div id="sw-result-body"></div>
+      <button id="sw-share" class="gu-btn" type="button">Share your result</button>
+    </section>
+
+    <ol id="sw-guesses" class="sw-guesses" aria-label="Your guesses"></ol>
+    <dl id="sw-hints" class="sw-hints"></dl>
+  </div>
+</div>
+
+{{ state|json_script:"sw-state" }}
+<script>
+  window.STREETWISE = {
+    number: {{ number|default:"null" }},
+    state: JSON.parse(document.getElementById("sw-state").textContent),
+    guessUrl: "{% url 'streetwise:guess' puzzle.pk %}",
+    csrfToken: "{{ csrf_token }}"
+  };
+</script>
+<script src="{% static 'gu/game.js' %}?v=2"></script>
+<script src="{% static 'streetwise/streetwise.js' %}?v=4"></script>
+{% endblock %}

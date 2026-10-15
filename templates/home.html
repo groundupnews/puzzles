@@ -12,7 +12,7 @@
     </div>
     <div class="hub-stats">
       <div class="hub-stat">
-        <div class="hub-stat__value hub-stat__value--accent">5</div>
+        <div class="hub-stat__value hub-stat__value--accent">{{ game_count }}</div>
         <div class="hub-stat__label">Games</div>
       </div>
       <div class="hub-stat">
@@ -129,16 +129,19 @@
     </div>
   </a>
 
-  <div class="hub-tile hub-tile--soon">
-    <div class="hub-tile__art">+</div>
+  <a class="hub-tile theme-streetwise" href="{% if streetwise %}{% url 'streetwise:detail' streetwise.pk %}{% else %}{% url 'streetwise:list' %}{% endif %}">
+    <div class="hub-tile__art">
+      <div class="tile-streetwise"><div></div><div></div><div></div><div></div></div>
+    </div>
     <div class="hub-tile__body">
-      <h3>More to come</h3>
-      <p>New games on the way.</p>
+      <h3>Streetwise</h3>
+      <p>Look around a street. Guess how it voted.</p>
       <div class="hub-tile__foot">
-        <span class="hub-tile__badge">Soon</span>
+        <span class="hub-tile__badge">Daily</span>
+        <span class="hub-tile__play">Play &rsaquo;</span>
       </div>
     </div>
-  </div>
+  </a>
 
 </div>
 {% endblock %}

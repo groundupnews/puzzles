@@ -297,23 +297,6 @@ function shareText() {
   ].join("\n");
 }
 
-async function share() {
-  const button = $("gp-share");
-  const text = shareText();
-  try {
-    if (navigator.share && window.matchMedia("(pointer: coarse)").matches) {
-      await navigator.share({ text });
-      return;
-    }
-    await navigator.clipboard.writeText(text);
-    button.textContent = "Copied to clipboard";
-  } catch (error) {
-    if (error.name === "AbortError") return;
-    button.textContent = "Couldn't share. Try again.";
-  }
-  setTimeout(() => (button.textContent = "Share your results"), 2000);
-}
-
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -334,7 +317,7 @@ const splash = GU.splash({
 });
 
 $("gp-submit").addEventListener("click", submit);
-$("gp-share").addEventListener("click", share);
+$("gp-share").addEventListener("click", () => GU.share($("gp-share"), shareText()));
 $("gp-deselect").addEventListener("click", () => {
   state.selected = [];
   document.querySelectorAll(".gp-tile").forEach((tile) => tile.setAttribute("aria-pressed", "false"));
