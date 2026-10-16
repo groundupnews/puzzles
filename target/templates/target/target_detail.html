@@ -1,25 +1,24 @@
 {% extends "base.html" %}
 {% load static target_extras %}
 
-{% block title %}
-    Target puzzle number {{target.number}} {{block.super}}
-{% endblock %}
+{% block title %}Target puzzle number {{target.number}}{% endblock %}
+{% block description %}Target: build as many words as you can from nine letters. A new puzzle from GroundUp every Monday and Friday.{% endblock %}
 
 {% block body_class %}game-target is-splash{% endblock %}
 
+{% block og %}
+    <meta property="og:title"
+          content="GroundUp Target {{target.number}}"/>
+    <meta property="og:type" content="article"/>
+    <meta property="og:image" itemprop="image"
+          content="https://{{request.META.HTTP_HOST}}{{MEDIA_URL}}targets/target_{{target.pk}}.png"/>
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:image"
+          content="https://{{request.META.HTTP_HOST}}{{MEDIA_URL}}targets/target_{{target.pk}}.png"/>
+    <meta name="twitter:image:alt" content="" />
+{% endblock %}
+
 {% block head %}
-
-    {% block seo_fields %}
-        <meta property="og:title"
-              content="GroundUp Target {{target.number}}"/>
-        <meta property="og:type" content="article"/>
-        <meta property="og:image" itemprop="image"
-              content="https://{{request.META.HTTP_HOST}}{{MEDIA_URL}}targets/target_{{target.pk}}.png"/>
-        <meta name="twitter:image"
-              content="https://{{request.META.HTTP_HOST}}{{MEDIA_URL}}targets/target_{{target.pk}}.png"/>
-        <meta name="twitter:image:alt" content="" />
-    {% endblock %}
-
     <style>
      #target-container {
          margin-left: auto;

@@ -1,7 +1,8 @@
 {% extends "quizzes/base.html" %}
 {% load static %}
 
-{% block title %}{{ quiz.name|default:"Quiz" }}{% endblock %}
+{% block title %}{{ quiz.name|default:"News Quiz" }}{% if quiz.published %}, {{ quiz.published|date:"j F Y" }}{% endif %}{% endblock %}
+{% block description %}{% if quiz.description %}{{ quiz.description|truncatechars:160 }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block body_class %}game-quiz{% if questions %} is-splash{% endif %}{% endblock %}
 
 {% block chrome %}

@@ -2,6 +2,9 @@
 {% load static %}
 
 {% block title %}{{ crossword.name|default:"Crossword" }}{% endblock %}
+{% block description %}{% if crossword.short_description %}{{ crossword.short_description }}{% elif crossword.description %}{{ crossword.description|truncatechars:160 }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block canonical %}{% if not private_link %}{{ block.super }}{% endif %}{% endblock %}
+{% block robots %}{% if private_link %}<meta name="robots" content="noindex">{% endif %}{% endblock %}
 {% block body_class %}game-crossword cw-solve is-splash{% endblock %}
 
 {% block chrome %}

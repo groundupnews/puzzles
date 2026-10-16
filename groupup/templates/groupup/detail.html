@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block title %}{{ puzzle.name|default:"GroupUp" }}{% endblock %}
+{% block description %}{% if puzzle.description %}{{ puzzle.description|truncatechars:160 }}{% else %}GroupUp: sixteen words, four hidden groups. Find them fast for a time bonus.{% endif %}{% endblock %}
 {% block body_class %}game-groupup{% if words %} is-splash{% endif %}{% endblock %}
 {% block head %}<link rel="stylesheet" href="{% static 'groupup/groupup.css' %}?v=7">{% endblock %}
 

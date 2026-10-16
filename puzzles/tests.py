@@ -297,3 +297,16 @@ class SearchEnginesTest(TestCase):
         for puzzle in unpublished:
             self.assertNotContains(response, f"{puzzle.get_absolute_url()}</loc>")
         self.assertContains(response, f"<loc>http://testserver{reverse('sudoku:list')}</loc>")
+
+    def test_sudokus_newest_puzzle_names_its_own_address_as_canonical(self):
+        sudoku = make_sudoku()
+        self.assertContains(
+            self.client.get(reverse("sudoku:latest")),
+            f'<link rel="canonical" href="http://testserver{sudoku.get_absolute_url()}">',
+        )
+
+    def test_a_private_crossword_link_is_kept_out_of_search(self):
+        crossword = make_crossword(days=1)
+        response = self.client.get(reverse("crossword_private_solve", args=[crossword.private_link]))
+        self.assertContains(response, '<meta name="robots" content="noindex">')
+        self.assertNotContains(response, 'rel="canonical"')

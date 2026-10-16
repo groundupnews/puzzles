@@ -5,7 +5,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}GroundUp Puzzles{% endblock %}</title>
+    <title>{% block full_title %}{% block title %}{% endblock %} | GroundUp Puzzles{% endblock %}</title>
+    <meta name="description" content="{% block description %}Free puzzles from GroundUp: a cryptic crossword, daily sudoku, Target, the News Quiz, GroupUp and Streetwise.{% endblock %}">
+    {% block canonical %}
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% if page_obj.number > 1 %}?page={{ page_obj.number }}{% endif %}">
+    {% endblock %}
+    {% block robots %}{% endblock %}
+    <meta property="og:site_name" content="GroundUp Puzzles">
+    {% block og %}<meta property="og:type" content="website">{% endblock %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
