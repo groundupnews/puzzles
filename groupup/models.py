@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 
 from crossword.models import default_copyright
@@ -28,6 +29,9 @@ class GroupUp(models.Model):
     class Meta:
         verbose_name = "GroupUp"
         permissions = [("can_generate_groupups", "Can generate GroupUps")]
+
+    def get_absolute_url(self):
+        return reverse("groupup:solve", args=[self.pk])
 
     def is_published(self):
         return self.published is not None and self.published <= timezone.now()

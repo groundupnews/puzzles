@@ -19,12 +19,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic.base import RedirectView
+from django.views.generic.base import RedirectView, TemplateView
 
 from puzzles import api
+from puzzles.sitemaps import sitemap
 from puzzles.views import games_hub, logout_everywhere
 
 urlpatterns = [
+    path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
+    path('sitemap.xml', sitemap, name='sitemap'),
     path('admin/', admin.site.urls),
     # Serve login-by-code at /accounts/login/ instead of allauth's default
     # /accounts/login/code/. Registered twice: before the allauth include so

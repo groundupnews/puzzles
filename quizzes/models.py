@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 
 from crossword.models import default_copyright
@@ -26,6 +27,9 @@ class Quiz(models.Model):
 
     class Meta:
         permissions = [("can_generate_quizzes", "Can generate quizzes")]
+
+    def get_absolute_url(self):
+        return reverse("quiz_solve", args=[self.pk])
 
     def is_published(self):
         """True once `published` is set and that moment has passed

@@ -266,3 +266,34 @@ class GameRootTest(TestCase):
         ]:
             with self.subTest(root):
                 self.assertRedirects(self.client.get(reverse(root)), reverse(archive))
+
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+class SearchEnginesTest(TestCase):
+    def test_robots_txt_points_at_the_sitemap(self):
+        response = self.client.get("/robots.txt")
+        self.assertEqual(response["Content-Type"], "text/plain")
+        self.assertContains(response, "Sitemap: http://testserver/sitemap.xml")
+
+    def test_sitemap_lists_every_published_puzzle_and_nothing_unpublished(self):
+        district = make_district()
+        published = [
+            make_crossword(),
+            make_quiz(),
+            make_sudoku(),
+            make_target(),
+            make_groupup(),
+            make_streetwise(district=district),
+        ]
+        unpublished = [
+            make_crossword(days=1, name="Tomorrow's"),
+            make_quiz(days=1),
+            make_streetwise(days=None, district=district),
+        ]
+        response = self.client.get("/sitemap.xml")
+        self.assertEqual(response["Content-Type"], "application/xml")
+        for puzzle in published:
+            self.assertContains(response, f"<loc>http://testserver{puzzle.get_absolute_url()}</loc>")
+        for puzzle in unpublished:
+            self.assertNotContains(response, f"{puzzle.get_absolute_url()}</loc>")
+        self.assertContains(response, f"<loc>http://testserver{reverse('sudoku:list')}</loc>")
