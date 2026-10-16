@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
     {% block css %}
-    <link rel="stylesheet" href="{% static 'gu/groundup.css' %}?v=15">
+    <link rel="stylesheet" href="{% static 'gu/groundup.css' %}?v=16">
     <link rel="stylesheet" href="{% static 'crossword/style.css' %}?v=96">
     <link rel="stylesheet" href="{% static 'crossword/vendor/fontawesome/css/fontawesome.min.css' %}">
     <link rel="stylesheet" href="{% static 'crossword/vendor/fontawesome/css/solid.min.css' %}">
@@ -62,25 +62,47 @@
 
     {% block footer %}
     <footer class="gu-footer">
+        <div class="gu-footer__stripe" aria-hidden="true">
+            <span class="theme-crossword"></span>
+            <span class="theme-target"></span>
+            <span class="theme-sudoku"></span>
+            <span class="theme-quiz"></span>
+            <span class="theme-groupup"></span>
+            <span class="theme-streetwise"></span>
+        </div>
         <div class="gu-footer__inner">
-            <span>&copy; 2012 to {% now "Y" %} GroundUp &middot; Puzzles</span>
-            <span class="gu-footer__links">
-                <a href="{% url 'crossword_latest' %}">Crosswords</a>
-                <a href="{% url 'target:latest' %}">Target</a>
-                <a href="{% url 'sudoku:latest' %}">Sudoku</a>
-                <a href="{% url 'quiz_latest' %}">Quizzes</a>
-                <a href="{% url 'groupup:latest' %}">GroupUp</a>
-                <a href="{% url 'streetwise:latest' %}">Streetwise</a>
-                <a href="https://groundup.org.za/">GroundUp news</a>
-            </span>
-            <span class="gu-footer__account">
-                {% if request.user.is_authenticated %}
-                <a href="{% url 'usersessions_list' %}">Account settings</a>
-                <a href="{% url 'account_logout' %}">Log out</a>
-                {% else %}
-                <a href="{% url 'account_request_login_code' %}">Log in</a>
-                {% endif %}
-            </span>
+            <div class="gu-footer__about">
+                <img class="gu-footer__logo" src="{% static 'gu/logo-white.svg' %}" alt="GroundUp">
+                <p>Free puzzles from GroundUp, a non-profit newsroom reporting on social justice in South Africa.</p>
+                <a class="gu-donate" href="https://groundup.org.za/donation/payfast/">Donate</a>
+            </div>
+            <nav class="gu-footer__games" aria-label="Games">
+                <h2>Play</h2>
+                <ul>
+                    <li class="theme-crossword"><a href="{% url 'crossword_latest' %}">Cryptic(ish)</a><span class="gu-footer__when">Thursdays</span></li>
+                    <li class="theme-target"><a href="{% url 'target:latest' %}">Target</a><span class="gu-footer__when">Mon &amp; Fri</span></li>
+                    <li class="theme-sudoku"><a href="{% url 'sudoku:latest' %}">Sudoku</a><span class="gu-footer__when">Daily</span></li>
+                    <li class="theme-quiz"><a href="{% url 'quiz_latest' %}">News Quiz</a><span class="gu-footer__when">Thursdays</span></li>
+                    <li class="theme-groupup"><a href="{% url 'groupup:latest' %}">GroupUp</a><span class="gu-footer__when">New</span></li>
+                    <li class="theme-streetwise"><a href="{% url 'streetwise:latest' %}">Streetwise</a><span class="gu-footer__when">Daily</span></li>
+                </ul>
+            </nav>
+            <div class="gu-footer__more">
+                <h2>GroundUp</h2>
+                <ul>
+                    <li><a href="https://groundup.org.za/">News</a></li>
+                    <li><a href="https://groundup.org.za/advanced_search/">Search</a></li>
+                    {% if request.user.is_authenticated %}
+                    <li><a href="{% url 'usersessions_list' %}">Account settings</a></li>
+                    <li><a href="{% url 'account_logout' %}">Log out</a></li>
+                    {% else %}
+                    <li><a href="{% url 'account_request_login_code' %}">Log in</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        <div class="gu-footer__base">
+            <div>&copy; 2012 to {% now "Y" %} GroundUp</div>
         </div>
     </footer>
     {% endblock %}
