@@ -514,6 +514,39 @@
         </div>
     </div>
 
+    <script>
+     // Target used to live on groundup.org.za, so players' saved words are
+     // still in localStorage under that origin. Once per browser, fetch them
+     // through a hidden frame and merge them into this origin's storage.
+     // Remove this block when the migration is over.
+     (function() {
+         const oldSite = "https://groundup.org.za";
+         try {
+             if (localStorage.getItem("target-migrated")) return;
+         } catch (e) { return; }
+         window.addEventListener("message", function(e) {
+             if (e.origin !== oldSite || !e.data || !e.data.targetWords) return;
+             var changed = false;
+             for (var key in e.data.targetWords) {
+                 var words = new Set((localStorage.getItem(key) || "").split(","));
+                 for (var w of e.data.targetWords[key].split(","))
+                     words.add(w);
+                 words.delete("");
+                 if (words.size) {
+                     localStorage.setItem(key, Array.from(words));
+                     changed = changed || key === storage;
+                 }
+             }
+             localStorage.setItem("target-migrated", "1");
+             if (changed) location.reload();
+         });
+         var frame = document.createElement("iframe");
+         frame.style.display = "none";
+         frame.src = oldSite + "/target/export/";
+         document.body.append(frame);
+     })();
+    </script>
+
     <script src="{% static 'gu/game.js' %}?v=1"></script>
     <script>
      "use strict";
