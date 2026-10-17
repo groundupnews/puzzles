@@ -79,7 +79,7 @@ body {
 /* ---------------- Masthead ---------------- */
 
 /* One thin bar: the logo home to Puzzles, a switch between the two
-   GroundUp destinations, then search and Donate. Login lives in the
+   GroundUp destinations, then Donate. Login lives in the
    footer, not here. */
 .gu-masthead {
   position: sticky;
@@ -359,8 +359,10 @@ body {
   font-size: 14px;
 }
 
-.gu-footer__stripe { display: flex; height: 4px; }
-.gu-footer__stripe span { flex: 1; background: var(--game); }
+/* A band of every game's colour, closing off the hub strip and opening
+   the footer. */
+.gu-stripe { display: flex; height: 4px; }
+.gu-stripe span { flex: 1; background: var(--game); }
 
 .gu-footer__inner {
   max-width: var(--gu-page);
@@ -432,18 +434,12 @@ body {
 .hub-strip {
   background: var(--gu-ink);
   color: var(--gu-white);
-  border-top: 1px solid var(--gu-ink-700);
 }
 
 .hub-strip__inner {
   max-width: var(--gu-page);
   margin: 0 auto;
-  padding: 26px 28px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
+  padding: 24px 28px 26px;
 }
 
 .hub-strip__eyebrow {
@@ -452,43 +448,15 @@ body {
   color: var(--gu-cyan);
   text-transform: uppercase;
   letter-spacing: .08em;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .hub-strip h1 {
   margin: 0;
-  font-size: 38px;
+  font-size: 34px;
   font-weight: 700;
-  letter-spacing: -1px;
-  line-height: 1;
-}
-
-.hub-stats {
-  display: flex;
-  background: var(--gu-ink-900);
-  border: 1px solid var(--gu-ink-700);
-}
-
-.hub-stat { padding: 12px 22px; text-align: center; }
-.hub-stat + .hub-stat { border-left: 1px solid var(--gu-ink-700); }
-
-.hub-stat__value {
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--gu-white);
-}
-
-.hub-stat__value--accent { color: var(--gu-cyan); }
-.hub-stat__value .of { color: #5d7177; }
-
-.hub-stat__label {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  color: #9fb0b5;
-  margin-top: 4px;
+  letter-spacing: -.8px;
+  line-height: 1.1;
 }
 
 /* The featured puzzle. */
@@ -877,16 +845,14 @@ body {
   .gu-switch { padding: 2px; }
   .gu-switch a { padding: 5px 12px; font-size: 13px; }
 
-  /* Not enough width for all four; search only reaches the news site, so
-     the switch and Donate keep the room. */
-  .gu-masthead__right .gu-dark-btn { display: none; }
   .gu-donate { padding: 6px 13px; font-size: 12.5px; }
 
   .gu-playbar__inner { padding: 0 14px; }
   .gu-playbar__logo { display: none; }
   .gu-playbar__status { gap: 10px; }
   .hub-grid { grid-template-columns: 1fr; }
-  .hub-strip h1 { font-size: 28px; }
+  .hub-strip__inner { padding: 18px 16px 20px; }
+  .hub-strip h1 { font-size: 26px; }
   .hub-hero__body { padding: 24px 20px; }
   .hub-hero__art { padding: 22px; }
   .hub-hero h2 { font-size: 30px; }
@@ -894,7 +860,7 @@ body {
   .gu-footer__base div { padding: 14px 20px; }
 }
 
-/* Narrowest phones: the bar's four items only just fit. */
+/* Narrowest phones: the bar's three items only just fit. */
 @media (max-width: 360px) {
   .gu-masthead__inner { padding: 8px 10px; gap: 8px; }
   .gu-masthead__logo { height: 21px; }

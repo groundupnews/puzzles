@@ -50,7 +50,6 @@ def games_hub(request):
     targets = Target.objects.published()
     groupups = GroupUp.objects.published()
     streetwises = Streetwise.objects.published()
-    games = [crosswords, quizzes, sudokus, targets, groupups, streetwises]
 
     crossword = crosswords.order_by("-published").first()
     sudoku = sudokus.order_by("-published").first()
@@ -70,7 +69,5 @@ def games_hub(request):
             "sudoku_tile": sudoku_tile(sudoku),
             "preview": grid_preview(crossword) if crossword else None,
             "greeting": _greeting(now),
-            "game_count": len(games),
-            "puzzle_count": sum(puzzles.count() for puzzles in games),
         },
     )

@@ -6,21 +6,10 @@
 {% block strip %}
 <div class="hub-strip">
   <div class="hub-strip__inner">
-    <div>
-      <div class="hub-strip__eyebrow">GroundUp Puzzles</div>
-      <h1>{{ greeting }}. Ready to play?</h1>
-    </div>
-    <div class="hub-stats">
-      <div class="hub-stat">
-        <div class="hub-stat__value hub-stat__value--accent">{{ game_count }}</div>
-        <div class="hub-stat__label">Games</div>
-      </div>
-      <div class="hub-stat">
-        <div class="hub-stat__value">{{ puzzle_count }}</div>
-        <div class="hub-stat__label">Puzzles</div>
-      </div>
-    </div>
+    <div class="hub-strip__eyebrow">{% now "l j F" %}</div>
+    <h1>{{ greeting }}. Ready to play?</h1>
   </div>
+  {% include "stripe.html" %}
 </div>
 {% endblock %}
 
