@@ -239,6 +239,13 @@ body.game-sudoku {
 
 .sd-cell.is-cursor .sd-notes span { color: rgba(255, 255, 255, 0.85); }
 
+/* A pencil mark that a placed digit in its row, column or box rules out. */
+.sd-notes span.is-ruled-out,
+.sd-cell.is-cursor .sd-notes span.is-ruled-out {
+  color: var(--danger, #d0021b);
+}
+.sd-cell.is-cursor .sd-notes span.is-ruled-out { color: #ffb3ba; }
+
 /* --- Number pad and actions --- */
 
 .sd-keys {

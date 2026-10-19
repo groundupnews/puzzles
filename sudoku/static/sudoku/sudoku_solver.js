@@ -189,7 +189,15 @@ function paint() {
     notes.hidden = !!state.cells[i] || !digits;
     if (!notes.hidden) {
       for (let d = 1; d <= SIZE; d++) {
-        notes.children[d - 1].textContent = digits.includes(String(d)) ? d : "";
+        const mark = notes.children[d - 1];
+        const has = digits.includes(String(d));
+        mark.textContent = has ? d : "";
+        // A mark ruled out by a placed digit stays visible, in red, so
+        // changing or removing that digit doesn't lose the solver's work.
+        mark.classList.toggle(
+          "is-ruled-out",
+          has && PEERS[i].some((j) => state.cells[j] === String(d))
+        );
       }
     }
   }
@@ -250,14 +258,6 @@ function enter(digit) {
   } else {
     state.cells[i] = digit;
     delete state.notes[i];
-    // Committing a digit rules it out nearby, so those marks come off.
-    for (const j of PEERS[i]) {
-      const marks = state.notes[j];
-      if (!marks || !marks.includes(digit)) continue;
-      const left = [...marks].filter((d) => d !== digit).join("");
-      if (left) state.notes[j] = left;
-      else delete state.notes[j];
-    }
   }
 
   refreshCompleted();
