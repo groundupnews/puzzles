@@ -4,7 +4,7 @@
 {% block title %}Sudoku {{ sudoku.number|default:sudoku.pk }}{% endblock %}
 {% block canonical %}<link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ sudoku.get_absolute_url }}">{% endblock %}
 {% block body_class %}game-sudoku sd-solve is-splash{% endblock %}
-{% block head %}<link rel="stylesheet" href="{% static 'sudoku/sudoku.css' %}?v=18">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'sudoku/sudoku.css' %}?v=19">{% endblock %}
 {% block main_class %}gu-page sd-page{% endblock %}
 
 {% block chrome %}
@@ -153,5 +153,5 @@ with.{% endcomment %}
   );
 </script>
 <script src="{% static 'gu/game.js' %}?v=2"></script>
-<script src="{% static 'sudoku/sudoku_solver.js' %}?v=7"></script>
+<script src="{% static 'sudoku/sudoku_solver.js' %}?v=8"></script>
 {% endblock %}

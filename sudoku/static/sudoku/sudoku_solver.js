@@ -176,6 +176,10 @@ function paint() {
       !isCursor && !!cursorValue && state.cells[i] === cursorValue
     );
     cell.classList.toggle("is-clash", clashes(i));
+    cell.classList.toggle(
+      "is-trial-start",
+      !!state.trial && state.trial.first === i && !!state.cells[i]
+    );
     cell.classList.toggle("is-revealed", !!state.revealed[i]);
     // Anything standing where the trial began differs from it: that's a
     // digit the solver is only trying out, so it's coloured as such.
@@ -240,6 +244,12 @@ function select(i) {
   saveState();
 }
 
+// Remembers where a trial's first digit went, so the board can frame it:
+// that's the cell the whole line of reasoning hangs from.
+function markTrialStart(i) {
+  if (state.trial && state.trial.first == null) state.trial.first = i;
+}
+
 function enter(digit) {
   const i = state.cursor;
   if (given[i] || state.completed) return;
@@ -258,6 +268,7 @@ function enter(digit) {
   } else {
     state.cells[i] = digit;
     delete state.notes[i];
+    markTrialStart(i);
   }
 
   refreshCompleted();
@@ -290,6 +301,7 @@ function hint() {
   state.cells[i] = SD.solution[i];
   state.revealed[i] = true;
   delete state.notes[i];
+  markTrialStart(i);
   refreshCompleted();
   paint();
   saveState();
@@ -315,6 +327,7 @@ function toggleTrial() {
     cells: [...state.cells],
     notes: { ...state.notes },
     revealed: { ...state.revealed },
+    first: null, // cell of the first digit entered during the trial
   };
   paint();
   saveState();
