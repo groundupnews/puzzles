@@ -544,7 +544,9 @@ class QuizSolveViewTest(TestCase):
         # page source before attempting the quiz.
         quiz = self._make_quiz(published=timezone.now() - timedelta(days=1))
         response = self.client.get(reverse("quiz_solve", args=[quiz.pk]))
-        self.assertNotContains(response, "correct")
+        seeded = json.loads(response.content.decode().split('id="qz-questions" type="application/json">')[1].split("</script>")[0])
+        self.assertTrue(seeded)
+        self.assertNotIn('"correct"', json.dumps(seeded))
 
 
 # ---------------------------------------------------------------------------

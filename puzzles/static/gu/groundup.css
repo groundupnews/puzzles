@@ -376,6 +376,8 @@ body {
 
 .gu-footer__logo { height: 26px; display: block; margin-bottom: 14px; }
 
+.gu-footer .gu-footer__contact a { text-decoration: underline; overflow-wrap: anywhere; }
+
 .gu-footer__about p {
   margin: 0 0 18px;
   max-width: 340px;
