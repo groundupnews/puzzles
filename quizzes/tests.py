@@ -1,5 +1,6 @@
 import json
 from datetime import timedelta
+from unittest import mock
 
 from django.contrib.auth.models import Permission, User
 from django.db import IntegrityError, transaction
@@ -7,8 +8,12 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from puzzles import news
+
 from .json_import import import_quiz_from_json
 from .models import Answer, Question, Quiz
+
+STORY = {"url": "https://groundup.org.za/article/m/", "title": "Mbalula in court", "image": "https://groundup.org.za/media/m.jpg"}
 
 
 def make_user_with_perm(client, username="testuser"):
@@ -143,6 +148,17 @@ class QuizSaveViewTest(TestCase):
         self.assertEqual([a.answer for a in france_answers], ["Paris", "Lyon"])
         self.assertTrue(france_answers[0].correct)
         self.assertFalse(france_answers[1].correct)
+
+    def test_saves_the_story_behind_a_question(self):
+        self._save({"questions": [{"text": "Who?", "article": STORY, "answers": []}]})
+        self.assertEqual(Question.objects.get(quiz=self.quiz).article(), STORY)
+
+    def test_story_needs_a_web_link(self):
+        self._save({"questions": [
+            {"text": "Who?", "article": {**STORY, "url": "javascript:alert(1)"}, "answers": []},
+        ]})
+        question = Question.objects.get(quiz=self.quiz)
+        self.assertEqual((question.article_url, question.article_title), ("", ""))
 
     def test_resave_replaces_old_questions(self):
         self._save({"questions": [{"text": "First?", "answers": []}]})
@@ -433,6 +449,16 @@ class QuizExportViewTest(TestCase):
         response = self.client.get(reverse("quiz_export", args=[self.quiz.pk]))
         self.assertEqual(response.status_code, 302)
 
+    def test_story_exported_as_a_third_entry(self):
+        Question.objects.filter(quiz=self.quiz).update(
+            article_url=STORY["url"], article_title=STORY["title"], article_image=STORY["image"]
+        )
+        data = self.client.get(reverse("quiz_export", args=[self.quiz.pk])).json()
+        self.assertEqual(data["questions"][0][2], STORY)
+        quiz, warnings = import_quiz_from_json(data)
+        self.assertEqual(warnings, [])
+        self.assertEqual(quiz.question_set.get().article(), STORY)
+
     def test_export_then_import_round_trips(self):
         exported = self.client.get(reverse("quiz_export", args=[self.quiz.pk])).json()
         quiz, warnings = import_quiz_from_json(exported)
@@ -505,6 +531,12 @@ class QuizSolveViewTest(TestCase):
         quiz = self._make_quiz(published=None)
         response = self.client.get(reverse("quiz_solve", args=[quiz.pk]))
         self.assertEqual(response.status_code, 200)
+
+    def test_seeded_json_carries_the_story(self):
+        quiz = self._make_quiz(published=timezone.now() - timedelta(days=1))
+        quiz.question_set.update(article_url=STORY["url"], article_title=STORY["title"])
+        response = self.client.get(reverse("quiz_solve", args=[quiz.pk]))
+        self.assertContains(response, "Mbalula in court")
 
     def test_seeded_json_omits_which_answer_is_correct(self):
         # The whole point of quiz_check existing separately: the initial
@@ -582,3 +614,41 @@ class QuizIsPublishedTest(TestCase):
     def test_not_published_when_in_future(self):
         quiz = Quiz(published=timezone.now() + timedelta(days=1))
         self.assertFalse(quiz.is_published())
+
+
+# ---------------------------------------------------------------------------
+# quiz_article
+# ---------------------------------------------------------------------------
+
+
+class QuizArticleViewTest(TestCase):
+    def setUp(self):
+        make_user_with_perm(self.client)
+
+    def _lookup(self, url):
+        return self.client.get(reverse("quiz_article"), {"url": url})
+
+    def test_looks_up_headline_and_picture(self):
+        page = (
+            b'<meta property="og:title" content="Mbalula in court"/>'
+            b'<meta name="twitter:image" content="https://groundup.org.za/media/m.jpg"/>'
+        )
+        with mock.patch.object(news, "_get", return_value=page):
+            response = self._lookup(STORY["url"])
+        self.assertEqual(response.json(), {"title": STORY["title"], "image": STORY["image"]})
+
+    def test_other_sites_refused(self):
+        with mock.patch.object(news, "_get") as get:
+            response = self._lookup("https://example.com/story/")
+        self.assertEqual(response.status_code, 400)
+        get.assert_not_called()
+
+    def test_news_site_down_is_a_400(self):
+        with mock.patch.object(news, "_get", side_effect=OSError("timed out")):
+            response = self._lookup(STORY["url"])
+        self.assertEqual(response.status_code, 400)
+
+    def test_requires_permission(self):
+        self.client.logout()
+        response = self._lookup(STORY["url"])
+        self.assertEqual(response.status_code, 302)

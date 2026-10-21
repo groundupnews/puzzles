@@ -81,6 +81,52 @@ function optionEl(question, answer, letter, selected, mode, interactive) {
   return el;
 }
 
+// A link to a question's news story, tagged with where it was clicked so
+// Matomo's Campaigns report can tell the ways in apart (as the campaign
+// filter in puzzles/templatetags/news.py does for server-made links).
+function storyLink(article, placement) {
+  const url = new URL(article.url);
+  url.searchParams.set("mtm_campaign", "puzzles");
+  url.searchParams.set("mtm_kwd", placement);
+  const link = document.createElement("a");
+  link.href = url.href;
+  return link;
+}
+
+// The story a marked question came from: what to read next.
+function storyEl(article) {
+  const link = storyLink(article, "quiz-answers");
+  link.className = "qz-story";
+  if (article.image) {
+    const img = document.createElement("img");
+    img.src = article.image;
+    img.alt = "";
+    img.loading = "lazy";
+    link.appendChild(img);
+  }
+  const text = document.createElement("span");
+  const label = document.createElement("span");
+  label.className = "qz-story__label";
+  label.textContent = "Read the story";
+  const title = document.createElement("span");
+  title.className = "qz-story__title";
+  title.textContent = article.title || article.url;
+  text.append(label, title);
+  link.appendChild(text);
+  return link;
+}
+
+// While answering: the story holds the answer, for anyone who'd rather
+// read up than guess. Opens in a new tab so the quiz stays put.
+function hintEl(article) {
+  const link = storyLink(article, "quiz-hint");
+  link.className = "qz-hint";
+  link.target = "_blank";
+  link.rel = "noopener";
+  link.textContent = "Stuck? The answer's in this GroundUp story \u2197";
+  return link;
+}
+
 // The quiz while it's being taken: one question at a time.
 function renderQuestion(container) {
   const q = QZ.questions[state.index];
@@ -97,6 +143,7 @@ function renderQuestion(container) {
     );
   });
   container.appendChild(options);
+  if (q.article) container.appendChild(hintEl(q.article));
 }
 
 // The marked quiz: every question with the visitor's answer and the
@@ -124,6 +171,7 @@ function renderReview(container) {
       options.appendChild(optionEl(q, a, LETTERS[ai], selected, mode, false));
     });
     block.appendChild(options);
+    if (q.article) block.appendChild(storyEl(q.article));
     container.appendChild(block);
   });
 }

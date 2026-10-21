@@ -12,8 +12,10 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView
 
+from puzzles import news
+
 from .json_import import import_quiz_from_json
-from .models import Answer, Question, Quiz
+from .models import Answer, Question, Quiz, article_fields
 
 PERM = "quizzes.can_generate_quizzes"
 
@@ -67,6 +69,7 @@ def quiz_edit(request, pk):
     questions = [
         {
             "text": q.question,
+            "article": q.article(),
             "answers": [
                 {"text": a.answer, "correct": a.correct}
                 for a in q.answer_set.order_by("order")
@@ -83,8 +86,8 @@ def quiz_save(request, pk):
     """Save the quiz for the given quiz.
 
     Accepts a JSON body: name, description, authors, editors, copyright,
-    published, questions (a list of {text, answers: [{text, correct}]}, in
-    display order). Unlike crossword_save, there's no separate `cells`
+    published, questions (a list of {text, article: {url, title, image},
+    answers: [{text, correct}]}, in display order; article is optional). Unlike crossword_save, there's no separate `cells`
     source of truth to preserve partial progress in -- the Question/Answer
     rows themselves are the only record of a quiz's content, so every save
     simply deletes and recreates them from the posted list. This also
@@ -123,7 +126,12 @@ def quiz_save(request, pk):
                 text = question.get("text", "").strip()
                 if not text:
                     continue
-                q = Question.objects.create(quiz=quiz, question=text, order=order)
+                q = Question.objects.create(
+                    quiz=quiz,
+                    question=text,
+                    order=order,
+                    **article_fields(question.get("article")),
+                )
                 order += 1
 
                 a_order = 0
@@ -174,6 +182,7 @@ def quiz_solve(request, pk):
         {
             "id": q.pk,
             "text": q.question,
+            "article": q.article(),
             "answers": [
                 {"id": a.pk, "text": a.answer}
                 for a in q.answer_set.order_by("order")
@@ -270,6 +279,7 @@ def quiz_export(request, pk):
                 q.question,
                 [[a.answer, a.correct] for a in q.answer_set.order_by("order")],
             ]
+            + ([q.article()] if q.article_url else [])
             for q in quiz.question_set.order_by("order")
         ],
     }
@@ -277,3 +287,15 @@ def quiz_export(request, pk):
     response = JsonResponse(data, json_dumps_params={"indent": 2})
     response["Content-Disposition"] = f'attachment; filename="{filename}.json"'
     return response
+
+
+@permission_required(PERM)
+def quiz_article(request):
+    """Look up the headline and picture of the news story at ?url=, for
+    the builder to show and save with a question. Only the news site is
+    asked (news.article won't fetch anything else); a link it can't look
+    up is a 400, which the builder reports while keeping the link."""
+    try:
+        return JsonResponse(news.article(request.GET.get("url", "")))
+    except news.FETCH_ERRORS as e:
+        return JsonResponse({"error": str(e)}, status=400)

@@ -41,8 +41,9 @@
     pk: {{ quiz.pk }},
     questions: JSON.parse(document.getElementById("qz-questions").textContent),
     saveUrl: "{% url 'quiz_save' quiz.pk %}",
+    articleUrl: "{% url 'quiz_article' %}",
     csrfToken: "{{ csrf_token }}"
   };
 </script>
-<script src="{% static 'quizzes/quiz_builder.js' %}?v=4"></script>
+<script src="{% static 'quizzes/quiz_builder.js' %}?v=5"></script>
 {% endblock %}
