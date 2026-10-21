@@ -112,6 +112,15 @@ class NewsTest(TestCase):
     def test_www_counts_as_the_news_site(self):
         self.assertTrue(news.is_news_url("https://www.groundup.org.za/article/m/"))
 
+    def test_region_prefers_the_metro(self):
+        self.assertEqual(news.region("ETH", "KwaZulu-Natal"), {
+            "place": "Durban",
+            "url": "https://groundup.org.za/region/South%20Africa/Kwazulu-Natal/Durban",
+        })
+
+    def test_region_falls_back_to_the_province(self):
+        self.assertEqual(news.region("EKU", "Gauteng")["place"], "Gauteng")
+        self.assertIsNone(news.region("XXX", "Atlantis"))
 
 
 class NewsPanelTest(TestCase):

@@ -1,3 +1,4 @@
+{% load news %}
 {% with results=district.results council=district.council %}
 <h3 class="sw-heading">How this area voted</h3>
 <div class="sw-votes">
@@ -39,5 +40,11 @@
   {% endfor %}
 </ol>
 {% endif %}
+{% with local=district|local_news %}{% if local %}
+<a class="sw-local" href="{{ local.url|campaign:'streetwise-local' }}">
+  <span class="sw-local__label">News from this area</span>
+  Read GroundUp's reporting from {{ local.place }} &rsaquo;
+</a>
+{% endif %}{% endwith %}
 <p class="sw-source">Votes: national ballot, 2024 general election.{% if council %} Seats: {{ council.year }} local government elections.{% endif %} Source: IEC.{% if puzzle %} <a href="{{ puzzle.maps_url }}" target="_blank" rel="noopener">See the spot on Google Maps</a>{% endif %}</p>
 {% endwith %}

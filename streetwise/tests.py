@@ -209,6 +209,11 @@ class GuessTest(TestCase):
         self.assertIn("Rosmead Central Primary School", result)
         self.assertIn("60.0%", result)
 
+    def test_the_result_sends_the_player_to_news_from_the_area(self):
+        result = self.guess("DA", 60)["result"]
+        self.assertIn("reporting from Cape Town", result)
+        self.assertIn("groundup.org.za/region/South%20Africa/Western%20Cape/Cape%20Town?", result)
+
     def test_the_result_shows_the_councils_largest_party(self):
         make_council()
         result = self.guess("DA", 60)["result"]

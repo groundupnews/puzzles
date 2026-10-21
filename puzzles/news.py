@@ -8,7 +8,7 @@ copy, or to nothing: a slow or broken news site must never break a game.
 import json
 import re
 from html import unescape
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree
 
@@ -132,3 +132,35 @@ def article(url):
         "image": _meta(page, "twitter:image") or _meta(page, "og:image"),
     }
 
+
+# The news site's region pages, for a Streetwise district: its metro where
+# the news site has a page for it, else its province. Keyed by the IEC's
+# municipality code or province name; the paths are the news site's own,
+# spelling quirks and all.
+REGIONS = {
+    "CPT": ("Cape Town", "South Africa/Western Cape/Cape Town"),
+    "JHB": ("Johannesburg", "South Africa/Gauteng/Johannesburg"),
+    "TSH": ("Pretoria", "South Africa/Gauteng/Pretoria"),
+    "ETH": ("Durban", "South Africa/Kwazulu-Natal/Durban"),
+    "NMA": ("Gqeberha", "South Africa/Eastern Cape/Gqeberha"),
+    "BUF": ("East London", "South Africa/Eastern Cape/East London"),
+    "MAN": ("Bloemfontein", "South Africa/Free State/Bloemfontein"),
+    "Eastern Cape": ("the Eastern Cape", "South Africa/Eastern Cape"),
+    "Free State": ("the Free State", "South Africa/Free State"),
+    "Gauteng": ("Gauteng", "South Africa/Gauteng"),
+    "KwaZulu-Natal": ("KwaZulu-Natal", "South Africa/Kwazulu-Natal"),
+    "Limpopo": ("Limpopo", "South Africa/Limpopo"),
+    "Mpumalanga": ("Mpumalanga", "SouthAfrica/Mpumalanga"),
+    "North West": ("North West", "South Africa/North West"),
+    "Northern Cape": ("the Northern Cape", "SouthAfrica/Northern Cape"),
+    "Western Cape": ("the Western Cape", "South Africa/Western Cape"),
+}
+
+
+def region(municipality_code, province):
+    """GroundUp's reporting from a place: {"place", "url"}, or None."""
+    found = REGIONS.get(municipality_code) or REGIONS.get(province)
+    if found is None:
+        return None
+    place, path = found
+    return {"place": place, "url": f"{settings.NEWS_SITE_URL}/region/{quote(path)}"}

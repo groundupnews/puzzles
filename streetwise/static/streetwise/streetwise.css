@@ -422,3 +422,26 @@ body.is-splash main > div.sw-game {
     font-size: 18px;
   }
 }
+
+/* Where the result sends a player on to: the news site's reporting from
+   the district's metro or province. */
+.sw-local {
+  display: block;
+  margin: 18px 0 4px;
+  padding: 11px 14px;
+  border-left: 3px solid var(--gu-cyan);
+  background: var(--gu-surface-2);
+  color: var(--gu-ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.sw-local:hover { text-decoration: underline; }
+
+.sw-local__label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--gu-cyan-dark);
+}
