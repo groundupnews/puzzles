@@ -907,10 +907,151 @@ body {
 
 .gu-newsletter .gu-btn { padding: 10px 20px; }
 
+/* Every game's archive, below the game tiles. */
+.hub-past-link {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gu-cyan-dark);
+  text-decoration: none;
+}
+
+.hub-past-link:hover { text-decoration: underline; }
+
+.hub-past {
+  margin-top: 48px;
+  scroll-margin-top: 72px; /* clear of the sticky masthead */
+}
+
+.hub-past__intro {
+  margin: -8px 0 18px;
+  color: var(--gu-gray-500);
+}
+
+.hub-past__games {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.hub-past__games a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--gu-border-warm);
+  border-left: 4px solid var(--game);
+  color: var(--gu-ink);
+  font-size: 17px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.hub-past__games a:hover { border-color: var(--game); background: var(--game-soft); }
+
+.hub-past__games span {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--game-deep);
+  white-space: nowrap;
+}
+
+/* The day's most-read story, under the hub's greeting. Its line is held
+   while it loads so the page doesn't jump. */
+.hub-strip__story {
+  min-height: 1.5em;
+  margin: 14px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.hub-strip__label {
+  margin-right: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--gu-cyan);
+}
+
+.hub-strip__story a {
+  color: var(--gu-white);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.hub-strip__story a:hover { text-decoration: underline; }
+
+/* The newest stories, at the bottom of the games hub. */
+.hub-news-panel { margin-top: 48px; }
+
+.hub-news__more {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gu-cyan-dark);
+  text-decoration: none;
+}
+
+.hub-news__intro {
+  margin: -8px 0 18px;
+  color: var(--gu-gray-500);
+}
+
+.hub-news {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.hub-news__story {
+  color: inherit;
+  text-decoration: none;
+}
+
+.hub-news__story img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  margin-bottom: 10px;
+  background: var(--gu-surface-2);
+}
+
+.hub-news__category {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--gu-cyan-dark);
+}
+
+.hub-news__story h3 {
+  margin: 4px 0 6px;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -.2px;
+}
+
+.hub-news__story:hover h3 { text-decoration: underline; }
+
+.hub-news__story p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--gu-gray-500);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 @media (max-width: 900px) {
   .gu-footer__inner { grid-template-columns: 1fr 1fr; gap: 32px 24px; }
   .gu-footer__about { grid-column: 1 / -1; }
   .hub-grid { grid-template-columns: repeat(2, 1fr); }
+  .hub-news { grid-template-columns: repeat(2, 1fr); }
+  .hub-past__games { grid-template-columns: repeat(2, 1fr); }
   .hub-hero { grid-template-columns: 1fr; }
   .hub-heroes--split { grid-template-columns: 1fr; }
   .hub-hero__art { border-left: none; border-top: 1px solid var(--gu-border-warm); }
@@ -930,7 +1071,17 @@ body {
   .gu-playbar__logo { display: none; }
   .gu-playbar__status { gap: 10px; }
   .hub-grid { grid-template-columns: 1fr; }
+  /* A thumbnail beside each headline: four full-width photos would make
+     the bottom of the hub two screens long. */
+  .hub-news { grid-template-columns: 1fr; gap: 16px; }
+  .hub-past__games { grid-template-columns: 1fr; }
+  .hub-news__story { display: grid; grid-template-columns: 112px 1fr; grid-template-rows: auto 1fr; gap: 0 12px; }
+  .hub-news__story img { grid-row: span 2; margin: 0; }
+  .hub-news__story h3 { margin: 2px 0 0; font-size: 16px; }
+  .hub-news__story p { display: none; }
   .gu-news { padding: 16px; }
+  .hub-strip__story { min-height: 4.2em; font-size: 14px; }
+  .hub-strip__label { display: block; margin-bottom: 2px; }
   .gu-newsletter__row { flex-direction: column; }
   .hub-strip__inner { padding: 18px 16px 20px; }
   .hub-strip h1 { font-size: 26px; }
