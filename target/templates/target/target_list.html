@@ -100,9 +100,6 @@
                         Published
                     </th>
                     <th>
-                        Target
-                    </th>
-                    <th>
                         Words
                     </th>
                     {% if  perms.target.change_target %}
@@ -114,7 +111,7 @@
                 {% regroup object_list by published|date:"F Y" as months %}
                 {% for month in months %}
                     <tr class="archive-month">
-                        <th colspan="{% if perms.target.change_target %}5{% else %}4{% endif %}">
+                        <th colspan="{% if perms.target.change_target %}4{% else %}3{% endif %}">
                             {{ month.grouper|default:"Unpublished" }}
                         </th>
                     </tr>
@@ -128,13 +125,6 @@
                         </td>
                         <td>
                             {{ target.published|date:"D j M" }}
-                        </td>
-                        <td>
-                            {% if  perms.target.change_target %}
-                                {{ target.nineLetterWord }}
-                            {% else %}
-                                {{ target.letters }}
-                            {% endif %}
                         </td>
                         <td>
                             {{ target.wordCount }}

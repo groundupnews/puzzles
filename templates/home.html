@@ -8,6 +8,9 @@
   <div class="hub-strip__inner">
     <div class="hub-strip__eyebrow">{% now "l j F" %}</div>
     <h1>{{ greeting }}. Ready to play?</h1>
+    {% comment %}Not hidden while it loads: its line is kept, so the page
+    doesn't jump when the headline arrives.{% endcomment %}
+    <p class="hub-strip__story" data-news="{% url 'news_top' %}"></p>
   </div>
   {% include "stripe.html" %}
 </div>
@@ -62,6 +65,7 @@
 
 <div class="gu-section-head">
   <h2>All Games</h2>
+  <a class="hub-past-link" href="#past">Past puzzles &rsaquo;</a>
 </div>
 
 <div class="hub-grid">
@@ -133,4 +137,25 @@
   </a>
 
 </div>
+
+{% comment %}Every game's archive, in one place: players looking for a
+puzzle they missed couldn't find the links inside the games.{% endcomment %}
+<section id="past" class="hub-past">
+  <div class="gu-section-head">
+    <h2>Past puzzles</h2>
+  </div>
+  <p class="hub-past__intro">Missed one? Every puzzle we've published is still here to play.</p>
+  <div class="hub-past__games">
+    <a class="theme-crossword" href="{% url 'crossword_select' %}">Cryptic(ish)<span>Past crosswords &rsaquo;</span></a>
+    <a class="theme-target" href="{% url 'target:list' %}">Target<span>Past Targets &rsaquo;</span></a>
+    <a class="theme-sudoku" href="{% url 'sudoku:list' %}">Sudoku<span>Past sudokus &rsaquo;</span></a>
+    <a class="theme-quiz" href="{% url 'quiz_select' %}">News Quiz<span>Past quizzes &rsaquo;</span></a>
+    <a class="theme-groupup" href="{% url 'groupup:list' %}">GroupUp<span>Past GroupUps &rsaquo;</span></a>
+    <a class="theme-streetwise" href="{% url 'streetwise:list' %}">Streetwise<span>Past streets &rsaquo;</span></a>
+  </div>
+</section>
+
+<section class="hub-news-panel" data-news="{% url 'news_latest' %}" hidden></section>
+<script src="{% static 'gu/game.js' %}?v=5"></script>
+<script>GU.fill(document.querySelectorAll("[data-news]"));</script>
 {% endblock %}

@@ -17,8 +17,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
     {% block css %}
-    <link rel="stylesheet" href="{% static 'gu/groundup.css' %}?v=17">
-    <link rel="stylesheet" href="{% static 'crossword/style.css' %}?v=96">
+    <link rel="stylesheet" href="{% static 'gu/groundup.css' %}?v=22">
+    <link rel="stylesheet" href="{% static 'crossword/style.css' %}?v=98">
     <link rel="stylesheet" href="{% static 'crossword/vendor/fontawesome/css/fontawesome.min.css' %}">
     <link rel="stylesheet" href="{% static 'crossword/vendor/fontawesome/css/solid.min.css' %}">
     {% endblock %}
@@ -66,6 +66,7 @@
             <div class="gu-footer__about">
                 <img class="gu-footer__logo" src="{% static 'gu/logo-white.svg' %}" alt="GroundUp">
                 <p>Free puzzles from GroundUp, a non-profit newsroom reporting on social justice in South Africa.</p>
+                <p class="gu-footer__contact">Ideas, corrections or trouble with a puzzle? Email us at <a href="mailto:puzzles@groundup.org.za">puzzles@groundup.org.za</a>.</p>
                 <a class="gu-donate" href="https://groundup.org.za/donation/payfast/">Donate</a>
             </div>
             <nav class="gu-footer__games" aria-label="Games">

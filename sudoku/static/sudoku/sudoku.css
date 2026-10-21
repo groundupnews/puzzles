@@ -505,6 +505,17 @@ body.game-sudoku {
     font-size: 14px;
   }
 
+  body.sd-solve .gu-news { margin: 8px; }
+  /* Restarted after solving: back to the one-screen board, no room for it. */
+  body.sd-solve:not(.is-done) .gu-news { display: none; }
+
+  /* Solved, as on the crossword: the screen scrolls again, the board
+     takes the full width, the digits go, and the news follows. */
+  body.sd-solve.is-done { height: auto; overflow: visible; }
+  body.sd-solve.is-done .gu-footer { display: block; }
+  body.sd-solve.is-done .sd-board-wrap { flex: none; }
+  body.sd-solve.is-done .sd-keys { display: none; }
+
   body.sd-solve .sd-side {
     flex: none;
     width: 100%;

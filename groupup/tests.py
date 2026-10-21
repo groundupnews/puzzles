@@ -147,6 +147,25 @@ class GroupUpCheckViewTest(TestCase):
         self.assertEqual(self._check(GROUPS[0]["words"]).status_code, 404)
 
 
+
+class GroupUpRevealViewTest(TestCase):
+    """Giving up: the one request that hands over every group at once."""
+
+    def setUp(self):
+        self.puzzle = published_puzzle()
+        self.url = reverse("groupup:reveal", args=[self.puzzle.pk])
+
+    def test_gives_every_group(self):
+        self.assertEqual(self.client.post(self.url).json(), {"groups": GROUPS})
+
+    def test_only_by_post(self):
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+
+    def test_unpublished_puzzle_is_a_404_for_visitors(self):
+        self.puzzle.published = None
+        self.puzzle.save()
+        self.assertEqual(self.client.post(self.url).status_code, 404)
+
 class GroupUpListViewTest(TestCase):
     def test_visitors_see_only_published_puzzles(self):
         published_puzzle(name="Published one")

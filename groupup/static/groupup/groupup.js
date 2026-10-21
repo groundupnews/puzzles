@@ -32,6 +32,9 @@ const state = {
   tried: [],
   guesses: [],
   seconds: 0,
+  // Given up: the groups the player didn't find were added to `found`
+  // with revealed: true, so the whole answer is on show.
+  gaveUp: false,
 };
 
 let busy = false;
@@ -57,7 +60,9 @@ function saveState() {
   }
 }
 
-const isSolved = () => state.found.length === GROUP_COUNT;
+const isSolved = () => state.found.length === GROUP_COUNT && !state.gaveUp;
+const isOver = () => state.found.length === GROUP_COUNT;
+const foundByPlayer = () => state.found.filter((group) => !group.revealed).length;
 const points = () => Math.max(0, S.start - S.mistake * state.mistakes);
 const secondsLeft = () => Math.max(0, S.bonus_seconds - Math.max(state.seconds, S.grace_seconds));
 const bonus = () => secondsLeft() * S.bonus_per_second;
@@ -80,10 +85,13 @@ const SOUNDS = {
   correct: () => GU.play([[523, 0, 0.14], [659, 0.09, 0.14], [784, 0.18, 0.14], [1047, 0.27, 0.4]]),
   oneAway: () => GU.play([[440, 0, 0.12], [415, 0.12, 0.3]], "square", 0.05),
   wrong: () => GU.play([[220, 0, 0.18], [165, 0.15, 0.35]], "sawtooth", 0.06),
+  // A sad trombone, three steps down and a long last note.
+  giveUp: () =>
+    GU.play([[392, 0, 0.32], [370, 0.32, 0.32], [349, 0.64, 0.32], [330, 0.96, 0.9]], "triangle", 0.14),
 };
 
 function startClock() {
-  if (timer || isSolved()) return;
+  if (timer || isOver()) return;
   timer = setInterval(() => {
     state.seconds++;
     saveState();
@@ -102,10 +110,11 @@ function renderFound(animateNewest) {
   state.found.forEach((group, i) => {
     const card = el("section", "gp-group");
     if (animateNewest && i === state.found.length - 1) card.classList.add("is-new");
+    if (group.revealed) card.classList.add("is-revealed");
     card.innerHTML = SHAPES[i];
     const body = el("div", "gp-group__body");
     body.append(
-      el("div", "gp-group__order", `Found ${ORDINALS[i]}`),
+      el("div", "gp-group__order", group.revealed ? "Not found" : `Found ${ORDINALS[i]}`),
       el("h2", "gp-group__label", group.label),
       el("p", "gp-group__words", group.words.join(", "))
     );
@@ -137,16 +146,17 @@ function renderButtons() {
   $("gp-submit").disabled = busy || state.selected.length !== GROUP_SIZE;
   $("gp-deselect").disabled = busy || state.selected.length === 0;
   $("gp-shuffle").disabled = busy;
+  $("gp-give-up").disabled = busy;
 }
 
 function renderStatus() {
   const solved = isSolved();
-  $("gp-points").textContent = `${solved ? points() + bonus() : points()} pts`;
+  $("gp-points").textContent = state.gaveUp ? "Gave up" : `${solved ? points() + bonus() : points()} pts`;
   $("gp-clock").textContent = clock(state.seconds);
   $("gp-mistakes").textContent = state.mistakes;
   const left = secondsLeft();
   const grace = S.grace_seconds - state.seconds;
-  $("gp-bonus").hidden = solved;
+  $("gp-bonus").hidden = isOver();
   $("gp-bonus").classList.toggle("is-low", left > 0 && left <= 10);
   $("gp-bonus-fill").style.width = `${(100 * left) / (S.bonus_seconds - S.grace_seconds)}%`;
   $("gp-bonus-label").textContent = !left
@@ -157,9 +167,21 @@ function renderStatus() {
 }
 
 function renderResult(celebrate) {
-  $("gp-result").hidden = !isSolved();
-  if (!isSolved()) return;
+  $("gp-result").hidden = !isOver();
+  if (!isOver()) return;
+  GU.news();
   const n = state.mistakes;
+  $("gp-result").classList.toggle("is-gave-up", state.gaveUp);
+  if (state.gaveUp) {
+    const found = foundByPlayer();
+    $("gp-result-eyebrow").textContent = "Answers revealed";
+    $("gp-result-score").textContent = `${found} of ${GROUP_COUNT}`;
+    $("gp-result-unit").textContent = "found";
+    $("gp-result-detail").textContent =
+      `You found ${found} group${found === 1 ? "" : "s"} with ${n} mistake${n === 1 ? "" : "s"}. ` +
+      "The rest are below.";
+    return;
+  }
   $("gp-result-detail").textContent =
     `${clock(state.seconds)} with ${n} mistake${n === 1 ? "" : "s"}: ${points()} points` +
     (bonus() ? ` + ${bonus()} time bonus.` : ".");
@@ -174,10 +196,10 @@ function render({ deal = false, newGroup = false, celebrate = false } = {}) {
   renderStatus();
   renderResult(celebrate);
   renderButtons();
-  const solved = isSolved();
-  $("gp-board").hidden = solved;
-  $("gp-controls").hidden = solved;
-  $("gu-rules-btn").hidden = solved;
+  const over = isOver();
+  $("gp-board").hidden = over;
+  $("gp-controls").hidden = over;
+  $("gu-rules-btn").hidden = over;
 }
 
 function countUp(node, target) {
@@ -285,13 +307,45 @@ async function submit() {
   }
 }
 
+// Asks for every group and shows the ones not yet found, which ends the
+// game. Confirmed first: there's no taking it back.
+async function giveUp() {
+  if (!confirm("Give up and see all the groups?")) return;
+  let groups;
+  try {
+    const resp = await fetch(GP.revealUrl, {
+      method: "POST",
+      headers: { "X-CSRFToken": GP.csrfToken },
+    });
+    if (!resp.ok) throw new Error(resp.status);
+    groups = (await resp.json()).groups;
+  } catch (_) {
+    say("Couldn't get the answers. Try again.");
+    return;
+  }
+  groups
+    .filter((group) => !state.found.some((found) => sameWords(found.words, group.words)))
+    .forEach((group) => state.found.push({ label: group.label, words: group.words, revealed: true }));
+  state.gaveUp = true;
+  state.selected = [];
+  stopClock();
+  SOUNDS.giveUp();
+  say("");
+  saveState();
+  render();
+  window.scrollTo({ top: 0, behavior: reducedMotion ? "auto" : "smooth" });
+}
+
 function shareText() {
   const found = {};
   state.found.forEach((group, i) => group.words.forEach((word) => (found[word] = KEYCAPS[i])));
   const n = state.mistakes;
+  const summary = state.gaveUp
+    ? `Found ${foundByPlayer()} of ${GROUP_COUNT} groups, ${n} mistake${n === 1 ? "" : "s"}, then gave up`
+    : `${points() + bonus()} points in ${clock(state.seconds)}, ${n} mistake${n === 1 ? "" : "s"}`;
   return [
     GP.name,
-    `${points() + bonus()} points in ${clock(state.seconds)}, ${n} mistake${n === 1 ? "" : "s"}`,
+    summary,
     ...state.guesses.map((guess) => guess.map((word) => found[word]).join("")),
     location.origin + location.pathname,
   ].join("\n");
@@ -317,6 +371,7 @@ const splash = GU.splash({
 });
 
 $("gp-submit").addEventListener("click", submit);
+$("gp-give-up").addEventListener("click", giveUp);
 $("gp-share").addEventListener("click", () => GU.share($("gp-share"), shareText()));
 $("gp-deselect").addEventListener("click", () => {
   state.selected = [];
@@ -333,5 +388,5 @@ $("gp-shuffle").addEventListener("click", () => {
 });
 
 loadState();
-if (isSolved()) splash.skip();
+if (isOver()) splash.skip();
 else splash.show();

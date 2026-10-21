@@ -4,7 +4,7 @@
 {% block title %}{{ puzzle.name|default:"GroupUp" }}{% endblock %}
 {% block description %}{% if puzzle.description %}{{ puzzle.description|truncatechars:160 }}{% else %}GroupUp: sixteen words, four hidden groups. Find them fast for a time bonus.{% endif %}{% endblock %}
 {% block body_class %}game-groupup{% if words %} is-splash{% endif %}{% endblock %}
-{% block head %}<link rel="stylesheet" href="{% static 'groupup/groupup.css' %}?v=7">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'groupup/groupup.css' %}?v=9">{% endblock %}
 
 {% block chrome %}
 <header class="gu-playbar">
@@ -70,8 +70,8 @@
   {% if puzzle.description %}<div class="cw-description">{{ puzzle.description|linebreaks }}</div>{% endif %}
 
   <div id="gp-result" class="gp-result" hidden>
-    <div class="gp-result__eyebrow">Solved!</div>
-    <div class="gp-result__score"><span id="gp-result-score">0</span> points</div>
+    <div id="gp-result-eyebrow" class="gp-result__eyebrow">Solved!</div>
+    <div class="gp-result__score"><span id="gp-result-score">0</span> <span id="gp-result-unit">points</span></div>
     <div id="gp-result-detail" class="gp-result__detail"></div>
     <button id="gp-share" class="gu-btn gp-share" type="button">Share your results</button>
   </div>
@@ -90,7 +90,10 @@
     <button id="gp-shuffle" class="gu-btn gu-btn--ghost" type="button">Shuffle</button>
     <button id="gp-deselect" class="gu-btn gu-btn--ghost" type="button">Deselect all</button>
     <button id="gp-submit" class="gu-btn" type="button">Submit</button>
+    <button id="gp-give-up" class="gu-btn gu-btn--ghost gp-give-up" type="button"><i class="fa-solid fa-flag" aria-hidden="true"></i> Give up and show the answers</button>
   </div>
+
+  {% include "news/panel.html" %}
 
   <p class="cw-meta">{% spaceless %}
     {% if puzzle.editors %}Edited by {{ puzzle.editors }}.{% endif %}
@@ -107,11 +110,12 @@
     words: JSON.parse(document.getElementById("gp-words").textContent),
     scoring: JSON.parse(document.getElementById("gp-scoring").textContent),
     checkUrl: "{% url 'groupup:check' puzzle.pk %}",
+    revealUrl: "{% url 'groupup:reveal' puzzle.pk %}",
     csrfToken: "{{ csrf_token }}"
   };
 </script>
-<script src="{% static 'gu/game.js' %}?v=2"></script>
-<script src="{% static 'groupup/groupup.js' %}?v=6"></script>
+<script src="{% static 'gu/game.js' %}?v=5"></script>
+<script src="{% static 'groupup/groupup.js' %}?v=9"></script>
 {% else %}
 <h1>{{ puzzle.name|default:"GroupUp" }}</h1>
 <p>This puzzle has no words yet.</p>

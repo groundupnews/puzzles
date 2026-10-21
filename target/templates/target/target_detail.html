@@ -485,6 +485,8 @@
                 </div>
             {% endif %}
 
+            {% include "news/panel.html" %}
+
             {% if previous_target or next_target %}
                 <div id="target-navigator">
                     {% if previous_target %}
@@ -547,7 +549,7 @@
      })();
     </script>
 
-    <script src="{% static 'gu/game.js' %}?v=2"></script>
+    <script src="{% static 'gu/game.js' %}?v=5"></script>
     <script>
      "use strict";
 
@@ -883,6 +885,8 @@
              } else if (score >= goodScore) {
                  tier = "Good score!";
              }
+             // Target has no real end, so the news waits for a good score.
+             if (score >= goodScore) GU.news();
 
              // A tick on the bar for each milestone short of the end.
              var tick = function(milestone) {

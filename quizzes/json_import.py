@@ -9,9 +9,13 @@ Expected shape:
       "copyright": "...", "description": "...", "published": "...",
       "questions": [
         ["Capital of France?", [["Paris", true], ["Lyon", false]]],
+        ["Who won?", [["Ann", true], ["Bob", false]],
+         {"url": "https://groundup.org.za/article/...", "title": "...", "image": "..."}],
         ...
       ]
     }
+
+A question's third entry, the news story it's about, is optional.
 
 Every top-level field is optional (missing/null becomes blank). Unlike
 crossword_import, a malformed file isn't rejected outright: import is
@@ -24,7 +28,7 @@ from datetime import datetime
 from django.db import transaction
 from django.utils import timezone
 
-from .models import Answer, Question, Quiz
+from .models import Answer, Question, Quiz, article_fields
 
 
 def import_quiz_from_json(data):
@@ -60,10 +64,10 @@ def import_quiz_from_json(data):
         order = 0
         seen_question_texts = set()
         for i, entry in enumerate(raw_questions, start=1):
-            if not (isinstance(entry, (list, tuple)) and len(entry) == 2):
+            if not (isinstance(entry, (list, tuple)) and len(entry) in (2, 3)):
                 warnings.append(f"Question {i}: malformed entry, skipped.")
                 continue
-            text, raw_answers = entry
+            text, raw_answers, *article = entry
             text = (text or "").strip()
             if not text:
                 warnings.append(f"Question {i}: blank text, skipped.")
@@ -75,7 +79,12 @@ def import_quiz_from_json(data):
                 warnings.append(f"Question {i} ({text!r}): answers missing or malformed; saved with no answers.")
                 raw_answers = []
 
-            question = Question.objects.create(quiz=quiz, question=text, order=order)
+            question = Question.objects.create(
+                quiz=quiz,
+                question=text,
+                order=order,
+                **article_fields(article[0] if article else None),
+            )
             order += 1
             seen_question_texts.add(text)
 

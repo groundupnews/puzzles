@@ -4,7 +4,7 @@
 {% block title %}Streetwise{% if number %} #{{ number }}{% endif %}{% endblock %}
 {% block description %}Streetwise: look around a South African street and guess how it voted.{% endblock %}
 {% block body_class %}game-streetwise is-splash{% endblock %}
-{% block head %}<link rel="stylesheet" href="{% static 'streetwise/streetwise.css' %}?v=4">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'streetwise/streetwise.css' %}?v=5">{% endblock %}
 
 {% block chrome %}
 <header class="gu-playbar">
@@ -89,6 +89,8 @@
 
     <ol id="sw-guesses" class="sw-guesses" aria-label="Your guesses"></ol>
     <dl id="sw-hints" class="sw-hints"></dl>
+
+    {% include "news/panel.html" %}
   </div>
 </div>
 
@@ -101,6 +103,6 @@
     csrfToken: "{{ csrf_token }}"
   };
 </script>
-<script src="{% static 'gu/game.js' %}?v=2"></script>
-<script src="{% static 'streetwise/streetwise.js' %}?v=4"></script>
+<script src="{% static 'gu/game.js' %}?v=5"></script>
+<script src="{% static 'streetwise/streetwise.js' %}?v=5"></script>
 {% endblock %}

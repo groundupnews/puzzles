@@ -9,6 +9,7 @@ const QZ = window.QUIZ;
 const state = {
   questions: QZ.questions.map((q) => ({
     text: q.text,
+    article: q.article, // {url, title, image}, or null
     answers: q.answers.map((a) => ({ text: a.text, correct: a.correct })),
   })),
 };
@@ -45,6 +46,55 @@ function iconButton(iconClass, title, onClick, extraClass) {
   btn.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
   btn.addEventListener("click", onClick);
   return btn;
+}
+
+// The news story a question is about. Entering a link looks up the
+// story's headline and picture (quiz_article), which are saved with the
+// question and shown to the solver with the answers.
+function articleRow(q) {
+  const row = document.createElement("div");
+  row.className = "article-row";
+
+  const input = document.createElement("input");
+  input.type = "url";
+  input.className = "article-url";
+  input.placeholder = "Link to the GroundUp story (optional)";
+  input.value = q.article ? q.article.url : "";
+
+  const caption = document.createElement("small");
+  caption.className = "article-title";
+  const describe = () =>
+    (caption.textContent = q.article ? q.article.title || "No headline found for this link" : "");
+  describe();
+
+  input.addEventListener("change", async () => {
+    const url = input.value.trim();
+    markDirty();
+    if (!url) {
+      q.article = null;
+      describe();
+      return;
+    }
+    const article = (q.article = { url, title: "", image: "" });
+    caption.textContent = "Looking up the headline…";
+    let found;
+    try {
+      const resp = await fetch(`${QZ.articleUrl}?url=${encodeURIComponent(url)}`);
+      found = await resp.json();
+    } catch (_) {
+      found = { error: "the lookup failed" };
+    }
+    if (q.article !== article) return; // the link was changed again meanwhile
+    if (found.error) {
+      caption.textContent = `Couldn't look it up (${found.error}). The link will still be shown, without a headline.`;
+      return;
+    }
+    Object.assign(article, found);
+    describe();
+  });
+
+  row.append(input, caption);
+  return row;
 }
 
 // Rebuilds the whole question list from state. Small enough (a handful of
@@ -105,6 +155,7 @@ function render() {
 
     header.append(number, textInput, controls);
     block.appendChild(header);
+    block.appendChild(articleRow(q));
 
     // Non-blocking: flags a question with no correct answer marked yet,
     // but never stops the setter from saving (they may want to add a
@@ -191,7 +242,7 @@ function render() {
 }
 
 document.getElementById("add-question-btn").addEventListener("click", () => {
-  state.questions.push({ text: "", answers: [] });
+  state.questions.push({ text: "", article: null, answers: [] });
   markDirty();
   render();
 });

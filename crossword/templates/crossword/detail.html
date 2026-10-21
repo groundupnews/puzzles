@@ -115,12 +115,13 @@
     it. solver.js replaces the viewBox below with the same box plus a
     margin for the outer frame; this one holds the proportions until it
     does.{% endcomment %}
-    <div class="grid-area">
+    <div class="grid-area" style="--cols: {{ crossword.num_cols }}; --rows: {{ crossword.num_rows }}">
       <svg id="grid" tabindex="0"
            viewBox="0 0 {{ crossword.num_cols }} {{ crossword.num_rows }}"></svg>
     </div>
 
     <div id="completion-message" hidden></div>
+    {% include "news/panel.html" %}
 
     <div class="mobile-keyboard" id="mobile-keyboard">
       <div class="kb-row">
@@ -257,6 +258,6 @@ room for on a phone, plus the shortcut legend.{% endcomment %}
     csrfToken: "{{ csrf_token }}",
   };
 </script>
-<script src="{% static 'gu/game.js' %}?v=2"></script>
-<script src="{% static 'crossword/solver.js' %}?v=49"></script>
+<script src="{% static 'gu/game.js' %}?v=5"></script>
+<script src="{% static 'crossword/solver.js' %}?v=51"></script>
 {% endblock %}

@@ -44,6 +44,12 @@ class Question(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
     question = models.TextField()
     order = models.SmallIntegerField()
+    # The news story the question is about, if any, to send the solver on
+    # to. Its headline and picture are looked up when the setter adds the
+    # link (see quiz_article), and kept, so showing it costs nothing.
+    article_url = models.URLField(max_length=500, blank=True)
+    article_title = models.CharField(max_length=300, blank=True)
+    article_image = models.URLField(max_length=500, blank=True)
     date_added = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
 
@@ -54,6 +60,31 @@ class Question(models.Model):
             ),
             models.UniqueConstraint(fields=["quiz", "order"], name="unique_quiz_order"),
         ]
+
+    def article(self):
+        """The linked story as {"url", "title", "image"}, or None."""
+        if not self.article_url:
+            return None
+        return {"url": self.article_url, "title": self.article_title, "image": self.article_image}
+
+
+def _web_link(value):
+    value = (value or "").strip() if isinstance(value, str) else ""
+    return value if value.startswith(("https://", "http://")) else ""
+
+
+def article_fields(article):
+    """A Question's article fields, from {"url", "title", "image"} as the
+    builder posts it and the JSON export writes it. Anything but a web
+    link is dropped, as is a headline left behind by a removed link."""
+    article = article if isinstance(article, dict) else {}
+    url = _web_link(article.get("url"))
+    title = article.get("title") if url and isinstance(article.get("title"), str) else ""
+    return {
+        "article_url": url,
+        "article_title": title.strip()[:300],
+        "article_image": _web_link(article.get("image")) if url else "",
+    }
 
 
 class Answer(models.Model):

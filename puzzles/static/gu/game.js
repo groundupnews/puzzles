@@ -1,7 +1,7 @@
 "use strict";
 
-// Shared by the games: the splash each one opens on, the sound, and the
-// confetti for a win.
+// Shared by the games: the splash each one opens on, the sound, the
+// confetti for a win, and the GroundUp news shown once a game is over.
 window.GU = (() => {
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -143,6 +143,43 @@ window.GU = (() => {
     setTimeout(() => (button.textContent = label), 2000);
   }
 
+  // --- GroundUp news ---
+  // A news fragment from the puzzles site (see the news_* views), fetched
+  // once however often it's asked for. "" if there's nothing to show: no
+  // news is fine, the game is what matters.
+  const fragments = new Map();
+  function fragment(url) {
+    if (!fragments.has(url)) {
+      fragments.set(
+        url,
+        fetch(url)
+          .then((resp) => (resp.ok ? resp.text() : ""))
+          .then((html) => html.trim())
+          .catch(() => "")
+      );
+    }
+    return fragments.get(url);
+  }
+
+  // Fills news slots (each one's data-news says from where) and shows
+  // them, once each: refilling would wipe an email half-typed into the
+  // newsletter box. One that comes back empty stays as it was.
+  function fill(slots) {
+    slots.forEach(async (slot) => {
+      if (slot.dataset.filled) return;
+      slot.dataset.filled = "yes";
+      const html = await fragment(slot.dataset.news);
+      if (!html) return;
+      slot.innerHTML = html;
+      slot.hidden = false;
+    });
+  }
+
+  // What a game calls once it's over -- as often as it likes.
+  function news() {
+    fill(document.querySelectorAll(".gu-news"));
+  }
+
   return {
     reducedMotion,
     soundOn: () => soundOn,
@@ -152,5 +189,7 @@ window.GU = (() => {
     win,
     splash,
     share,
+    fill,
+    news,
   };
 })();

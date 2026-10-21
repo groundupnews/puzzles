@@ -109,7 +109,8 @@ li {
 }
 
 /* Forms */
-input[type="text"] {
+input[type="text"],
+input[type="url"] {
   font: inherit;
   padding: 0.45rem 0.6rem;
   border: 1px solid var(--line);
@@ -117,13 +118,15 @@ input[type="text"] {
   background: var(--surface);
 }
 
-input[type="text"]:focus {
+input[type="text"]:focus,
+input[type="url"]:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-input[type="text"]:disabled {
+input[type="text"]:disabled,
+input[type="url"]:disabled {
   background: var(--surface-sunken);
   color: var(--faint);
 }
@@ -1138,6 +1141,15 @@ kbd {
   body.cw-solve #completion-message { order: 3; }
   body.cw-solve .clue-display { order: 4; }
   body.cw-solve .mobile-keyboard { order: 5; }
+  body.cw-solve .gu-news { order: 6; margin: 16px 10px; }
+
+  /* Solved, there's nothing left to tap, so the screen can scroll again:
+     the grid takes the puzzle's own shape instead of whatever room was
+     left, the keyboard goes, and the news follows. */
+  body.cw-solve.is-done { height: auto; overflow: visible; }
+  body.cw-solve.is-done .gu-footer { display: block; }
+  body.cw-solve.is-done .grid-area { flex: none; aspect-ratio: var(--cols) / var(--rows); }
+  body.cw-solve.is-done .mobile-keyboard { display: none; }
 
   .editor--solve .buttons {
     flex: none;
@@ -1659,6 +1671,20 @@ body.waiting * {
   font-size: 0.85rem;
   padding: 0.3rem 0.6rem;
 }
+
+.article-row {
+  margin: 0.5rem 0 0 1.5rem;
+}
+
+.article-url {
+  width: 100%;
+}
+
+.article-title {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--muted);
+}
 /* Quiz solver: one question at a time. */
 .qz-page {
   max-width: 46rem;
@@ -1821,6 +1847,53 @@ button.qz-option:hover {
 
 .qz-review .qz-option {
   cursor: default;
+}
+
+/* The story a marked question came from. */
+.qz-story {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: -10px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--gu-cyan);
+  background: var(--gu-surface-2);
+  color: var(--gu-ink);
+  text-decoration: none;
+}
+
+.qz-story img {
+  flex: none;
+  width: 96px;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+}
+
+.qz-story__label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gu-cyan-dark);
+}
+
+.qz-story__title {
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.qz-story:hover .qz-story__title {
+  text-decoration: underline;
+}
+
+/* While answering: where to read up instead of guessing. */
+.qz-hint {
+  display: inline-block;
+  margin: -8px 0 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gu-cyan-dark);
 }
 
 .qz-actions {

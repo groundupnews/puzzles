@@ -1,0 +1,5 @@
+{% load news %}
+{% if story %}
+<span class="hub-strip__label">Most read on GroundUp</span>
+<a href="{{ story.url|campaign:'hub-strip' }}">{{ story.title }} &rsaquo;</a>
+{% endif %}

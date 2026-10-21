@@ -660,6 +660,8 @@ async function autoCheckIfComplete() {
     const pct = Math.round((totalWhite - wrongCount) / totalWhite * 100);
     showMessage(`Crossword completed. You scored ${pct}%.`, "success");
     saveState();
+    document.body.classList.add("is-done");
+    GU.news();
   } else {
     showMessage("The crossword has some wrong answers.", "error");
   }
@@ -835,6 +837,8 @@ if (loadState()) {
     document.getElementById("check-btn").closest(".check-dropdown").style.display = "none";
     document.getElementById("reveal-btn").closest(".check-dropdown").style.display = "none";
     document.getElementById("sound-btn").style.display = "none";
+    document.body.classList.add("is-done");
+    GU.news();
   }
 } else {
   const _initSlots = computeSlots();

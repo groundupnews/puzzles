@@ -143,3 +143,12 @@ def groupup_check(request, pk):
             return JsonResponse({"correct": True, "label": group["label"], "words": group["words"]})
         closest = max(closest, shared)
     return JsonResponse({"correct": False, "one_away": closest == WORDS - 1})
+
+
+@require_POST
+def groupup_reveal(request, pk):
+    """Every group, for a player who has given up. Apart from one correct
+    guess at a time (groupup_check), this is the only way the answers
+    leave the server."""
+    puzzle = _visible(request, pk)
+    return JsonResponse({"groups": puzzle.groups})

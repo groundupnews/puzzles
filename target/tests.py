@@ -52,6 +52,11 @@ class URLSWork(TestCase):
         response = c.get(url)
         self.assertEqual(response.status_code, 200)
 
+    def test_archive_does_not_give_the_letters_away(self):
+        response = Client().get(reverse("target:list"))
+        self.assertContains(response, "Target archive")
+        self.assertNotContains(response, "practical")
+
     def test_saving_a_target_draws_its_image(self):
         target = models.Target.objects.get()
         path = os.path.join(settings.MEDIA_ROOT, "targets",
