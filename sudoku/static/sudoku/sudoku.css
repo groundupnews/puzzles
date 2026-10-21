@@ -213,6 +213,13 @@ body.game-sudoku {
 .sd-cell.is-trial.is-clash { color: #fff; }
 .sd-cell.is-trial.is-clash { background: var(--danger, #d0021b); }
 
+/* The first digit entered in a trial gets a bold frame, marking where the
+   line of reasoning started. Inset so it can't be clipped by neighbours. */
+.sd-cell.is-trial-start {
+  box-shadow: inset 0 0 0 3px var(--sd-trial-deep);
+  z-index: 1;
+}
+
 .sd-value {
   line-height: 1;
 }
@@ -238,6 +245,13 @@ body.game-sudoku {
 }
 
 .sd-cell.is-cursor .sd-notes span { color: rgba(255, 255, 255, 0.85); }
+
+/* A pencil mark that a placed digit in its row, column or box rules out. */
+.sd-notes span.is-ruled-out,
+.sd-cell.is-cursor .sd-notes span.is-ruled-out {
+  color: var(--danger, #d0021b);
+}
+.sd-cell.is-cursor .sd-notes span.is-ruled-out { color: #ffb3ba; }
 
 /* --- Number pad and actions --- */
 

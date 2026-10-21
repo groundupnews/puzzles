@@ -176,6 +176,10 @@ function paint() {
       !isCursor && !!cursorValue && state.cells[i] === cursorValue
     );
     cell.classList.toggle("is-clash", clashes(i));
+    cell.classList.toggle(
+      "is-trial-start",
+      !!state.trial && state.trial.first === i && !!state.cells[i]
+    );
     cell.classList.toggle("is-revealed", !!state.revealed[i]);
     // Anything standing where the trial began differs from it: that's a
     // digit the solver is only trying out, so it's coloured as such.
@@ -189,7 +193,15 @@ function paint() {
     notes.hidden = !!state.cells[i] || !digits;
     if (!notes.hidden) {
       for (let d = 1; d <= SIZE; d++) {
-        notes.children[d - 1].textContent = digits.includes(String(d)) ? d : "";
+        const mark = notes.children[d - 1];
+        const has = digits.includes(String(d));
+        mark.textContent = has ? d : "";
+        // A mark ruled out by a placed digit stays visible, in red, so
+        // changing or removing that digit doesn't lose the solver's work.
+        mark.classList.toggle(
+          "is-ruled-out",
+          has && PEERS[i].some((j) => state.cells[j] === String(d))
+        );
       }
     }
   }
@@ -234,6 +246,12 @@ function select(i) {
   saveState();
 }
 
+// Remembers where a trial's first digit went, so the board can frame it:
+// that's the cell the whole line of reasoning hangs from.
+function markTrialStart(i) {
+  if (state.trial && state.trial.first == null) state.trial.first = i;
+}
+
 function enter(digit) {
   const i = state.cursor;
   if (given[i] || state.completed) return;
@@ -252,14 +270,7 @@ function enter(digit) {
   } else {
     state.cells[i] = digit;
     delete state.notes[i];
-    // Committing a digit rules it out nearby, so those marks come off.
-    for (const j of PEERS[i]) {
-      const marks = state.notes[j];
-      if (!marks || !marks.includes(digit)) continue;
-      const left = [...marks].filter((d) => d !== digit).join("");
-      if (left) state.notes[j] = left;
-      else delete state.notes[j];
-    }
+    markTrialStart(i);
   }
 
   refreshCompleted();
@@ -292,6 +303,7 @@ function hint() {
   state.cells[i] = SD.solution[i];
   state.revealed[i] = true;
   delete state.notes[i];
+  markTrialStart(i);
   refreshCompleted();
   paint();
   saveState();
@@ -317,6 +329,7 @@ function toggleTrial() {
     cells: [...state.cells],
     notes: { ...state.notes },
     revealed: { ...state.revealed },
+    first: null, // cell of the first digit entered during the trial
   };
   paint();
   saveState();
