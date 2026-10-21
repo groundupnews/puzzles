@@ -89,6 +89,8 @@
 
     <ol id="sw-guesses" class="sw-guesses" aria-label="Your guesses"></ol>
     <dl id="sw-hints" class="sw-hints"></dl>
+
+    {% include "news/panel.html" %}
   </div>
 </div>
 
@@ -101,6 +103,6 @@
     csrfToken: "{{ csrf_token }}"
   };
 </script>
-<script src="{% static 'gu/game.js' %}?v=2"></script>
-<script src="{% static 'streetwise/streetwise.js' %}?v=4"></script>
+<script src="{% static 'gu/game.js' %}?v=5"></script>
+<script src="{% static 'streetwise/streetwise.js' %}?v=5"></script>
 {% endblock %}

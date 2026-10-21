@@ -68,6 +68,7 @@ function render() {
       ? `You got it in ${guesses.length}!`
       : "Out of guesses";
     $("sw-result-body").innerHTML = state.result;
+    GU.news();
   }
   renderPick();
 }

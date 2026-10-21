@@ -1,0 +1,10 @@
+{% load news %}
+{% if stories %}
+<h2 class="gu-news__head">What GroundUp readers spent longest on this week</h2>
+<ol class="gu-news__list">
+  {% for story in stories %}
+  <li><a href="{{ story.url|campaign:'after-game' }}">{{ story.title }}</a></li>
+  {% endfor %}
+</ol>
+{% endif %}
+{% include "news/newsletter.html" %}

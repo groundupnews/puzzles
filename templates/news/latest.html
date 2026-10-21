@@ -1,0 +1,18 @@
+{% load news %}
+{% if stories %}
+<div class="gu-section-head">
+  <h2>From the GroundUp newsroom</h2>
+  <a class="hub-news__more" href="{{ news_site|campaign:'hub' }}">More news &rsaquo;</a>
+</div>
+<p class="hub-news__intro">The newest stories, and the ones readers have spent the most time with this week.</p>
+<div class="hub-news">
+  {% for story in stories %}
+  <a class="hub-news__story" href="{{ story.url|campaign:'hub' }}">
+    {% if story.image %}<img src="{{ story.image }}" alt="" loading="lazy">{% endif %}
+    <span class="hub-news__category">{{ story.kicker }}</span>
+    <h3>{{ story.title }}</h3>
+    {% if story.summary %}<p>{{ story.summary }}</p>{% endif %}
+  </a>
+  {% endfor %}
+</div>
+{% endif %}

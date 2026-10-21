@@ -828,6 +828,85 @@ body {
   color: #888;
 }
 
+/* ---------------- GroundUp news ---------------- */
+
+/* What a game shows once it's over: the week's most-read stories, then
+   the newsletter. Filled in by GU.news() in game.js. */
+.gu-news {
+  margin: 28px 0;
+  padding: 20px 22px;
+  border: 1px solid var(--gu-border-warm);
+  border-top: 3px solid var(--gu-ink);
+  background: var(--gu-white);
+  text-align: left;
+}
+
+/* A class, so it beats the games' own small-caps h2 rules. */
+.gu-news__head {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--gu-gray-500);
+}
+
+.gu-news__list {
+  list-style: none;
+  counter-reset: story;
+  margin: 0;
+  padding: 0;
+}
+
+.gu-news__list li {
+  counter-increment: story;
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--gu-border-warm);
+}
+
+.gu-news__list li::before {
+  content: counter(story);
+  flex: none;
+  width: 18px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--game);
+}
+
+.gu-news__list a {
+  color: var(--gu-ink);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+.gu-news__list a:hover { text-decoration: underline; }
+
+.gu-newsletter { margin-top: 18px; }
+
+.gu-newsletter label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.gu-newsletter__row { display: flex; gap: 8px; }
+
+.gu-newsletter input[type="email"] {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1.5px solid var(--gu-surface-3);
+  font: inherit;
+}
+
+.gu-newsletter .gu-btn { padding: 10px 20px; }
+
 @media (max-width: 900px) {
   .gu-footer__inner { grid-template-columns: 1fr 1fr; gap: 32px 24px; }
   .gu-footer__about { grid-column: 1 / -1; }
@@ -851,6 +930,8 @@ body {
   .gu-playbar__logo { display: none; }
   .gu-playbar__status { gap: 10px; }
   .hub-grid { grid-template-columns: 1fr; }
+  .gu-news { padding: 16px; }
+  .gu-newsletter__row { flex-direction: column; }
   .hub-strip__inner { padding: 18px 16px 20px; }
   .hub-strip h1 { font-size: 26px; }
   .hub-hero__body { padding: 24px 20px; }

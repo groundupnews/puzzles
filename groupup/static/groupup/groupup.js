@@ -159,6 +159,7 @@ function renderStatus() {
 function renderResult(celebrate) {
   $("gp-result").hidden = !isSolved();
   if (!isSolved()) return;
+  GU.news();
   const n = state.mistakes;
   $("gp-result-detail").textContent =
     `${clock(state.seconds)} with ${n} mistake${n === 1 ? "" : "s"}: ${points()} points` +

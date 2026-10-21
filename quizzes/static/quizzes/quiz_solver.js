@@ -175,6 +175,7 @@ function render() {
     retakeBtn.hidden = false;
     resultEl.hidden = false;
     resultEl.textContent = `You scored ${state.results.score} out of ${state.results.total}.`;
+    GU.news();
   } else {
     renderQuestion(container);
     const last = state.index === QZ.questions.length - 1;

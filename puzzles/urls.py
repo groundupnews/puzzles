@@ -23,7 +23,7 @@ from django.views.generic.base import RedirectView, TemplateView
 
 from puzzles import api
 from puzzles.sitemaps import sitemap
-from puzzles.views import games_hub, logout_everywhere
+from puzzles.views import games_hub, logout_everywhere, news_after_game, news_latest, news_top
 
 urlpatterns = [
     path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
@@ -45,6 +45,9 @@ urlpatterns = [
     # See puzzles/api.py.
     path('api/puzzles/', api.all_puzzles, name='api_puzzles'),
     path('api/puzzles/<str:name>/', api.one_puzzle, name='api_puzzle'),
+    path('news/after-game/', news_after_game, name='news_after_game'),
+    path('news/latest/', news_latest, name='news_latest'),
+    path('news/top/', news_top, name='news_top'),
     path('crossword/', include('crossword.urls')),
     path('quizzes/', include('quizzes.urls')),
     path('sudoku/', include('sudoku.urls')),

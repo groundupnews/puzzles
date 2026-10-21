@@ -4,7 +4,7 @@
 {% block title %}Sudoku {{ sudoku.number|default:sudoku.pk }}{% endblock %}
 {% block canonical %}<link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ sudoku.get_absolute_url }}">{% endblock %}
 {% block body_class %}game-sudoku sd-solve is-splash{% endblock %}
-{% block head %}<link rel="stylesheet" href="{% static 'sudoku/sudoku.css' %}?v=17">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'sudoku/sudoku.css' %}?v=18">{% endblock %}
 {% block main_class %}gu-page sd-page{% endblock %}
 
 {% block chrome %}
@@ -144,6 +144,8 @@ with.{% endcomment %}
   </div>
 </div>
 
+{% include "news/panel.html" %}
+
 <script id="sd-data" type="application/json">{"puzzle": "{{ sudoku.puzzle }}", "solution": "{{ sudoku.solution }}"}</script>
 <script>
   window.SUDOKU = Object.assign(
@@ -151,6 +153,6 @@ with.{% endcomment %}
     JSON.parse(document.getElementById("sd-data").textContent)
   );
 </script>
-<script src="{% static 'gu/game.js' %}?v=2"></script>
-<script src="{% static 'sudoku/sudoku_solver.js' %}?v=6"></script>
+<script src="{% static 'gu/game.js' %}?v=5"></script>
+<script src="{% static 'sudoku/sudoku_solver.js' %}?v=8"></script>
 {% endblock %}

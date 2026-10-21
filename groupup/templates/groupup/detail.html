@@ -92,6 +92,8 @@
     <button id="gp-submit" class="gu-btn" type="button">Submit</button>
   </div>
 
+  {% include "news/panel.html" %}
+
   <p class="cw-meta">{% spaceless %}
     {% if puzzle.editors %}Edited by {{ puzzle.editors }}.{% endif %}
     {% if puzzle.copyright %} {{ puzzle.copyright }}.{% endif %}
@@ -110,8 +112,8 @@
     csrfToken: "{{ csrf_token }}"
   };
 </script>
-<script src="{% static 'gu/game.js' %}?v=2"></script>
-<script src="{% static 'groupup/groupup.js' %}?v=6"></script>
+<script src="{% static 'gu/game.js' %}?v=5"></script>
+<script src="{% static 'groupup/groupup.js' %}?v=7"></script>
 {% else %}
 <h1>{{ puzzle.name|default:"GroupUp" }}</h1>
 <p>This puzzle has no words yet.</p>

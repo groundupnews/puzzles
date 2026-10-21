@@ -33,6 +33,9 @@ SITE_ID = 1
 # see templates/piwik.html.
 PIWIK_SITE_URL = "https://traffic.groundup.org.za/"
 
+# The news site the games send players on to -- see puzzles/news.py.
+NEWS_SITE_URL = "https://groundup.org.za"
+
 # nginx sets X-Forwarded-Proto via proxy_params; trust it so request.is_secure()
 # is correct behind the reverse proxy (needed for CSRF Origin checks on POST).
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

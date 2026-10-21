@@ -1,4 +1,5 @@
 from allauth.usersessions.models import UserSession
+from django.conf import settings
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.sessions.models import Session
@@ -7,6 +8,7 @@ from django.utils import timezone
 
 from crossword.models import Crossword
 from groupup.models import GroupUp
+from puzzles import news
 from puzzles.teasers import grid_preview, sudoku_tile, target_tile
 from quizzes.models import Quiz
 from streetwise.models import Streetwise
@@ -71,3 +73,39 @@ def games_hub(request):
             "greeting": _greeting(now),
         },
     )
+
+
+# The news panels are HTML fragments that a page fetches once it wants
+# them (GU.news() in game.js), rather than rendering them with the page,
+# so a slow news site never holds up a game.
+
+
+def news_after_game(request):
+    """What a game shows once it's over: the stories readers spent
+    longest on this week, and the newsletter."""
+    return render(request, "news/after_game.html", {"stories": news.most_deeply_read()})
+
+
+def news_latest(request):
+    """Four stories for the bottom of the games hub: the two newest, then
+    two that readers spent longest on this week (not repeating either of
+    the new ones). Nothing at all when there are none, so the page leaves
+    the panel hidden."""
+    new = news.latest()[:2]
+    shown = {story["url"] for story in new}
+    deep = [story for story in news.most_deeply_read() if story["url"] not in shown][:2]
+    stories = [{**story, "kicker": "Just published"} for story in new] + [
+        {**story, "kicker": "Readers' pick", "image": news.picture(story["url"])}
+        for story in deep
+    ]
+    return render(
+        request,
+        "news/latest.html",
+        {"stories": stories, "news_site": settings.NEWS_SITE_URL},
+    )
+
+
+def news_top(request):
+    """The week's most-read story, for the hub strip."""
+    stories = news.most_read()
+    return render(request, "news/top.html", {"story": stories[0] if stories else None})

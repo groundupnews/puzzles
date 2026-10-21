@@ -215,9 +215,11 @@ function paint() {
 
   const message = document.getElementById("sd-message");
   message.hidden = !state.completed;
+  document.body.classList.toggle("is-done", state.completed);
   if (state.completed) {
     message.className = "sd-message is-success";
     message.textContent = "Solved. Nicely done.";
+    GU.news();
   }
 
   if (state.completed || !playing) stopTimer();

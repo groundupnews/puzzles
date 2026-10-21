@@ -1138,6 +1138,15 @@ kbd {
   body.cw-solve #completion-message { order: 3; }
   body.cw-solve .clue-display { order: 4; }
   body.cw-solve .mobile-keyboard { order: 5; }
+  body.cw-solve .gu-news { order: 6; margin: 16px 10px; }
+
+  /* Solved, there's nothing left to tap, so the screen can scroll again:
+     the grid takes the puzzle's own shape instead of whatever room was
+     left, the keyboard goes, and the news follows. */
+  body.cw-solve.is-done { height: auto; overflow: visible; }
+  body.cw-solve.is-done .gu-footer { display: block; }
+  body.cw-solve.is-done .grid-area { flex: none; aspect-ratio: var(--cols) / var(--rows); }
+  body.cw-solve.is-done .mobile-keyboard { display: none; }
 
   .editor--solve .buttons {
     flex: none;
