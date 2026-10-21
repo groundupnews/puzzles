@@ -246,6 +246,29 @@
   background: var(--game);
 }
 
+/* A row of its own under the game's buttons, in grey rather than the
+   game's colour: easy to find, hard to hit by mistake. */
+.gp-controls .gu-btn.gp-give-up {
+  flex-basis: 100%;
+  margin-top: 4px;
+  border-color: var(--gu-gray-350);
+  color: var(--gu-gray-600);
+}
+
+.gp-controls .gu-btn.gp-give-up:hover { border-color: var(--gu-ink); color: var(--gu-ink); }
+
+/* Given up: not a win, so not the game's celebratory colour. */
+.gp-result.is-gave-up { background: var(--gu-ink-800); }
+
+.gp-group.is-revealed {
+  border-style: dashed;
+  border-color: var(--gu-gray-350);
+  background: var(--gu-white);
+}
+
+.gp-group.is-revealed .gp-group__shape,
+.gp-group.is-revealed .gp-group__order { color: var(--gu-gray-500); }
+
 .gp-controls .gu-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
