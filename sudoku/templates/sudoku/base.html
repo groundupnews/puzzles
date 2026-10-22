@@ -1,3 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Sudoku{% endblock %}
 {% block description %}A free daily sudoku from GroundUp, at three levels of difficulty.{% endblock %}
+{% block og_image %}{% static 'gu/og/sudoku.png' %}{% endblock %}

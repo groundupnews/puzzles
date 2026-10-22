@@ -13,6 +13,8 @@
     {% block robots %}{% endblock %}
     <meta property="og:site_name" content="GroundUp Puzzles">
     {% block og %}<meta property="og:type" content="website">{% endblock %}
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% block og_image %}{% static 'gu/og/puzzles.png' %}{% endblock %}">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
