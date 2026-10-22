@@ -10,13 +10,8 @@
     <meta property="og:title"
           content="GroundUp Target {{target.number}}"/>
     <meta property="og:type" content="article"/>
-    <meta property="og:image" itemprop="image"
-          content="https://{{request.META.HTTP_HOST}}{{MEDIA_URL}}targets/target_{{target.pk}}.png"/>
-    <meta name="twitter:card" content="summary_large_image"/>
-    <meta name="twitter:image"
-          content="https://{{request.META.HTTP_HOST}}{{MEDIA_URL}}targets/target_{{target.pk}}.png"/>
-    <meta name="twitter:image:alt" content="" />
 {% endblock %}
+{% block og_image %}{% static 'gu/og/target.png' %}{% endblock %}
 
 {% block head %}
     <style>
