@@ -4,6 +4,7 @@ from datetime import datetime
 
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import F, Q
 from django.http import Http404, HttpResponse, JsonResponse
@@ -70,7 +71,8 @@ class CrosswordSelectView(ListView):
 
     Generators see all crosswords, except private+unpublished crosswords
     they don't own, and can narrow the list with ?status=published or
-    ?status=unpublished. Everyone else sees only published ones.
+    ?status=unpublished, and ?owner=<user id>. Everyone else sees only
+    published ones.
     """
 
     model = Crossword
@@ -97,7 +99,17 @@ class CrosswordSelectView(ListView):
                 qs = qs.exclude(unpublished)
             elif status == "unpublished":
                 qs = qs.filter(unpublished)
+            owner = self.request.GET.get("owner", "")
+            if owner.isdigit():
+                qs = qs.filter(owner_id=owner)
         return qs
+
+    def get_context_data(self, **kwargs):
+        # The owner filter's choices: everyone who owns a crossword.
+        context = super().get_context_data(**kwargs)
+        if self.request.user.has_perm(PERM):
+            context["owners"] = User.objects.filter(crossword__isnull=False).distinct().order_by("username")
+        return context
 
 
 @permission_required(PERM)

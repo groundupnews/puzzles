@@ -16,27 +16,37 @@
   <button id="import-btn" type="button"><i class="fa-solid fa-upload"></i> Import</button>
   <input type="file" id="import-file" accept=".xd,.xml" hidden>
 </div>
+{% comment %}The filter dropdowns sit in the column headings and join this
+form through their form="archive-filter" attribute.{% endcomment %}
+<form method="get" id="archive-filter"></form>
 {% endif %}
-{% if crosswords or request.GET.status %}
+{% if crosswords or request.GET.status or request.GET.owner %}
 <div class="table-wrap">
 <table class="crossword-table">
   <thead>
     <tr>
       {% if perms.crossword.can_generate_crosswords %}<th>ID</th>{% endif %}
       <th>Name</th>
-      {% if perms.crossword.can_generate_crosswords %}<th>Owner</th>{% endif %}
+      {% if perms.crossword.can_generate_crosswords %}
+      <th>Owner
+        <select name="owner" form="archive-filter" class="archive-filter" aria-label="Filter by owner">
+          <option value="">All</option>
+          {% for owner in owners %}
+          <option value="{{ owner.pk }}"{% if owner.pk|stringformat:"d" == request.GET.owner %} selected{% endif %}>{{ owner.username }}</option>
+          {% endfor %}
+        </select>
+      </th>
+      {% endif %}
       {% if not perms.crossword.can_generate_crosswords %}<th>Published</th>{% endif %}
       {% if perms.crossword.can_generate_crosswords %}
       <th></th>
       <th></th>
       <th>Published
-        <form method="get" id="status-filter" class="status-filter">
-          <select name="status" aria-label="Filter by publication status">
-            <option value="">All</option>
-            <option value="published"{% if request.GET.status == "published" %} selected{% endif %}>Published</option>
-            <option value="unpublished"{% if request.GET.status == "unpublished" %} selected{% endif %}>Unpublished</option>
-          </select>
-        </form>
+        <select name="status" form="archive-filter" class="archive-filter" aria-label="Filter by publication status">
+          <option value="">All</option>
+          <option value="published"{% if request.GET.status == "published" %} selected{% endif %}>Published</option>
+          <option value="unpublished"{% if request.GET.status == "unpublished" %} selected{% endif %}>Unpublished</option>
+        </select>
       </th>
       <th></th>
       {% endif %}
@@ -92,9 +102,10 @@
 {% if perms.crossword.can_generate_crosswords %}
 <script>
   const CSRF_TOKEN = "{{ csrf_token }}";
-  document.getElementById("status-filter").addEventListener("change", function () {
-    this.submit();
-  });
+  const archiveFilter = document.getElementById("archive-filter");
+  for (const select of archiveFilter.elements) {
+    select.addEventListener("change", () => archiveFilter.submit());
+  }
   document.getElementById("import-btn").addEventListener("click", () => {
     document.getElementById("import-file").click();
   });
