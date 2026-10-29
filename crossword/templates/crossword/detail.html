@@ -243,6 +243,8 @@ room for on a phone, plus the shortcut legend.{% endcomment %}
   {% if crossword.copyright %} {{ crossword.copyright }}.{% endif %}
 {% endspaceless %}</p>
 
+<p class="cw-head"><a class="gu-badge gu-badge--link" href="{% url 'crossword_select' %}">Archive &rsaquo;</a></p>
+
 {{ crossword.blocked_out_squares|json_script:"cw-blocks" }}
 {{ clues|json_script:"cw-clues" }}
 <script>

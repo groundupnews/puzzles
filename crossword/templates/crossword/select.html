@@ -17,7 +17,7 @@
   <input type="file" id="import-file" accept=".xd,.xml" hidden>
 </div>
 {% endif %}
-{% if crosswords %}
+{% if crosswords or request.GET.status %}
 <div class="table-wrap">
 <table class="crossword-table">
   <thead>
@@ -29,7 +29,15 @@
       {% if perms.crossword.can_generate_crosswords %}
       <th></th>
       <th></th>
-      <th>Published</th>
+      <th>Published
+        <form method="get" id="status-filter" class="status-filter">
+          <select name="status" aria-label="Filter by publication status">
+            <option value="">All</option>
+            <option value="published"{% if request.GET.status == "published" %} selected{% endif %}>Published</option>
+            <option value="unpublished"{% if request.GET.status == "unpublished" %} selected{% endif %}>Unpublished</option>
+          </select>
+        </form>
+      </th>
       <th></th>
       {% endif %}
     </tr>
@@ -76,6 +84,7 @@
   </tbody>
 </table>
 </div>
+{% if not crosswords %}<p>No matching crosswords.</p>{% endif %}
 {% include "pager.html" %}
 {% else %}
 <p>No crosswords yet.{% if perms.crossword.can_generate_crosswords %} <a href="{% url 'crossword_add' %}">Create one.</a>{% endif %}</p>
@@ -83,6 +92,9 @@
 {% if perms.crossword.can_generate_crosswords %}
 <script>
   const CSRF_TOKEN = "{{ csrf_token }}";
+  document.getElementById("status-filter").addEventListener("change", function () {
+    this.submit();
+  });
   document.getElementById("import-btn").addEventListener("click", () => {
     document.getElementById("import-file").click();
   });

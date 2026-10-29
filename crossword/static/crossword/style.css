@@ -82,6 +82,11 @@ li {
   font-weight: normal;
 }
 
+.crossword-table .status-filter {
+  display: inline;
+  margin-left: 0.4rem;
+}
+
 .crossword-table td:last-child,
 .crossword-table th:last-child {
   padding-right: 0;

@@ -69,7 +69,8 @@ class CrosswordSelectView(ListView):
     """List crosswords.
 
     Generators see all crosswords, except private+unpublished crosswords
-    they don't own. Everyone else sees only published ones.
+    they don't own, and can narrow the list with ?status=published or
+    ?status=unpublished. Everyone else sees only published ones.
     """
 
     model = Crossword
@@ -91,6 +92,11 @@ class CrosswordSelectView(ListView):
         else:
             unpublished = Q(published__isnull=True) | Q(published__gt=timezone.now())
             qs = qs.exclude(Q(private=True) & unpublished & ~Q(owner=user))
+            status = self.request.GET.get("status")
+            if status == "published":
+                qs = qs.exclude(unpublished)
+            elif status == "unpublished":
+                qs = qs.filter(unpublished)
         return qs
 
 

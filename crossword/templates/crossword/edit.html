@@ -126,6 +126,8 @@
   </aside>
 </div>
 
+<p><a class="gu-badge gu-badge--link" href="{% url 'crossword_select' %}">Archive &rsaquo;</a></p>
+
 {{ crossword.cells|json_script:"cw-cells" }}
 {{ crossword.blocked_out_squares|json_script:"cw-blocks" }}
 {{ clues|json_script:"cw-clues" }}
