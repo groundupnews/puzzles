@@ -71,8 +71,8 @@ class CrosswordSelectView(ListView):
 
     Generators see all crosswords, except private+unpublished crosswords
     they don't own, and can narrow the list with ?status=published or
-    ?status=unpublished, and ?owner=<user id>. Everyone else sees only
-    published ones.
+    ?status=unpublished, ?owner=<user id> and ?competition=<id>. Everyone
+    else sees only published ones.
     """
 
     model = Crossword
@@ -87,7 +87,7 @@ class CrosswordSelectView(ListView):
         # Restricts the list to published crosswords for anyone without the
         # generate permission; generators see everything except other users'
         # private, unpublished drafts.
-        qs = super().get_queryset().select_related("owner")
+        qs = super().get_queryset().select_related("owner", "competition")
         user = self.request.user
         if not user.has_perm(PERM):
             qs = qs.published()
@@ -102,13 +102,18 @@ class CrosswordSelectView(ListView):
             owner = self.request.GET.get("owner", "")
             if owner.isdigit():
                 qs = qs.filter(owner_id=owner)
+            competition = self.request.GET.get("competition", "")
+            if competition.isdigit():
+                qs = qs.filter(competition_id=competition)
         return qs
 
     def get_context_data(self, **kwargs):
-        # The owner filter's choices: everyone who owns a crossword.
+        # The filters' choices: everyone who owns a crossword, and every
+        # competition.
         context = super().get_context_data(**kwargs)
         if self.request.user.has_perm(PERM):
             context["owners"] = User.objects.filter(crossword__isnull=False).distinct().order_by("username")
+            context["competitions"] = Competition.objects.all()
         return context
 
 

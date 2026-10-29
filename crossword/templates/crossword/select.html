@@ -11,7 +11,7 @@
   <a class="gu-badge gu-badge--link" href="{% url 'crossword_latest' %}">Play the latest &rsaquo;</a>
 </div>
 {% if perms.crossword.can_generate_crosswords %}
-<div class="buttons">
+<div class="buttons archive-buttons">
   <a href="{% url 'crossword_add' %}" class="btn-icon">New crossword</a>
   <button id="import-btn" type="button"><i class="fa-solid fa-upload"></i> Import</button>
   <input type="file" id="import-file" accept=".xd,.xml" hidden>
@@ -20,7 +20,7 @@
 form through their form="archive-filter" attribute.{% endcomment %}
 <form method="get" id="archive-filter"></form>
 {% endif %}
-{% if crosswords or request.GET.status or request.GET.owner %}
+{% if crosswords or request.GET %}
 <div class="table-wrap">
 <table class="crossword-table">
   <thead>
@@ -33,6 +33,14 @@ form through their form="archive-filter" attribute.{% endcomment %}
           <option value="">All</option>
           {% for owner in owners %}
           <option value="{{ owner.pk }}"{% if owner.pk|stringformat:"d" == request.GET.owner %} selected{% endif %}>{{ owner.username }}</option>
+          {% endfor %}
+        </select>
+      </th>
+      <th>Competition
+        <select name="competition" form="archive-filter" class="archive-filter" aria-label="Filter by competition">
+          <option value="">All</option>
+          {% for competition in competitions %}
+          <option value="{{ competition.pk }}"{% if competition.pk|stringformat:"d" == request.GET.competition %} selected{% endif %}>{{ competition.name }}</option>
           {% endfor %}
         </select>
       </th>
@@ -55,14 +63,17 @@ form through their form="archive-filter" attribute.{% endcomment %}
   <tbody>
     {% regroup crosswords by published|date:"F Y" as months %}
     {% for month in months %}
-    <tr class="archive-month"><th colspan="{% if perms.crossword.can_generate_crosswords %}7{% else %}2{% endif %}">{{ month.grouper|default:"Unpublished" }}</th></tr>
+    <tr class="archive-month"><th colspan="{% if perms.crossword.can_generate_crosswords %}8{% else %}2{% endif %}">{{ month.grouper|default:"Unpublished" }}</th></tr>
     {% for crossword in month.list %}
     <tr>
       {% if perms.crossword.can_generate_crosswords %}<td class="cw-id">{{ crossword.pk }}</td>{% endif %}
       <td class="cw-name">
         <a href="{% url 'crossword_solve' crossword.pk %}">{{ crossword.name|default:"Untitled" }}</a>
       </td>
-      {% if perms.crossword.can_generate_crosswords %}<td class="cw-owner">{{ crossword.owner.username }}</td>{% endif %}
+      {% if perms.crossword.can_generate_crosswords %}
+      <td class="cw-owner">{{ crossword.owner.username }}</td>
+      <td>{{ crossword.competition.name|default:"" }}</td>
+      {% endif %}
       {% if not perms.crossword.can_generate_crosswords %}<td>{{ crossword.published|date:"D j M" }}</td>{% endif %}
       {% if perms.crossword.can_generate_crosswords %}
       <td><a href="{% url 'crossword_xd' crossword.pk %}"><i class="fa-solid fa-download"></i> Export</a></td>

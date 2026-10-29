@@ -83,7 +83,8 @@ li {
 }
 
 .crossword-table .archive-filter {
-  margin-left: 0.4rem;
+  display: block;
+  margin-top: 0.25rem;
 }
 
 .crossword-table td:last-child,
@@ -189,6 +190,14 @@ button:focus-visible {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
+}
+
+/* On the archive, New crossword is a link sitting beside the Import
+   button, so it takes the button's size. */
+.archive-buttons .btn-icon {
+  font: inherit;
+  padding: 0.5rem 0.95rem;
+  border-radius: 6px;
 }
 
 .buttons button:hover,
